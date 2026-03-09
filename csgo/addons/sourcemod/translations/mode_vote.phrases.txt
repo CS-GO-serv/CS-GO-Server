@@ -1,0 +1,92 @@
+"Phrases"
+{
+    "Mode Menu Title"
+    {
+        "en"    "Available game modes"
+        "ru"    "Доступные игровые режимы"
+    }
+
+    "Vote Menu Title"
+    {
+        "en"    "Vote for the next mode"
+        "ru"    "Голосование за следующий режим"
+    }
+
+    "Mode Name DZ"
+    {
+        "en"    "Danger Zone"
+        "ru"    "Danger Zone"
+    }
+
+    "Mode Name Comp"
+    {
+        "en"    "Competitive"
+        "ru"    "Соревновательный"
+    }
+
+    "Mode Name Casual"
+    {
+        "en"    "Casual"
+        "ru"    "Обычный"
+    }
+
+    "Mode Name DM"
+    {
+        "en"    "Deathmatch"
+        "ru"    "Deathmatch"
+    }
+
+    "Mode Details"
+    {
+        "en"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} map={olive}%s{default} cfg={olive}%s"
+        "ru"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} карта={olive}%s{default} cfg={olive}%s"
+    }
+
+    "Vote Already Running"
+    {
+        "en"    "{red}A mode vote is already running."
+        "ru"    "{red}Голосование за режим уже идёт."
+    }
+
+    "Vote Cooldown"
+    {
+        "en"    "{red}You can start the next vote in %d sec."
+        "ru"    "{red}Следующее голосование можно запустить через %d сек."
+    }
+
+    "Vote Started By"
+    {
+        "en"    "{green}%s {default}started a mode vote!"
+        "ru"    "{green}%s {default}запустил(а) голосование за режим!"
+    }
+
+    "Vote Accepted"
+    {
+        "en"    "{green}Your vote for {lightgreen}%s {green}has been counted."
+        "ru"    "{green}Ваш голос за {lightgreen}%s {green}учтён."
+    }
+
+    "Vote Finished"
+    {
+        "en"    "{green}Vote finished: {lightgreen}%s{green} won with {lightgreen}%d {green}votes. Applying mode..."
+        "ru"    "{green}Голосование завершено: победил режим {lightgreen}%s{green} (%d голосов). Применяю режим..."
+    }
+
+    "Usage ForceMode"
+    {
+        "en"    "Usage: sm_forcemode <dz|comp|casual|dm>"
+        "ru"    "Использование: sm_forcemode <dz|comp|casual|dm>"
+    }
+
+    "Unknown Mode"
+    {
+        "en"    "Unknown mode id: %s"
+        "ru"    "Неизвестный id режима: %s"
+    }
+
+    "Force Mode Success"
+    {
+        "en"    "Forced mode: %s"
+        "ru"    "Принудительно выбран режим: %s"
+    }
+}

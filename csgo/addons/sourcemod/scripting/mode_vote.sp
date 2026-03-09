@@ -5,7 +5,7 @@
 
 #define MODE_VOTE_DURATION 20.0
 #define MODE_VOTE_COOLDOWN 120
-#define MAX_MODES 4
+#define MAX_MODES 3
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 
 enum struct ModeInfo
@@ -25,8 +25,7 @@ static const ModeInfo g_Modes[MAX_MODES] =
 {
     {"dz", "Mode Name DZ", 6, 0, "mg_dz_blacksite", "dz_blacksite", "mode_dz.cfg", "cfg/maplist_dz.txt", "dz_sirocco"},
     {"comp", "Mode Name Comp", 0, 1, "mg_active", "de_mirage", "mode_comp.cfg", "cfg/maplist_comp.txt", "de_dust2"},
-    {"casual", "Mode Name Casual", 0, 0, "mg_casualdelta", "de_mirage", "mode_casual.cfg", "cfg/maplist_casual.txt", "de_anubis"},
-    {"dm", "Mode Name DM", 1, 2, "mg_deathmatch", "de_dust2", "mode_dm.cfg", "cfg/maplist_casual.txt", "de_mirage"}
+    {"casual", "Mode Name Casual", 0, 0, "mg_casualdelta", "de_mirage", "mode_casual.cfg", "cfg/maplist_casual.txt", "de_anubis"}
 };
 
 bool g_VoteInProgress;
@@ -530,6 +529,14 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
     if (!ResolveModeMap(modeIndex, nextMap, sizeof(nextMap), usingFallback))
     {
         LogError("[mode_vote] Mode '%s' has no valid map/start fallback pair. Skipping mode switch.", g_Modes[modeIndex].id);
+        return;
+    }
+
+    char modeCfgPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_Game, modeCfgPath, sizeof(modeCfgPath), "%s", g_Modes[modeIndex].cfgFile);
+    if (!FileExists(modeCfgPath))
+    {
+        LogError("[mode_vote] Mode '%s' cfg is missing: '%s' (resolved '%s'). Skipping mode switch.", g_Modes[modeIndex].id, g_Modes[modeIndex].cfgFile, modeCfgPath);
         return;
     }
 

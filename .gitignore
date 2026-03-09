@@ -18,13 +18,16 @@
 !/csgo/addons/sourcemod/
 !/csgo/addons/sourcemod/configs/
 !/csgo/addons/sourcemod/plugins/
+!/csgo/addons/sourcemod/scripting/
 !/csgo/addons/sourcemod/translations/
+!/csgo/addons/sourcemod/translations/*.txt
 !/csgo/addons/metamod/
 
 # 4. Разрешаем конкретные типы файлов внутри этих папок
 !*.ini
 !*.vdf
 !*.smx
+!*.sp
 
 # 5. Исключения (что НЕ НУЖНО заливать даже если это .txt или .cfg)
 # Игнорируем логи и временные дампы
@@ -32,7 +35,8 @@
 /csgo/cfg/sourcemod/sm_warmode.cfg
 /csgo/addons/sourcemod/logs/
 /csgo/addons/sourcemod/data/
-/csgo/addons/sourcemod/translations/
+/csgo/addons/sourcemod/translations/*
+!/csgo/addons/sourcemod/translations/*.txt
 
 # Игнорируем бэкапы раундов (их у тебя было много)
 csgo/backup_round*.txt

@@ -5,6 +5,7 @@
 
 #define MODE_VOTE_DURATION 20.0
 #define MODE_VOTE_COOLDOWN 120
+#define MODE_VOTE_MIN_PLAYERS 4
 #define MAX_MODES 3
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 
@@ -44,7 +45,7 @@ public Plugin myinfo =
     name = "Mode Vote",
     author = "Codex",
     description = "Mode menu and mode voting with cooldown",
-    version = "1.1.0"
+    version = "1.2.0"
 };
 
 public void OnPluginStart()
@@ -55,7 +56,7 @@ public void OnPluginStart()
     RegConsoleCmd("sm_dz", Command_DzAlias);
     RegConsoleCmd("sm_comp", Command_CompAlias);
 
-    RegAdminCmd("sm_votemode", Command_VoteMode, ADMFLAG_CHANGEMAP);
+    RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzsize", Command_DzSize, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzteams", Command_DzTeams, ADMFLAG_CHANGEMAP);
@@ -364,6 +365,7 @@ public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int
 void TryStartVote(int caller)
 {
     int now = GetTime();
+    int playersOnline = CountHumanPlayers();
 
     if (g_VoteInProgress)
     {
@@ -374,6 +376,12 @@ void TryStartVote(int caller)
     if (now < g_NextVoteAllowedAt)
     {
         PrintToChat(caller, "%t", "Vote Cooldown", g_NextVoteAllowedAt - now);
+        return;
+    }
+
+    if (playersOnline < MODE_VOTE_MIN_PLAYERS)
+    {
+        PrintToChat(caller, "%t", "Vote Not Enough Players", MODE_VOTE_MIN_PLAYERS, playersOnline);
         return;
     }
 
@@ -777,4 +785,19 @@ void LogModeAction(int client, const char[] action, const char[] fmt, any ...)
 bool IsValidClient(int client)
 {
     return (client > 0 && client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client));
+}
+
+int CountHumanPlayers()
+{
+    int count = 0;
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsValidClient(i))
+        {
+            count++;
+        }
+    }
+
+    return count;
 }

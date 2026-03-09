@@ -49,6 +49,13 @@
         "ru"    "{red}Следующее голосование можно запустить через %d сек."
     }
 
+
+    "Vote Not Enough Players"
+    {
+        "en"    "{red}Vote requires at least %d players online (now: %d)."
+        "ru"    "{red}Для голосования нужно минимум %d игроков онлайн (сейчас: %d)."
+    }
+
     "Vote Started By"
     {
         "en"    "{green}%s {default}started a mode vote!"

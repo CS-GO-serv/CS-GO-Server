@@ -16,14 +16,16 @@ enum struct ModeInfo
     char mapgroup[32];
     char startMap[64];
     char cfgFile[64];
+    char mapListFile[96];
+    char fallbackMap[64];
 }
 
 static const ModeInfo g_Modes[MAX_MODES] =
 {
-    {"dz", "Mode Name DZ", 6, 0, "mg_dz", "dz_blacksite", "mode_dz.cfg"},
-    {"comp", "Mode Name Comp", 0, 1, "mg_active", "de_mirage", "mode_comp.cfg"},
-    {"casual", "Mode Name Casual", 0, 0, "mg_casual", "de_dust2", "mode_casual.cfg"},
-    {"dm", "Mode Name DM", 1, 2, "mg_deathmatch", "de_dust2", "mode_dm.cfg"}
+    {"dz", "Mode Name DZ", 6, 0, "mg_dz_blacksite", "dz_blacksite", "mode_dz.cfg", "cfg/maplist_dz.txt", "dz_sirocco"},
+    {"comp", "Mode Name Comp", 0, 1, "mg_active", "de_mirage", "mode_comp.cfg", "cfg/maplist_comp.txt", "de_dust2"},
+    {"casual", "Mode Name Casual", 0, 0, "mg_casualdelta", "de_mirage", "mode_casual.cfg", "cfg/maplist_casual.txt", "de_anubis"},
+    {"dm", "Mode Name DM", 1, 2, "mg_deathmatch", "de_dust2", "mode_dm.cfg", "cfg/maplist_casual.txt", "de_mirage"}
 };
 
 bool g_VoteInProgress;
@@ -446,6 +448,16 @@ void ApplyMode(int modeIndex)
     SetConVarInt(FindConVar("game_type"), g_Modes[modeIndex].gameType);
     SetConVarInt(FindConVar("game_mode"), g_Modes[modeIndex].gameMode);
 
+    SetModeMapList(modeIndex);
+
+    char nextMap[64];
+    bool usingFallback = false;
+    if (!ResolveModeMap(modeIndex, nextMap, sizeof(nextMap), usingFallback))
+    {
+        LogError("[mode_vote] Mode '%s' has no valid map/start fallback pair. Skipping mode switch.", g_Modes[modeIndex].id);
+        return;
+    }
+
     ServerCommand("mapgroup %s", g_Modes[modeIndex].mapgroup);
     ServerCommand("exec %s", g_Modes[modeIndex].cfgFile);
 
@@ -455,7 +467,12 @@ void ApplyMode(int modeIndex)
         SetDzTeamAssignMode(true);
     }
 
-    ServerCommand("changelevel %s", g_Modes[modeIndex].startMap);
+    if (usingFallback)
+    {
+        LogMessage("[mode_vote] Start map '%s' unavailable for mode '%s'; switching to fallback '%s'.", g_Modes[modeIndex].startMap, g_Modes[modeIndex].id, nextMap);
+    }
+
+    ServerCommand("changelevel %s", nextMap);
 }
 
 void ApplyDzSelection(int teamCount, bool autoAssign)
@@ -463,7 +480,7 @@ void ApplyDzSelection(int teamCount, bool autoAssign)
     SetConVarInt(FindConVar("game_type"), 6);
     SetConVarInt(FindConVar("game_mode"), 0);
 
-    ServerCommand("mapgroup mg_dz");
+    ServerCommand("mapgroup mg_dz_blacksite");
     ServerCommand("exec mode_dz.cfg");
 
     char teamCfg[64];
@@ -471,7 +488,106 @@ void ApplyDzSelection(int teamCount, bool autoAssign)
     ServerCommand("exec %s", teamCfg);
 
     SetDzTeamAssignMode(autoAssign);
-    ServerCommand("changelevel dz_blacksite");
+
+    int dzModeIndex = FindModeById("dz");
+    if (dzModeIndex == -1)
+    {
+        ServerCommand("changelevel dz_blacksite");
+        return;
+    }
+
+    SetModeMapList(dzModeIndex);
+
+    char nextMap[64];
+    bool usingFallback = false;
+    if (!ResolveModeMap(dzModeIndex, nextMap, sizeof(nextMap), usingFallback))
+    {
+        LogError("[mode_vote] DZ selection failed: both start/fallback maps are invalid.");
+        return;
+    }
+
+    if (usingFallback)
+    {
+        LogMessage("[mode_vote] DZ start map unavailable, fallback selected: %s.", nextMap);
+    }
+
+    ServerCommand("changelevel %s", nextMap);
+}
+
+void SetModeMapList(int modeIndex)
+{
+    ConVar mapCycle = FindConVar("mapcyclefile");
+    if (mapCycle == null)
+    {
+        LogError("[mode_vote] mapcyclefile cvar not found, cannot switch mode map list.");
+        return;
+    }
+
+    mapCycle.SetString(g_Modes[modeIndex].mapListFile);
+    LogMessage("[mode_vote] mapcyclefile set to '%s' for mode '%s'.", g_Modes[modeIndex].mapListFile, g_Modes[modeIndex].id);
+}
+
+bool ResolveModeMap(int modeIndex, char[] mapName, int maxlen, bool &usingFallback)
+{
+    usingFallback = false;
+
+    if (IsModeMapAllowed(modeIndex, g_Modes[modeIndex].startMap) && IsMapValid(g_Modes[modeIndex].startMap))
+    {
+        strcopy(mapName, maxlen, g_Modes[modeIndex].startMap);
+        return true;
+    }
+
+    usingFallback = true;
+    if (IsModeMapAllowed(modeIndex, g_Modes[modeIndex].fallbackMap) && IsMapValid(g_Modes[modeIndex].fallbackMap))
+    {
+        strcopy(mapName, maxlen, g_Modes[modeIndex].fallbackMap);
+        return true;
+    }
+
+    return false;
+}
+
+bool IsModeMapAllowed(int modeIndex, const char[] mapName)
+{
+    if (modeIndex == FindModeById("dz"))
+    {
+        return StrEqual(mapName, "dz_blacksite", false) || StrEqual(mapName, "dz_sirocco", false)
+            || StrEqual(mapName, "dz_county", false) || StrEqual(mapName, "dz_vineyard", false)
+            || StrEqual(mapName, "dz_ember", false) || StrEqual(mapName, "dz_frostbite", false)
+            || StrEqual(mapName, "dz_junglety", false);
+    }
+
+    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_active", false))
+    {
+        return StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_train", false)
+            || StrEqual(mapName, "de_mirage", false) || StrEqual(mapName, "de_nuke", false)
+            || StrEqual(mapName, "de_dust2", false) || StrEqual(mapName, "de_overpass", false)
+            || StrEqual(mapName, "de_vertigo", false);
+    }
+
+    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_casualdelta", false))
+    {
+        return StrEqual(mapName, "de_anubis", false) || StrEqual(mapName, "de_mirage", false)
+            || StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_overpass", false)
+            || StrEqual(mapName, "de_nuke", false) || StrEqual(mapName, "de_train", false);
+    }
+
+    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_deathmatch", false))
+    {
+        return StrEqual(mapName, "de_dust2", false) || StrEqual(mapName, "de_mirage", false)
+            || StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_cbble", false)
+            || StrEqual(mapName, "de_overpass", false) || StrEqual(mapName, "de_dust", false)
+            || StrEqual(mapName, "de_aztec", false) || StrEqual(mapName, "de_nuke", false)
+            || StrEqual(mapName, "de_vertigo", false) || StrEqual(mapName, "cs_militia", false)
+            || StrEqual(mapName, "cs_assault", false) || StrEqual(mapName, "cs_office", false)
+            || StrEqual(mapName, "cs_italy", false) || StrEqual(mapName, "de_lake", false)
+            || StrEqual(mapName, "de_stmarc", false) || StrEqual(mapName, "de_sugarcane", false)
+            || StrEqual(mapName, "de_bank", false) || StrEqual(mapName, "de_safehouse", false)
+            || StrEqual(mapName, "de_shortdust", false) || StrEqual(mapName, "ar_shoots", false)
+            || StrEqual(mapName, "ar_baggage", false) || StrEqual(mapName, "ar_monastery", false);
+    }
+
+    return false;
 }
 
 void SetDzTeamAssignMode(bool autoAssign)

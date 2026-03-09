@@ -1,0 +1,6 @@
+de_anubis
+de_mirage
+de_inferno
+de_overpass
+de_nuke
+de_train

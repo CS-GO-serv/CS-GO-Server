@@ -685,6 +685,9 @@ void SetDzTeamAssignMode(bool autoAssign)
 
 void GetDzTeamCountCfg(int teamCount, char[] cfgFile, int maxlen)
 {
+    // Spectator policy guard: solo != squads.
+    // Solo uses mode_dz_solo_spectator.cfg (mp_forcecamera 0), while duo/trio use forcecamera 1
+    // in their own cfg files to reduce info leakage between alive squad members and spectators.
     switch (teamCount)
     {
         case 1:

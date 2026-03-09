@@ -57,7 +57,7 @@ git push origin feature/server-name-update
 
 Пример для стабильной ветки:
 ```bash
-git pull origin main
+git pull origin S_Cfg_V1
 ```
 
 ⚠️ **Важно по безопасности:** секреты (`RCON`, `GSLT`, пароли, токены) нельзя коммитить в репозиторий. Храните их в локальных/серверных приватных файлах, которые добавлены в `.gitignore`.

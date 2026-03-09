@@ -94,8 +94,17 @@ srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup 
 
 | Режим | Файл конфигурации | `mp_forcecamera` | Почему |
 |---|---|---:|---|
-| Solo | `csgo/cfg/mode_dz_solo_spectator.cfg` | `0` | В соло нет командного обмена инфо между живыми игроками, поэтому разрешен свободный обзор как отдельный профиль. |
+| Solo | `csgo/cfg/mode_dz_solo.cfg` | `0` | В соло нет командного обмена инфо между живыми игроками, поэтому разрешен свободный обзор. |
 | Duo | `csgo/cfg/mode_dz_duo.cfg` | `1` | В сквадах нужна более строгая политика наблюдения, чтобы снизить риск передачи инфо живым тиммейтам. |
 | Trio | `csgo/cfg/mode_dz_trio.cfg` | `1` | Аналогично Duo: squad-режим и более строгий контроль наблюдения. |
 
 Принцип: **solo != squads** — для одиночного режима и командных режимов применяются разные значения `mp_forcecamera`.
+
+
+## 🧭 Mode Router policy
+
+Для переключения режимов используйте только `csgo/cfg/mode_router.cfg` и его aliases.
+
+- Плагин `mode_vote` переключает профили исключительно через router aliases.
+- Ручные админ-действия в консоли тоже должны идти через router: сначала `exec mode_router.cfg`, затем `mode_comp`, `mode_dz`, `mode_dz_solo`, `mode_dz_duo`, `mode_dz_trio`, `mode_dz_teams_auto`, `mode_dz_teams_open`.
+- Не выполняйте напрямую `exec mode_*.cfg` в обход router, чтобы не ломать единый путь применения профилей.

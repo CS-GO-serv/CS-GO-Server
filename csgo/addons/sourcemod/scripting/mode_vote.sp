@@ -8,6 +8,7 @@
 #define MODE_VOTE_MIN_PLAYERS 4
 #define MAX_MODES 3
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
+#define MODE_ROUTER_CFG "mode_router.cfg"
 
 enum struct ModeInfo
 {
@@ -51,6 +52,9 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
     LoadTranslations("mode_vote.phrases");
+
+    ValidateModeProfilesOrFail();
+    EnsureModeRouterLoaded();
 
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_dz", Command_DzAlias);
@@ -177,7 +181,7 @@ public Action Command_DzSize(int client, int args)
 
     char teamCfg[64];
     GetDzTeamCountCfg(teamCount, teamCfg, sizeof(teamCfg));
-    ServerCommand("exec %s", teamCfg);
+    RunModeRouterAlias(teamCfg);
 
     LogModeAction(client, "sm_dzsize", "dz team size set to %d", teamCount);
     ReplyToCommand(client, "Danger Zone team size set: %d", teamCount);
@@ -549,11 +553,11 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
     }
 
     ServerCommand("mapgroup %s", g_Modes[modeIndex].mapgroup);
-    ServerCommand("exec %s", g_Modes[modeIndex].cfgFile);
+    RunModeRouterAlias(g_Modes[modeIndex].cfgFile);
 
     if (StrEqual(g_Modes[modeIndex].id, "dz", false))
     {
-        ServerCommand("exec mode_dz_duo.cfg");
+        RunModeRouterAlias("mode_dz_duo.cfg");
         SetDzTeamAssignMode(true);
     }
 
@@ -572,11 +576,11 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
     SetConVarInt(FindConVar("game_mode"), 0);
 
     ServerCommand("mapgroup mg_dz_blacksite");
-    ServerCommand("exec mode_dz.cfg");
+    RunModeRouterAlias("mode_dz.cfg");
 
     char teamCfg[64];
     GetDzTeamCountCfg(teamCount, teamCfg, sizeof(teamCfg));
-    ServerCommand("exec %s", teamCfg);
+    RunModeRouterAlias(teamCfg);
 
     SetDzTeamAssignMode(autoAssign);
 
@@ -700,11 +704,11 @@ void SetDzTeamAssignMode(bool autoAssign)
 {
     if (autoAssign)
     {
-        ServerCommand("exec mode_dz_teams_auto.cfg");
+        RunModeRouterAlias("mode_dz_teams_auto.cfg");
     }
     else
     {
-        ServerCommand("exec mode_dz_teams_open.cfg");
+        RunModeRouterAlias("mode_dz_teams_open.cfg");
     }
 
     g_DzAutoShuffleEnabled = autoAssign;
@@ -714,7 +718,7 @@ void SetDzTeamAssignMode(bool autoAssign)
 void GetDzTeamCountCfg(int teamCount, char[] cfgFile, int maxlen)
 {
     // Spectator policy guard: solo != squads.
-    // Solo uses mode_dz_solo_spectator.cfg (mp_forcecamera 0), while duo/trio use forcecamera 1
+    // Solo uses mode_dz_solo.cfg (mp_forcecamera 0), while duo/trio use forcecamera 1
     // in their own cfg files to reduce info leakage between alive squad members and spectators.
     switch (teamCount)
     {
@@ -761,6 +765,106 @@ int FindModeById(const char[] modeId)
     }
 
     return -1;
+}
+
+void ValidateModeProfilesOrFail()
+{
+    static const char requiredProfiles[][] =
+    {
+        "mode_router.cfg",
+        "mode_lobby.cfg",
+        "mode_comp.cfg",
+        "mode_casual.cfg",
+        "mode_dz.cfg",
+        "mode_dz_solo.cfg",
+        "mode_dz_duo.cfg",
+        "mode_dz_trio.cfg",
+        "mode_dz_teams_auto.cfg",
+        "mode_dz_teams_open.cfg"
+    };
+
+    bool missingProfile = false;
+
+    for (int i = 0; i < sizeof(requiredProfiles); i++)
+    {
+        char profilePath[PLATFORM_MAX_PATH];
+        BuildPath(Path_Game, profilePath, sizeof(profilePath), "%s", requiredProfiles[i]);
+
+        if (!FileExists(profilePath))
+        {
+            missingProfile = true;
+            LogError("[mode_vote] Missing mode profile '%s' (resolved '%s').", requiredProfiles[i], profilePath);
+        }
+    }
+
+    if (missingProfile)
+    {
+        SetFailState("[mode_vote] Required mode profiles are missing. Check error logs.");
+    }
+}
+
+void EnsureModeRouterLoaded()
+{
+    ServerCommand("exec %s", MODE_ROUTER_CFG);
+}
+
+void RunModeRouterAlias(const char[] cfgFile)
+{
+    if (StrEqual(cfgFile, "mode_lobby.cfg", false))
+    {
+        ServerCommand("exec %s; mode_lobby", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_comp.cfg", false))
+    {
+        ServerCommand("exec %s; mode_comp", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_casual.cfg", false))
+    {
+        ServerCommand("exec %s; mode_casual", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz_solo.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz_solo", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz_duo.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz_duo", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz_trio.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz_trio", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz_teams_auto.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz_teams_auto", MODE_ROUTER_CFG);
+        return;
+    }
+
+    if (StrEqual(cfgFile, "mode_dz_teams_open.cfg", false))
+    {
+        ServerCommand("exec %s; mode_dz_teams_open", MODE_ROUTER_CFG);
+        return;
+    }
+
+    LogError("[mode_vote] Unknown mode profile '%s': no router alias configured.", cfgFile);
 }
 
 void LogModeAction(int client, const char[] action, const char[] fmt, any ...)

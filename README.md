@@ -34,3 +34,20 @@
 На сервере в консоли (Git Bash) введи:
 ```bash
 git pull origin main
+```
+
+## 🚀 Запуск сервера (Classic и Danger Zone)
+
+Чтобы не смешивать режимы, используйте отдельные bat-скрипты:
+
+- `start_classic.bat` — классический режим (de_mirage).
+- `start_dz.bat` — режим Danger Zone (DZ).
+- `start.bat` — запуск по умолчанию в режиме DZ.
+
+### Пример полной команды запуска для DZ
+
+```bat
+srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup mg_dz_blacksite +map dz_blacksite -port 27015 +sv_setsteamaccount <YOUR_GSLT_TOKEN>
+```
+
+Если запускаете вручную, используйте именно параметры `+game_type 6 +game_mode 0` и DZ-карту (`dz_blacksite`).

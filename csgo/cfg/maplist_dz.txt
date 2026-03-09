@@ -4,4 +4,3 @@ dz_county
 dz_vineyard
 dz_ember
 dz_frostbite
-dz_junglety

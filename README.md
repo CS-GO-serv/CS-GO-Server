@@ -78,6 +78,18 @@ srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup 
 Если запускаете вручную, используйте именно параметры `+game_type 6 +game_mode 0` и DZ-карту (`dz_blacksite`).
 
 
+### Поддерживаемые карты Danger Zone в этой сборке
+
+Список синхронизирован с `csgo/cfg/maplist_dz.txt` и используется плагином `mode_vote` как источник правды:
+
+- `dz_blacksite`
+- `dz_sirocco`
+- `dz_county`
+- `dz_vineyard`
+- `dz_ember`
+- `dz_frostbite`
+
+
 ## 👁️ Политика наблюдения в Danger Zone (`mp_forcecamera`)
 
 | Режим | Файл конфигурации | `mp_forcecamera` | Почему |

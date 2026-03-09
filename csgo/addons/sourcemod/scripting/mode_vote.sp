@@ -642,44 +642,57 @@ bool ResolveModeMap(int modeIndex, char[] mapName, int maxlen, bool &usingFallba
 
 bool IsModeMapAllowed(int modeIndex, const char[] mapName)
 {
-    if (modeIndex == FindModeById("dz"))
+    if (modeIndex < 0 || modeIndex >= MAX_MODES)
     {
-        return StrEqual(mapName, "dz_blacksite", false) || StrEqual(mapName, "dz_sirocco", false)
-            || StrEqual(mapName, "dz_county", false) || StrEqual(mapName, "dz_vineyard", false)
-            || StrEqual(mapName, "dz_ember", false) || StrEqual(mapName, "dz_frostbite", false)
-            || StrEqual(mapName, "dz_junglety", false);
+        LogError("[mode_vote] IsModeMapAllowed called with invalid modeIndex=%d for map '%s'.", modeIndex, mapName);
+        return false;
     }
 
-    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_active", false))
+    bool allowed = IsMapInMapListFile(g_Modes[modeIndex].mapListFile, mapName);
+    if (!allowed)
     {
-        return StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_train", false)
-            || StrEqual(mapName, "de_mirage", false) || StrEqual(mapName, "de_nuke", false)
-            || StrEqual(mapName, "de_dust2", false) || StrEqual(mapName, "de_overpass", false)
-            || StrEqual(mapName, "de_vertigo", false);
+        LogMessage("[mode_vote] map validation failed: mode=%s map='%s' maplist='%s'", g_Modes[modeIndex].id, mapName, g_Modes[modeIndex].mapListFile);
     }
 
-    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_casualdelta", false))
+    return allowed;
+}
+
+bool IsMapInMapListFile(const char[] mapListFile, const char[] mapName)
+{
+    char mapListPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", mapListFile);
+
+    if (!FileExists(mapListPath))
     {
-        return StrEqual(mapName, "de_anubis", false) || StrEqual(mapName, "de_mirage", false)
-            || StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_overpass", false)
-            || StrEqual(mapName, "de_nuke", false) || StrEqual(mapName, "de_train", false);
+        LogError("[mode_vote] map list file does not exist: '%s' (resolved '%s').", mapListFile, mapListPath);
+        return false;
     }
 
-    if (StrEqual(g_Modes[modeIndex].mapgroup, "mg_deathmatch", false))
+    File file = OpenFile(mapListPath, "r");
+    if (file == null)
     {
-        return StrEqual(mapName, "de_dust2", false) || StrEqual(mapName, "de_mirage", false)
-            || StrEqual(mapName, "de_inferno", false) || StrEqual(mapName, "de_cbble", false)
-            || StrEqual(mapName, "de_overpass", false) || StrEqual(mapName, "de_dust", false)
-            || StrEqual(mapName, "de_aztec", false) || StrEqual(mapName, "de_nuke", false)
-            || StrEqual(mapName, "de_vertigo", false) || StrEqual(mapName, "cs_militia", false)
-            || StrEqual(mapName, "cs_assault", false) || StrEqual(mapName, "cs_office", false)
-            || StrEqual(mapName, "cs_italy", false) || StrEqual(mapName, "de_lake", false)
-            || StrEqual(mapName, "de_stmarc", false) || StrEqual(mapName, "de_sugarcane", false)
-            || StrEqual(mapName, "de_bank", false) || StrEqual(mapName, "de_safehouse", false)
-            || StrEqual(mapName, "de_shortdust", false) || StrEqual(mapName, "ar_shoots", false)
-            || StrEqual(mapName, "ar_baggage", false) || StrEqual(mapName, "ar_monastery", false);
+        LogError("[mode_vote] failed to open map list file: '%s' (resolved '%s').", mapListFile, mapListPath);
+        return false;
     }
 
+    char line[128];
+    while (!file.EndOfFile() && file.ReadLine(line, sizeof(line)))
+    {
+        TrimString(line);
+
+        if (line[0] == '\0' || line[0] == ';' || (line[0] == '/' && line[1] == '/'))
+        {
+            continue;
+        }
+
+        if (StrEqual(line, mapName, false))
+        {
+            delete file;
+            return true;
+        }
+    }
+
+    delete file;
     return false;
 }
 

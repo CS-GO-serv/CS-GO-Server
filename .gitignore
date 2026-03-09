@@ -43,3 +43,6 @@ csgo/backup_round*.txt
 # Private local secrets
 /csgo/cfg/server.private.cfg
 /start.local.bat
+
+# Ignore local launcher scripts with secrets
+*.local.bat

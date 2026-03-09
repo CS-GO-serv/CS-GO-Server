@@ -30,11 +30,6 @@
         "ru"    "Обычный"
     }
 
-    "Mode Name DM"
-    {
-        "en"    "Deathmatch"
-        "ru"    "Deathmatch"
-    }
 
     "Mode Details"
     {
@@ -74,8 +69,8 @@
 
     "Usage ForceMode"
     {
-        "en"    "Usage: sm_forcemode <dz|comp|casual|dm>"
-        "ru"    "Использование: sm_forcemode <dz|comp|casual|dm>"
+        "en"    "Usage: sm_forcemode <dz|comp|casual>"
+        "ru"    "Использование: sm_forcemode <dz|comp|casual>"
     }
 
     "Unknown Mode"

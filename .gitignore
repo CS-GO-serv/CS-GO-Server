@@ -36,3 +36,6 @@
 
 # Игнорируем бэкапы раундов (их у тебя было много)
 csgo/backup_round*.txt
+# Private local secrets
+/csgo/cfg/server.private.cfg
+/start.local.bat

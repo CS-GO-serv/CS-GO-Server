@@ -32,6 +32,11 @@ bool g_HasVoted[MAXPLAYERS + 1];
 Handle g_VoteTimer = null;
 int g_NextVoteAllowedAt;
 
+int g_SelectedDzTeamCount[MAXPLAYERS + 1];
+bool g_SelectedDzAutoAssign[MAXPLAYERS + 1];
+bool g_DzAutoShuffleEnabled = true;
+bool g_DzShuffledThisMap;
+
 public Plugin myinfo =
 {
     name = "Mode Vote",
@@ -46,7 +51,15 @@ public void OnPluginStart()
 
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_votemode", Command_VoteMode);
+    RegConsoleCmd("sm_dzteams", Command_DzTeams);
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
+
+    HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+}
+
+public void OnMapStart()
+{
+    g_DzShuffledThisMap = false;
 }
 
 public Action Command_ModeMenu(int client, int args)
@@ -98,6 +111,35 @@ public Action Command_ForceMode(int client, int args)
     return Plugin_Handled;
 }
 
+public Action Command_DzTeams(int client, int args)
+{
+    if (args < 1)
+    {
+        ReplyToCommand(client, "Usage: sm_dzteams <open|auto>");
+        return Plugin_Handled;
+    }
+
+    char teamMode[16];
+    GetCmdArg(1, teamMode, sizeof(teamMode));
+
+    if (StrEqual(teamMode, "auto", false))
+    {
+        SetDzTeamAssignMode(true);
+        ReplyToCommand(client, "Danger Zone team assignment set to auto.");
+        return Plugin_Handled;
+    }
+
+    if (StrEqual(teamMode, "open", false))
+    {
+        SetDzTeamAssignMode(false);
+        ReplyToCommand(client, "Danger Zone team assignment set to manual (open).");
+        return Plugin_Handled;
+    }
+
+    ReplyToCommand(client, "Unknown dzteams mode: %s. Use open|auto.", teamMode);
+    return Plugin_Handled;
+}
+
 void ShowModeMenu(int client)
 {
     Menu menu = new Menu(ModeMenuHandler);
@@ -134,7 +176,112 @@ public int ModeMenuHandler(Menu menu, MenuAction action, int client, int item)
         char modeName[64];
         Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
 
+        if (StrEqual(g_Modes[modeIndex].id, "dz", false))
+        {
+            g_SelectedDzTeamCount[client] = 2;
+            g_SelectedDzAutoAssign[client] = true;
+            ShowDzTeamSizeMenu(client);
+            return 0;
+        }
+
         PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, g_Modes[modeIndex].mapgroup, g_Modes[modeIndex].startMap, g_Modes[modeIndex].cfgFile);
+    }
+
+    return 0;
+}
+
+void ShowDzTeamSizeMenu(int client)
+{
+    Menu menu = new Menu(DzTeamSizeMenuHandler);
+    menu.SetTitle("Danger Zone: Solo / Duo / Trio");
+    menu.AddItem("1", "Solo");
+    menu.AddItem("2", "Duo");
+    menu.AddItem("3", "Trio");
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int DzTeamSizeMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char teamCountStr[4];
+        menu.GetItem(item, teamCountStr, sizeof(teamCountStr));
+
+        int teamCount = StringToInt(teamCountStr);
+        if (teamCount < 1 || teamCount > 3)
+        {
+            teamCount = 2;
+        }
+
+        g_SelectedDzTeamCount[client] = teamCount;
+        ShowDzTeamAssignMenu(client);
+    }
+
+    return 0;
+}
+
+void ShowDzTeamAssignMenu(int client)
+{
+    Menu menu = new Menu(DzTeamAssignMenuHandler);
+    menu.SetTitle("Danger Zone: Авто-распределение / Ручной выбор");
+    menu.AddItem("auto", "Авто-распределение");
+    menu.AddItem("open", "Ручной выбор");
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char assignMode[16];
+        menu.GetItem(item, assignMode, sizeof(assignMode));
+        g_SelectedDzAutoAssign[client] = StrEqual(assignMode, "auto", false);
+
+        int dzModeIndex = FindModeById("dz");
+        if (dzModeIndex == -1)
+        {
+            return 0;
+        }
+
+        char cfgFile[64];
+        GetDzTeamCountCfg(g_SelectedDzTeamCount[client], cfgFile, sizeof(cfgFile));
+
+        char assignLabel[32];
+        if (g_SelectedDzAutoAssign[client])
+        {
+            strcopy(assignLabel, sizeof(assignLabel), "auto");
+        }
+        else
+        {
+            strcopy(assignLabel, sizeof(assignLabel), "open");
+        }
+
+        char modeName[64];
+        Format(modeName, sizeof(modeName), "%T", g_Modes[dzModeIndex].namePhrase, client);
+        PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[dzModeIndex].gameType, g_Modes[dzModeIndex].gameMode, g_Modes[dzModeIndex].mapgroup, g_Modes[dzModeIndex].startMap, cfgFile);
+
+        ApplyDzSelection(g_SelectedDzTeamCount[client], g_SelectedDzAutoAssign[client]);
+        PrintToChat(client, "DZ profile applied: team_count=%d, teams=%s", g_SelectedDzTeamCount[client], assignLabel);
     }
 
     return 0;
@@ -301,7 +448,81 @@ void ApplyMode(int modeIndex)
 
     ServerCommand("mapgroup %s", g_Modes[modeIndex].mapgroup);
     ServerCommand("exec %s", g_Modes[modeIndex].cfgFile);
+
+    if (StrEqual(g_Modes[modeIndex].id, "dz", false))
+    {
+        ServerCommand("exec mode_dz_duo.cfg");
+        SetDzTeamAssignMode(true);
+    }
+
     ServerCommand("changelevel %s", g_Modes[modeIndex].startMap);
+}
+
+void ApplyDzSelection(int teamCount, bool autoAssign)
+{
+    SetConVarInt(FindConVar("game_type"), 6);
+    SetConVarInt(FindConVar("game_mode"), 0);
+
+    ServerCommand("mapgroup mg_dz");
+    ServerCommand("exec mode_dz.cfg");
+
+    char teamCfg[64];
+    GetDzTeamCountCfg(teamCount, teamCfg, sizeof(teamCfg));
+    ServerCommand("exec %s", teamCfg);
+
+    SetDzTeamAssignMode(autoAssign);
+    ServerCommand("changelevel dz_blacksite");
+}
+
+void SetDzTeamAssignMode(bool autoAssign)
+{
+    if (autoAssign)
+    {
+        ServerCommand("exec mode_dz_teams_auto.cfg");
+    }
+    else
+    {
+        ServerCommand("exec mode_dz_teams_open.cfg");
+    }
+
+    g_DzAutoShuffleEnabled = autoAssign;
+    g_DzShuffledThisMap = false;
+}
+
+void GetDzTeamCountCfg(int teamCount, char[] cfgFile, int maxlen)
+{
+    switch (teamCount)
+    {
+        case 1:
+        {
+            strcopy(cfgFile, maxlen, "mode_dz_solo.cfg");
+        }
+        case 3:
+        {
+            strcopy(cfgFile, maxlen, "mode_dz_trio.cfg");
+        }
+        default:
+        {
+            strcopy(cfgFile, maxlen, "mode_dz_duo.cfg");
+        }
+    }
+}
+
+public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+    if (!g_DzAutoShuffleEnabled || g_DzShuffledThisMap)
+    {
+        return;
+    }
+
+    ConVar gameType = FindConVar("game_type");
+    if (gameType == null || gameType.IntValue != 6)
+    {
+        return;
+    }
+
+    ServerCommand("dz_shuffle_teams");
+    g_DzShuffledThisMap = true;
 }
 
 int FindModeById(const char[] modeId)

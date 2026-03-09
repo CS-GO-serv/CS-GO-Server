@@ -8,5 +8,61 @@
 
 "Commands"
 {
+    "Режимы сервера"
+    {
+        "Сменить режим"
+        {
+            "admin"     "sm_forcemode"
+            "cmd"       "sm_forcemode #1"
+            "execute"   "server"
 
+            "1"
+            {
+                "type"   "list"
+                "title"  "Режим"
+                "1"      "dz"
+                "2"      "comp"
+                "3"      "casual"
+                "4"      "dm"
+            }
+        }
+
+        "DZ: Solo/Duo/Trio"
+        {
+            "admin"     "sm_dzsize"
+            "cmd"       "sm_dzsize #1"
+            "execute"   "server"
+
+            "1"
+            {
+                "type"   "list"
+                "title"  "Размер отрядов DZ"
+                "1"      "solo"
+                "2"      "duo"
+                "3"      "trio"
+            }
+        }
+
+        "DZ: Auto/Manual squads"
+        {
+            "admin"     "sm_dzteams"
+            "cmd"       "sm_dzteams #1"
+            "execute"   "server"
+
+            "1"
+            {
+                "type"   "list"
+                "title"  "Распределение команд DZ"
+                "1"      "auto"
+                "2"      "open"
+            }
+        }
+
+        "Запустить голосование за режим"
+        {
+            "admin"     "sm_votemode"
+            "cmd"       "sm_votemode"
+            "execute"   "server"
+        }
+    }
 }

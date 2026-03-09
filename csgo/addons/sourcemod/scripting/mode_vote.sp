@@ -6,6 +6,7 @@
 #define MODE_VOTE_DURATION 20.0
 #define MODE_VOTE_COOLDOWN 120
 #define MAX_MODES 4
+#define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 
 enum struct ModeInfo
 {
@@ -44,7 +45,7 @@ public Plugin myinfo =
     name = "Mode Vote",
     author = "Codex",
     description = "Mode menu and mode voting with cooldown",
-    version = "1.0.0"
+    version = "1.1.0"
 };
 
 public void OnPluginStart()
@@ -52,9 +53,13 @@ public void OnPluginStart()
     LoadTranslations("mode_vote.phrases");
 
     RegConsoleCmd("sm_mode", Command_ModeMenu);
-    RegConsoleCmd("sm_votemode", Command_VoteMode);
-    RegConsoleCmd("sm_dzteams", Command_DzTeams);
+    RegConsoleCmd("sm_dz", Command_DzAlias);
+    RegConsoleCmd("sm_comp", Command_CompAlias);
+
+    RegAdminCmd("sm_votemode", Command_VoteMode, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_dzsize", Command_DzSize, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_dzteams", Command_DzTeams, ADMFLAG_CHANGEMAP);
 
     HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 }
@@ -72,6 +77,37 @@ public Action Command_ModeMenu(int client, int args)
     }
 
     ShowModeMenu(client);
+    return Plugin_Handled;
+}
+
+public Action Command_DzAlias(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    g_SelectedDzTeamCount[client] = 2;
+    g_SelectedDzAutoAssign[client] = true;
+    ShowDzTeamSizeMenu(client);
+    return Plugin_Handled;
+}
+
+public Action Command_CompAlias(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    int modeIndex = FindModeById("comp");
+    if (modeIndex != -1)
+    {
+        char modeName[64];
+        Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
+        PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, g_Modes[modeIndex].mapgroup, g_Modes[modeIndex].startMap, g_Modes[modeIndex].cfgFile);
+    }
+
     return Plugin_Handled;
 }
 
@@ -104,12 +140,47 @@ public Action Command_ForceMode(int client, int args)
         return Plugin_Handled;
     }
 
-    ApplyMode(modeIndex);
+    ApplyMode(modeIndex, client, "sm_forcemode");
 
     char modeName[64];
     Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
     ReplyToCommand(client, "%t", "Force Mode Success", modeName);
 
+    return Plugin_Handled;
+}
+
+public Action Command_DzSize(int client, int args)
+{
+    if (args < 1)
+    {
+        ReplyToCommand(client, "Usage: sm_dzsize <solo|duo|trio>");
+        return Plugin_Handled;
+    }
+
+    char dzSize[16];
+    GetCmdArg(1, dzSize, sizeof(dzSize));
+
+    int teamCount = 2;
+    if (StrEqual(dzSize, "solo", false) || StrEqual(dzSize, "1", false))
+    {
+        teamCount = 1;
+    }
+    else if (StrEqual(dzSize, "trio", false) || StrEqual(dzSize, "3", false))
+    {
+        teamCount = 3;
+    }
+    else if (!StrEqual(dzSize, "duo", false) && !StrEqual(dzSize, "2", false))
+    {
+        ReplyToCommand(client, "Unknown dzsize value: %s. Use solo|duo|trio.", dzSize);
+        return Plugin_Handled;
+    }
+
+    char teamCfg[64];
+    GetDzTeamCountCfg(teamCount, teamCfg, sizeof(teamCfg));
+    ServerCommand("exec %s", teamCfg);
+
+    LogModeAction(client, "sm_dzsize", "dz team size set to %d", teamCount);
+    ReplyToCommand(client, "Danger Zone team size set: %d", teamCount);
     return Plugin_Handled;
 }
 
@@ -127,13 +198,15 @@ public Action Command_DzTeams(int client, int args)
     if (StrEqual(teamMode, "auto", false))
     {
         SetDzTeamAssignMode(true);
+        LogModeAction(client, "sm_dzteams", "dz teams set to auto");
         ReplyToCommand(client, "Danger Zone team assignment set to auto.");
         return Plugin_Handled;
     }
 
-    if (StrEqual(teamMode, "open", false))
+    if (StrEqual(teamMode, "open", false) || StrEqual(teamMode, "manual", false))
     {
         SetDzTeamAssignMode(false);
+        LogModeAction(client, "sm_dzteams", "dz teams set to manual/open");
         ReplyToCommand(client, "Danger Zone team assignment set to manual (open).");
         return Plugin_Handled;
     }
@@ -282,7 +355,7 @@ public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int
         Format(modeName, sizeof(modeName), "%T", g_Modes[dzModeIndex].namePhrase, client);
         PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[dzModeIndex].gameType, g_Modes[dzModeIndex].gameMode, g_Modes[dzModeIndex].mapgroup, g_Modes[dzModeIndex].startMap, cfgFile);
 
-        ApplyDzSelection(g_SelectedDzTeamCount[client], g_SelectedDzAutoAssign[client]);
+        ApplyDzSelection(g_SelectedDzTeamCount[client], g_SelectedDzAutoAssign[client], client, "chat !dz");
         PrintToChat(client, "DZ profile applied: team_count=%d, teams=%s", g_SelectedDzTeamCount[client], assignLabel);
     }
 
@@ -332,6 +405,8 @@ void StartVote(int caller)
     char callerName[MAX_NAME_LENGTH];
     GetClientName(caller, callerName, sizeof(callerName));
     PrintToChatAll("%t", "Vote Started By", callerName);
+
+    LogModeAction(caller, "sm_votemode", "started mode vote");
 
     if (g_VoteTimer != null)
     {
@@ -433,12 +508,12 @@ public Action Timer_FinishVote(Handle timer)
     Format(modeName, sizeof(modeName), "%T", g_Modes[winnerIndex].namePhrase, LANG_SERVER);
     PrintToChatAll("%t", "Vote Finished", modeName, g_VoteCounts[winnerIndex]);
 
-    ApplyMode(winnerIndex);
+    ApplyMode(winnerIndex, 0, "vote winner");
 
     return Plugin_Stop;
 }
 
-void ApplyMode(int modeIndex)
+void ApplyMode(int modeIndex, int actorClient, const char[] source)
 {
     if (modeIndex < 0 || modeIndex >= MAX_MODES)
     {
@@ -472,10 +547,11 @@ void ApplyMode(int modeIndex)
         LogMessage("[mode_vote] Start map '%s' unavailable for mode '%s'; switching to fallback '%s'.", g_Modes[modeIndex].startMap, g_Modes[modeIndex].id, nextMap);
     }
 
+    LogModeAction(actorClient, source, "mode=%s game_type=%d game_mode=%d map=%s", g_Modes[modeIndex].id, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, nextMap);
     ServerCommand("changelevel %s", nextMap);
 }
 
-void ApplyDzSelection(int teamCount, bool autoAssign)
+void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const char[] source)
 {
     SetConVarInt(FindConVar("game_type"), 6);
     SetConVarInt(FindConVar("game_mode"), 0);
@@ -492,6 +568,7 @@ void ApplyDzSelection(int teamCount, bool autoAssign)
     int dzModeIndex = FindModeById("dz");
     if (dzModeIndex == -1)
     {
+        LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=dz_blacksite", teamCount, autoAssign ? 1 : 0);
         ServerCommand("changelevel dz_blacksite");
         return;
     }
@@ -511,6 +588,7 @@ void ApplyDzSelection(int teamCount, bool autoAssign)
         LogMessage("[mode_vote] DZ start map unavailable, fallback selected: %s.", nextMap);
     }
 
+    LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=%s", teamCount, autoAssign ? 1 : 0, nextMap);
     ServerCommand("changelevel %s", nextMap);
 }
 
@@ -652,6 +730,38 @@ int FindModeById(const char[] modeId)
     }
 
     return -1;
+}
+
+void LogModeAction(int client, const char[] action, const char[] fmt, any ...)
+{
+    char detail[256];
+    VFormat(detail, sizeof(detail), fmt, 4);
+
+    char timestamp[32];
+    FormatTime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", GetTime());
+
+    char actorName[MAX_NAME_LENGTH];
+    char actorAuth[64];
+
+    if (client > 0 && client <= MaxClients)
+    {
+        if (!GetClientName(client, actorName, sizeof(actorName)))
+        {
+            strcopy(actorName, sizeof(actorName), "unknown");
+        }
+
+        if (!GetClientAuthId(client, AuthId_Steam2, actorAuth, sizeof(actorAuth), true))
+        {
+            strcopy(actorAuth, sizeof(actorAuth), "unknown");
+        }
+    }
+    else
+    {
+        strcopy(actorName, sizeof(actorName), "server");
+        strcopy(actorAuth, sizeof(actorAuth), "N/A");
+    }
+
+    LogToFileEx(MODE_ACTION_LOG, "[%s] actor=%s (%s) action=%s %s", timestamp, actorName, actorAuth, action, detail);
 }
 
 bool IsValidClient(int client)

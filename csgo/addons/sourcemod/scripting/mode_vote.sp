@@ -44,6 +44,7 @@ int g_SelectedDzTeamCount[MAXPLAYERS + 1];
 bool g_SelectedDzAutoAssign[MAXPLAYERS + 1];
 bool g_DzAutoShuffleEnabled = true;
 bool g_DzShuffledThisMap;
+int g_SelectedModeIndex[MAXPLAYERS + 1];
 
 public Plugin myinfo =
 {
@@ -73,6 +74,11 @@ public void OnPluginStart()
     HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 
     ReloadModeMapCaches("OnPluginStart", 0);
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        g_SelectedModeIndex[i] = -1;
+    }
 }
 
 public void OnMapStart()
@@ -88,6 +94,7 @@ public Action Command_ModeMenu(int client, int args)
         return Plugin_Handled;
     }
 
+    PrintToChat(client, "%t", "Hint Mode Main Flow");
     ShowModeMenu(client);
     return Plugin_Handled;
 }
@@ -276,17 +283,77 @@ public int ModeMenuHandler(Menu menu, MenuAction action, int client, int item)
             return 0;
         }
 
-        char modeName[64];
-        Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
-
         if (StrEqual(g_Modes[modeIndex].id, "dz", false))
         {
+            g_SelectedModeIndex[client] = modeIndex;
             g_SelectedDzTeamCount[client] = 2;
             g_SelectedDzAutoAssign[client] = true;
             ShowDzTeamSizeMenu(client);
             return 0;
         }
 
+        g_SelectedModeIndex[client] = modeIndex;
+        ShowModeActionMenu(client, modeIndex);
+    }
+
+    return 0;
+}
+
+void ShowModeActionMenu(int client, int modeIndex)
+{
+    Menu menu = new Menu(ModeActionMenuHandler);
+    menu.SetTitle("%T", "Menu Mode Action Title", client);
+
+    char voteLabel[64];
+    char adminLabel[64];
+    char infoLabel[64];
+    Format(voteLabel, sizeof(voteLabel), "%T", "Menu Mode Action Vote", client);
+    Format(adminLabel, sizeof(adminLabel), "%T", "Menu Mode Action Ask Admin", client);
+    Format(infoLabel, sizeof(infoLabel), "%T", "Menu Mode Action Info", client);
+
+    menu.AddItem("vote", voteLabel);
+    menu.AddItem("admin", adminLabel);
+    menu.AddItem("info", infoLabel);
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeActionMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        int modeIndex = g_SelectedModeIndex[client];
+        if (modeIndex < 0 || modeIndex >= MAX_MODES)
+        {
+            return 0;
+        }
+
+        char actionId[16];
+        menu.GetItem(item, actionId, sizeof(actionId));
+
+        if (StrEqual(actionId, "vote", false))
+        {
+            TryStartVote(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "admin", false))
+        {
+            RequestAdminModeApply(client, modeIndex, false);
+            return 0;
+        }
+
+        char modeName[64];
+        Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
         PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, g_Modes[modeIndex].mapgroup, g_Modes[modeIndex].startMap, g_Modes[modeIndex].cfgFile);
     }
 
@@ -380,28 +447,108 @@ public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int
             return 0;
         }
 
-        char cfgFile[64];
-        GetDzTeamCountCfg(g_SelectedDzTeamCount[client], cfgFile, sizeof(cfgFile));
-
-        char assignLabel[32];
-        if (g_SelectedDzAutoAssign[client])
-        {
-            Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Auto", client);
-        }
-        else
-        {
-            Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Manual", client);
-        }
-
-        char modeName[64];
-        Format(modeName, sizeof(modeName), "%T", g_Modes[dzModeIndex].namePhrase, client);
-        PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[dzModeIndex].gameType, g_Modes[dzModeIndex].gameMode, g_Modes[dzModeIndex].mapgroup, g_Modes[dzModeIndex].startMap, cfgFile);
-
-        ApplyDzSelection(g_SelectedDzTeamCount[client], g_SelectedDzAutoAssign[client], client, "chat !dz");
-        PrintToChat(client, "%t", "Success Dz Profile Applied", g_SelectedDzTeamCount[client], assignLabel);
+        g_SelectedModeIndex[client] = dzModeIndex;
+        ShowDzFinalActionMenu(client);
     }
 
     return 0;
+}
+
+void ShowDzFinalActionMenu(int client)
+{
+    Menu menu = new Menu(DzFinalActionMenuHandler);
+    menu.SetTitle("%T", "Menu Dz Final Action Title", client);
+
+    char applyLabel[64];
+    char voteLabel[64];
+    Format(applyLabel, sizeof(applyLabel), "%T", "Menu Dz Final Action Apply", client);
+    Format(voteLabel, sizeof(voteLabel), "%T", "Menu Dz Final Action Vote", client);
+
+    menu.AddItem("apply", applyLabel);
+    menu.AddItem("vote", voteLabel);
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int DzFinalActionMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char actionId[16];
+        menu.GetItem(item, actionId, sizeof(actionId));
+
+        if (StrEqual(actionId, "apply", false))
+        {
+            RequestAdminModeApply(client, FindModeById("dz"), true);
+            return 0;
+        }
+
+        TryStartVote(client);
+    }
+
+    return 0;
+}
+
+void RequestAdminModeApply(int client, int modeIndex, bool dzProfile)
+{
+    if (modeIndex < 0 || modeIndex >= MAX_MODES)
+    {
+        return;
+    }
+
+    char requester[MAX_NAME_LENGTH];
+    GetClientName(client, requester, sizeof(requester));
+
+    char modeName[64];
+    Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
+
+    int adminCount = 0;
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (!IsValidClient(i) || !CheckCommandAccess(i, "mode_vote_admin_notify", ADMFLAG_CHANGEMAP, true))
+        {
+            continue;
+        }
+
+        if (dzProfile)
+        {
+            char assignLabel[32];
+            if (g_SelectedDzAutoAssign[client])
+            {
+                Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Auto", i);
+            }
+            else
+            {
+                Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Manual", i);
+            }
+
+            PrintToChat(i, "%t", "Mode Admin Request Dz To Admin", requester, g_SelectedDzTeamCount[client], assignLabel);
+        }
+        else
+        {
+            PrintToChat(i, "%t", "Mode Admin Request To Admin", requester, modeName, g_Modes[modeIndex].id);
+        }
+
+        adminCount++;
+    }
+
+    if (adminCount > 0)
+    {
+        PrintToChat(client, "%t", "Mode Admin Request Sent", modeName);
+    }
+    else
+    {
+        PrintToChat(client, "%t", "Mode Admin Request No Admin", modeName);
+    }
 }
 
 void TryStartVote(int caller)

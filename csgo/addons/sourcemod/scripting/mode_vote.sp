@@ -667,8 +667,15 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
 
 void SetModeMapList(int modeIndex, ConVar mapCycle)
 {
+    if (modeIndex < 0 || modeIndex >= MAX_MODES)
+    {
+        LogError("[mode_vote] SetModeMapList called with invalid modeIndex=%d.", modeIndex);
+        return;
+    }
+
     mapCycle.SetString(g_Modes[modeIndex].mapListFile);
-    LogMessage("[mode_vote] mapcyclefile set to '%s' for mode '%s'.", g_Modes[modeIndex].mapListFile, g_Modes[modeIndex].id);
+
+    LogMessage("[mode_vote] active maplist for mode '%s': '%s' via mapcyclefile (shared pool for mapchooser, nominations, sm_map menu, sm_votemap menu, randomcycle).", g_Modes[modeIndex].id, g_Modes[modeIndex].mapListFile);
 }
 
 bool TryGetGameplayConVars(ConVar &gameType, ConVar &gameMode, const char[] source, const char[] modeId)

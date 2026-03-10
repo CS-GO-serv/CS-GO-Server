@@ -1,5 +1,8 @@
 "Phrases"
 {
+    // ====================
+    // MENU
+    // ====================
     "Mode Menu Title"
     {
         "en"    "Available game modes"
@@ -10,6 +13,48 @@
     {
         "en"    "Vote for the next mode"
         "ru"    "Голосование за следующий режим"
+    }
+
+    "Menu Dz Team Size Title"
+    {
+        "en"    "Danger Zone: team size"
+        "ru"    "Danger Zone: размер команды"
+    }
+
+    "Menu Dz Team Size Solo"
+    {
+        "en"    "Solo"
+        "ru"    "Соло"
+    }
+
+    "Menu Dz Team Size Duo"
+    {
+        "en"    "Duo"
+        "ru"    "Дуо"
+    }
+
+    "Menu Dz Team Size Trio"
+    {
+        "en"    "Trio"
+        "ru"    "Трио"
+    }
+
+    "Menu Dz Team Assign Title"
+    {
+        "en"    "Danger Zone: auto-assignment / manual selection"
+        "ru"    "Danger Zone: авто-распределение / ручной выбор"
+    }
+
+    "Menu Dz Team Assign Auto"
+    {
+        "en"    "Auto-assignment"
+        "ru"    "Авто-распределение"
+    }
+
+    "Menu Dz Team Assign Manual"
+    {
+        "en"    "Manual selection"
+        "ru"    "Ручной выбор"
     }
 
     "Mode Name DZ"
@@ -30,13 +75,9 @@
         "ru"    "Обычный"
     }
 
-
-    "Mode Details"
-    {
-        "en"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} map={olive}%s{default} cfg={olive}%s"
-        "ru"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} карта={olive}%s{default} cfg={olive}%s"
-    }
-
+    // ====================
+    // ERRORS
+    // ====================
     "Vote Already Running"
     {
         "en"    "{red}A mode vote is already running."
@@ -49,11 +90,67 @@
         "ru"    "{red}Следующее голосование можно запустить через %d сек."
     }
 
-
     "Vote Not Enough Players"
     {
         "en"    "{red}Vote requires at least %d players online (now: %d)."
         "ru"    "{red}Для голосования нужно минимум %d игроков онлайн (сейчас: %d)."
+    }
+
+    "Unknown Mode"
+    {
+        "en"    "Unknown mode id: %s"
+        "ru"    "Неизвестный id режима: %s"
+    }
+
+    "Error Unknown DzSize"
+    {
+        "en"    "Unknown sm_dzsize value: %s. Use solo|duo|trio."
+        "ru"    "Неизвестное значение sm_dzsize: %s. Используйте solo|duo|trio."
+    }
+
+    "Error Unknown DzTeams"
+    {
+        "en"    "Unknown sm_dzteams value: %s. Use open|auto."
+        "ru"    "Неизвестное значение sm_dzteams: %s. Используйте open|auto."
+    }
+
+    "Error Mode Switch Cancelled"
+    {
+        "en"    "{red}[ModeVote] Mode switch cancelled: server configuration error (mode=%s)."
+        "ru"    "{red}[ModeVote] Переключение режима отменено: ошибка конфигурации сервера (режим=%s)."
+    }
+
+    // ====================
+    // SUCCESS
+    // ====================
+    "Force Mode Success"
+    {
+        "en"    "Forced mode: %s"
+        "ru"    "Принудительно выбран режим: %s"
+    }
+
+    "Success DzSize Set"
+    {
+        "en"    "Danger Zone team size set: %d"
+        "ru"    "Размер команды Danger Zone установлен: %d"
+    }
+
+    "Success DzTeams Auto"
+    {
+        "en"    "Danger Zone team assignment set to auto-assignment."
+        "ru"    "Назначение команд Danger Zone: авто-распределение."
+    }
+
+    "Success DzTeams Manual"
+    {
+        "en"    "Danger Zone team assignment set to manual selection."
+        "ru"    "Назначение команд Danger Zone: ручной выбор."
+    }
+
+    "Success Dz Profile Applied"
+    {
+        "en"    "Danger Zone profile applied: team size=%d, teams=%s"
+        "ru"    "Профиль Danger Zone применён: размер команды=%d, команды=%s"
     }
 
     "Vote Started By"
@@ -74,21 +171,39 @@
         "ru"    "{green}Голосование завершено: победил режим {lightgreen}%s{green} (%d голосов). Применяю режим..."
     }
 
+    // ====================
+    // COMMAND HINTS
+    // ====================
     "Usage ForceMode"
     {
         "en"    "Usage: sm_forcemode <dz|comp|casual>"
         "ru"    "Использование: sm_forcemode <dz|comp|casual>"
     }
 
-    "Unknown Mode"
+    "Cmd Usage DzSize"
     {
-        "en"    "Unknown mode id: %s"
-        "ru"    "Неизвестный id режима: %s"
+        "en"    "Usage: sm_dzsize <solo|duo|trio>"
+        "ru"    "Использование: sm_dzsize <solo|duo|trio>"
     }
 
-    "Force Mode Success"
+    "Cmd Usage DzTeams"
     {
-        "en"    "Forced mode: %s"
-        "ru"    "Принудительно выбран режим: %s"
+        "en"    "Usage: sm_dzteams <open|auto>"
+        "ru"    "Использование: sm_dzteams <open|auto>"
+    }
+
+    "Hint Missing Convars Console"
+    {
+        "en"    "[ModeVote] Mode switch cancelled: required ConVars are missing. source='%s' mode='%s'."
+        "ru"    "[ModeVote] Переключение режима отменено: отсутствуют обязательные ConVar. source='%s' mode='%s'."
+    }
+
+    // ====================
+    // INFO
+    // ====================
+    "Mode Details"
+    {
+        "en"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} map={olive}%s{default} cfg={olive}%s"
+        "ru"    "{lightgreen}%s{default}: type=%d mode=%d mapgroup={olive}%s{default} карта={olive}%s{default} cfg={olive}%s"
     }
 }

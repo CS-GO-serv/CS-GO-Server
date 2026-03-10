@@ -46,3 +46,5 @@ csgo/backup_round*.txt
 
 # Ignore local launcher scripts with secrets
 *.local.bat
+start_dz.local.bat
+start_classic.local.bat

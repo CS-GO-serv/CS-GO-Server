@@ -531,10 +531,18 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
         return;
     }
 
-    SetConVarInt(FindConVar("game_type"), g_Modes[modeIndex].gameType);
-    SetConVarInt(FindConVar("game_mode"), g_Modes[modeIndex].gameMode);
+    ConVar gameType = null;
+    ConVar gameMode = null;
+    ConVar mapCycle = null;
+    if (!PreflightModeSwitchCvars(source, g_Modes[modeIndex].id, actorClient, gameType, gameMode, mapCycle))
+    {
+        return;
+    }
 
-    SetModeMapList(modeIndex);
+    gameType.SetInt(g_Modes[modeIndex].gameType);
+    gameMode.SetInt(g_Modes[modeIndex].gameMode);
+
+    SetModeMapList(modeIndex, mapCycle);
 
     char nextMap[64];
     bool usingFallback = false;
@@ -572,8 +580,16 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
 
 void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const char[] source)
 {
-    SetConVarInt(FindConVar("game_type"), 6);
-    SetConVarInt(FindConVar("game_mode"), 0);
+    ConVar gameType = null;
+    ConVar gameMode = null;
+    ConVar mapCycle = null;
+    if (!PreflightModeSwitchCvars(source, "dz", actorClient, gameType, gameMode, mapCycle))
+    {
+        return;
+    }
+
+    gameType.SetInt(6);
+    gameMode.SetInt(0);
 
     ServerCommand("mapgroup mg_dz_blacksite");
     RunModeRouterAlias("mode_dz.cfg");
@@ -592,7 +608,7 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
         return;
     }
 
-    SetModeMapList(dzModeIndex);
+    SetModeMapList(dzModeIndex, mapCycle);
 
     char nextMap[64];
     bool usingFallback = false;
@@ -611,17 +627,57 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
     ServerCommand("changelevel %s", nextMap);
 }
 
-void SetModeMapList(int modeIndex)
+void SetModeMapList(int modeIndex, ConVar mapCycle)
 {
-    ConVar mapCycle = FindConVar("mapcyclefile");
-    if (mapCycle == null)
-    {
-        LogError("[mode_vote] mapcyclefile cvar not found, cannot switch mode map list.");
-        return;
-    }
-
     mapCycle.SetString(g_Modes[modeIndex].mapListFile);
     LogMessage("[mode_vote] mapcyclefile set to '%s' for mode '%s'.", g_Modes[modeIndex].mapListFile, g_Modes[modeIndex].id);
+}
+
+bool TryGetGameplayConVars(ConVar &gameType, ConVar &gameMode, const char[] source, const char[] modeId)
+{
+    gameType = FindConVar("game_type");
+    if (gameType == null)
+    {
+        LogError("[mode_vote] Missing required ConVar 'game_type'. source='%s' mode='%s'.", source, modeId);
+        return false;
+    }
+
+    gameMode = FindConVar("game_mode");
+    if (gameMode == null)
+    {
+        LogError("[mode_vote] Missing required ConVar 'game_mode'. source='%s' mode='%s'.", source, modeId);
+        return false;
+    }
+
+    return true;
+}
+
+bool PreflightModeSwitchCvars(const char[] source, const char[] modeId, int actorClient, ConVar &gameType, ConVar &gameMode, ConVar &mapCycle)
+{
+    if (!TryGetGameplayConVars(gameType, gameMode, source, modeId))
+    {
+        NotifyModeSwitchCancelled(actorClient, source, modeId);
+        return false;
+    }
+
+    mapCycle = FindConVar("mapcyclefile");
+    if (mapCycle == null)
+    {
+        LogError("[mode_vote] Missing required ConVar 'mapcyclefile'. source='%s' mode='%s'.", source, modeId);
+        NotifyModeSwitchCancelled(actorClient, source, modeId);
+        return false;
+    }
+
+    return true;
+}
+
+void NotifyModeSwitchCancelled(int actorClient, const char[] source, const char[] modeId)
+{
+    if (IsValidClient(actorClient))
+    {
+        PrintToChat(actorClient, "[ModeVote] Переключение режима отменено: ошибка конфигурации сервера (mode=%s).", modeId);
+        PrintToConsole(actorClient, "[ModeVote] Переключение режима отменено: отсутствуют обязательные ConVar. source='%s' mode='%s'.", source, modeId);
+    }
 }
 
 bool ResolveModeMap(int modeIndex, char[] mapName, int maxlen, bool &usingFallback)

@@ -36,6 +36,10 @@ bool g_HasVoted[MAXPLAYERS + 1];
 Handle g_VoteTimer = null;
 int g_NextVoteAllowedAt;
 
+ArrayList g_ModeMapCache[MAX_MODES];
+bool g_ModeMapCacheLoaded[MAX_MODES];
+char g_ModeMapCacheError[MAX_MODES][192];
+
 int g_SelectedDzTeamCount[MAXPLAYERS + 1];
 bool g_SelectedDzAutoAssign[MAXPLAYERS + 1];
 bool g_DzAutoShuffleEnabled = true;
@@ -64,13 +68,17 @@ public void OnPluginStart()
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzsize", Command_DzSize, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzteams", Command_DzTeams, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_mode_reloadlists", Command_ReloadModeLists, ADMFLAG_CHANGEMAP);
 
     HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+
+    ReloadModeMapCaches("OnPluginStart", 0);
 }
 
 public void OnMapStart()
 {
     g_DzShuffledThisMap = false;
+    ReloadModeMapCaches("OnMapStart", 0);
 }
 
 public Action Command_ModeMenu(int client, int args)
@@ -216,6 +224,22 @@ public Action Command_DzTeams(int client, int args)
     }
 
     ReplyToCommand(client, "%t", "Error Unknown DzTeams", teamMode);
+    return Plugin_Handled;
+}
+
+public Action Command_ReloadModeLists(int client, int args)
+{
+    bool allLoaded = ReloadModeMapCaches("sm_mode_reloadlists", client);
+
+    if (allLoaded)
+    {
+        ReplyToCommand(client, "[mode_vote] map lists cache reloaded successfully for all modes.");
+    }
+    else
+    {
+        ReplyToCommand(client, "[mode_vote] map lists cache reloaded with errors. See logs for failed modes.");
+    }
+
     return Plugin_Handled;
 }
 
@@ -722,7 +746,13 @@ bool IsModeMapAllowed(int modeIndex, const char[] mapName)
         return false;
     }
 
-    bool allowed = IsMapInMapListFile(g_Modes[modeIndex].mapListFile, mapName);
+    if (!g_ModeMapCacheLoaded[modeIndex] || g_ModeMapCache[modeIndex] == null)
+    {
+        LogError("[mode_vote] map validation failed: cache unavailable for mode=%s map='%s' error='%s'", g_Modes[modeIndex].id, mapName, g_ModeMapCacheError[modeIndex]);
+        return false;
+    }
+
+    bool allowed = IsMapInModeCache(modeIndex, mapName);
     if (!allowed)
     {
         LogMessage("[mode_vote] map validation failed: mode=%s map='%s' maplist='%s'", g_Modes[modeIndex].id, mapName, g_Modes[modeIndex].mapListFile);
@@ -731,25 +761,101 @@ bool IsModeMapAllowed(int modeIndex, const char[] mapName)
     return allowed;
 }
 
-bool IsMapInMapListFile(const char[] mapListFile, const char[] mapName)
+bool IsMapInModeCache(int modeIndex, const char[] mapName)
 {
+    ArrayList cache = g_ModeMapCache[modeIndex];
+    if (cache == null)
+    {
+        return false;
+    }
+
+    char cachedMap[64];
+    int count = cache.Length;
+    for (int i = 0; i < count; i++)
+    {
+        cache.GetString(i, cachedMap, sizeof(cachedMap));
+        if (StrEqual(cachedMap, mapName, false))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+void FormatActorLabel(int actorClient, char[] actorLabel, int maxlen)
+{
+    if (actorClient > 0 && actorClient <= MaxClients)
+    {
+        if (!GetClientName(actorClient, actorLabel, maxlen))
+        {
+            strcopy(actorLabel, maxlen, "unknown");
+        }
+        return;
+    }
+
+    strcopy(actorLabel, maxlen, "server");
+}
+
+bool ReloadModeMapCaches(const char[] source, int actorClient)
+{
+    bool allLoaded = true;
+
+    for (int modeIndex = 0; modeIndex < MAX_MODES; modeIndex++)
+    {
+        if (!LoadModeMapCache(modeIndex, source, actorClient))
+        {
+            allLoaded = false;
+        }
+    }
+
+    return allLoaded;
+}
+
+bool LoadModeMapCache(int modeIndex, const char[] source, int actorClient)
+{
+    if (modeIndex < 0 || modeIndex >= MAX_MODES)
+    {
+        return false;
+    }
+
+    if (g_ModeMapCache[modeIndex] == null)
+    {
+        g_ModeMapCache[modeIndex] = new ArrayList(ByteCountToCells(64));
+    }
+    else
+    {
+        g_ModeMapCache[modeIndex].Clear();
+    }
+
+    g_ModeMapCacheLoaded[modeIndex] = false;
+    g_ModeMapCacheError[modeIndex][0] = '\0';
+
     char mapListPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", mapListFile);
+    BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Modes[modeIndex].mapListFile);
 
     if (!FileExists(mapListPath))
     {
-        LogError("[mode_vote] map list file does not exist: '%s' (resolved '%s').", mapListFile, mapListPath);
+        Format(g_ModeMapCacheError[modeIndex], sizeof(g_ModeMapCacheError[]), "file does not exist: '%s'", mapListPath);
+        char actorLabel[64];
+        FormatActorLabel(actorClient, actorLabel, sizeof(actorLabel));
+        LogError("[mode_vote] map cache load failed: mode=%s source=%s actor=%s maplist='%s' resolved='%s' reason='%s'", g_Modes[modeIndex].id, source, actorLabel, g_Modes[modeIndex].mapListFile, mapListPath, g_ModeMapCacheError[modeIndex]);
         return false;
     }
 
     File file = OpenFile(mapListPath, "r");
     if (file == null)
     {
-        LogError("[mode_vote] failed to open map list file: '%s' (resolved '%s').", mapListFile, mapListPath);
+        Format(g_ModeMapCacheError[modeIndex], sizeof(g_ModeMapCacheError[]), "failed to open file: '%s'", mapListPath);
+        char actorLabel[64];
+        FormatActorLabel(actorClient, actorLabel, sizeof(actorLabel));
+        LogError("[mode_vote] map cache load failed: mode=%s source=%s actor=%s maplist='%s' resolved='%s' reason='%s'", g_Modes[modeIndex].id, source, actorLabel, g_Modes[modeIndex].mapListFile, mapListPath, g_ModeMapCacheError[modeIndex]);
         return false;
     }
 
     char line[128];
+    int loadedMaps = 0;
     while (!file.EndOfFile() && file.ReadLine(line, sizeof(line)))
     {
         TrimString(line);
@@ -759,15 +865,31 @@ bool IsMapInMapListFile(const char[] mapListFile, const char[] mapName)
             continue;
         }
 
-        if (StrEqual(line, mapName, false))
+        if (!IsMapValid(line))
         {
-            delete file;
-            return true;
+            LogMessage("[mode_vote] map cache skip invalid entry: mode=%s map='%s' maplist='%s'", g_Modes[modeIndex].id, line, g_Modes[modeIndex].mapListFile);
+            continue;
         }
+
+        g_ModeMapCache[modeIndex].PushString(line);
+        loadedMaps++;
     }
 
     delete file;
-    return false;
+
+    if (loadedMaps <= 0)
+    {
+        Format(g_ModeMapCacheError[modeIndex], sizeof(g_ModeMapCacheError[]), "no valid maps loaded from '%s'", mapListPath);
+        char actorLabel[64];
+        FormatActorLabel(actorClient, actorLabel, sizeof(actorLabel));
+        LogError("[mode_vote] map cache load failed: mode=%s source=%s actor=%s maplist='%s' resolved='%s' reason='%s'", g_Modes[modeIndex].id, source, actorLabel, g_Modes[modeIndex].mapListFile, mapListPath, g_ModeMapCacheError[modeIndex]);
+        return false;
+    }
+
+    g_ModeMapCacheLoaded[modeIndex] = true;
+    strcopy(g_ModeMapCacheError[modeIndex], sizeof(g_ModeMapCacheError[]), "ok");
+    LogMessage("[mode_vote] map cache loaded: mode=%s source=%s maplist='%s' maps=%d", g_Modes[modeIndex].id, source, g_Modes[modeIndex].mapListFile, loadedMaps);
+    return true;
 }
 
 void SetDzTeamAssignMode(bool autoAssign)

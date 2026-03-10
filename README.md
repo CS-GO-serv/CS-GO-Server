@@ -103,6 +103,20 @@ srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup 
 Принцип: **solo != squads** — для одиночного режима и командных режимов применяются разные значения `mp_forcecamera`.
 
 
+
+## 🗺️ Политика maplist/mapvote (единый путь)
+
+В репозитории зафиксирован **один архитектурный путь** для пулов карт: только через `mapcyclefile`.
+
+- `mode_vote` при смене режима меняет `mapcyclefile` на один из файлов:
+  - `cfg/maplist_dz.txt`
+  - `cfg/maplist_comp.txt`
+  - `cfg/maplist_casual.txt`
+- `mapchooser`, `nominations`, `randomcycle`, а также админские `sm_map menu` и `sm_votemap menu` в `addons/sourcemod/configs/maplists.cfg` направлены в `default -> mapcyclefile`.
+- Отдельные режимные секции (`mapchooser_dz`, `nominations_comp` и т.п.) **не используются** как основной механизм, чтобы избежать расхождения пулов между плагинами.
+
+Итог: игровой vote и админские vote-команды всегда работают с тем же режимным пулом, который выставляет `mode_vote`.
+
 ## 🧭 Mode Router policy
 
 Для переключения режимов используйте только `csgo/cfg/mode_router.cfg` и его aliases.

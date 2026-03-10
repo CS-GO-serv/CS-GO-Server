@@ -3,12 +3,21 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define MODE_VOTE_DURATION 20.0
-#define MODE_VOTE_COOLDOWN 120
-#define MODE_VOTE_MIN_PLAYERS 4
 #define MAX_MODES 3
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 #define MODE_ROUTER_CFG "mode_router.cfg"
+
+#define MODE_VOTE_DURATION_DEFAULT 20.0
+#define MODE_VOTE_DURATION_MIN 5.0
+#define MODE_VOTE_DURATION_MAX 120.0
+
+#define MODE_VOTE_COOLDOWN_DEFAULT 120
+#define MODE_VOTE_COOLDOWN_MIN 0
+#define MODE_VOTE_COOLDOWN_MAX 1800
+
+#define MODE_VOTE_MIN_PLAYERS_DEFAULT 4
+#define MODE_VOTE_MIN_PLAYERS_MIN 1
+#define MODE_VOTE_MIN_PLAYERS_MAX 64
 
 enum struct ModeInfo
 {
@@ -36,6 +45,14 @@ bool g_HasVoted[MAXPLAYERS + 1];
 Handle g_VoteTimer = null;
 int g_NextVoteAllowedAt;
 
+ConVar g_CvarVoteDuration = null;
+ConVar g_CvarVoteCooldown = null;
+ConVar g_CvarVoteMinPlayers = null;
+
+float g_VoteDuration = MODE_VOTE_DURATION_DEFAULT;
+int g_VoteCooldown = MODE_VOTE_COOLDOWN_DEFAULT;
+int g_VoteMinPlayers = MODE_VOTE_MIN_PLAYERS_DEFAULT;
+
 ArrayList g_ModeMapCache[MAX_MODES];
 bool g_ModeMapCacheLoaded[MAX_MODES];
 char g_ModeMapCacheError[MAX_MODES][192];
@@ -51,12 +68,19 @@ public Plugin myinfo =
     name = "Mode Vote",
     author = "Codex",
     description = "Mode menu and mode voting with cooldown",
-    version = "1.2.0"
+    version = "1.3.0"
 };
 
 public void OnPluginStart()
 {
     LoadTranslations("mode_vote.phrases");
+
+    g_CvarVoteDuration = CreateConVar("sm_mode_vote_duration", "20.0", "Mode vote duration in seconds.", FCVAR_NOTIFY, true, MODE_VOTE_DURATION_MIN, true, MODE_VOTE_DURATION_MAX);
+    g_CvarVoteCooldown = CreateConVar("sm_mode_vote_cooldown", "120", "Cooldown between mode votes in seconds.", FCVAR_NOTIFY, true, float(MODE_VOTE_COOLDOWN_MIN), true, float(MODE_VOTE_COOLDOWN_MAX));
+    g_CvarVoteMinPlayers = CreateConVar("sm_mode_vote_min_players", "4", "Minimum human players required to start a mode vote.", FCVAR_NOTIFY, true, float(MODE_VOTE_MIN_PLAYERS_MIN), true, float(MODE_VOTE_MIN_PLAYERS_MAX));
+    AutoExecConfig(true, "mode_vote", "sourcemod");
+
+    RefreshVoteSettings("OnPluginStart");
 
     ValidateModeProfilesOrFail();
     EnsureModeRouterLoaded();
@@ -84,6 +108,7 @@ public void OnPluginStart()
 public void OnMapStart()
 {
     g_DzShuffledThisMap = false;
+    RefreshVoteSettings("OnMapStart");
     ReloadModeMapCaches("OnMapStart", 0);
 }
 
@@ -568,9 +593,9 @@ void TryStartVote(int caller)
         return;
     }
 
-    if (playersOnline < MODE_VOTE_MIN_PLAYERS)
+    if (playersOnline < g_VoteMinPlayers)
     {
-        PrintToChat(caller, "%t", "Vote Not Enough Players", MODE_VOTE_MIN_PLAYERS, playersOnline);
+        PrintToChat(caller, "%t", "Vote Not Enough Players", g_VoteMinPlayers, playersOnline);
         return;
     }
 
@@ -580,7 +605,7 @@ void TryStartVote(int caller)
 void StartVote(int caller)
 {
     g_VoteInProgress = true;
-    g_NextVoteAllowedAt = GetTime() + MODE_VOTE_COOLDOWN;
+    g_NextVoteAllowedAt = GetTime() + g_VoteCooldown;
 
     for (int i = 0; i < MAX_MODES; i++)
     {
@@ -609,7 +634,7 @@ void StartVote(int caller)
         delete g_VoteTimer;
     }
 
-    g_VoteTimer = CreateTimer(MODE_VOTE_DURATION, Timer_FinishVote);
+    g_VoteTimer = CreateTimer(g_VoteDuration, Timer_FinishVote);
 }
 
 void ShowVoteMenu(int client)
@@ -625,7 +650,80 @@ void ShowVoteMenu(int client)
     }
 
     menu.ExitButton = true;
-    menu.Display(client, RoundToCeil(MODE_VOTE_DURATION));
+    menu.Display(client, RoundToCeil(g_VoteDuration));
+}
+
+void RefreshVoteSettings(const char[] source)
+{
+    if (g_CvarVoteDuration == null || g_CvarVoteCooldown == null || g_CvarVoteMinPlayers == null)
+    {
+        LogError("[mode_vote] Failed to refresh vote settings in %s: missing ConVar handle.", source);
+        return;
+    }
+
+    g_VoteDuration = ClampVoteDuration(g_CvarVoteDuration.FloatValue, source);
+    g_VoteCooldown = ClampVoteCooldown(g_CvarVoteCooldown.IntValue, source);
+    g_VoteMinPlayers = ClampVoteMinPlayers(g_CvarVoteMinPlayers.IntValue, source);
+}
+
+float ClampVoteDuration(float value, const char[] source)
+{
+    float clamped = value;
+    if (value < MODE_VOTE_DURATION_MIN)
+    {
+        clamped = MODE_VOTE_DURATION_MIN;
+    }
+    else if (value > MODE_VOTE_DURATION_MAX)
+    {
+        clamped = MODE_VOTE_DURATION_MAX;
+    }
+
+    if (clamped != value)
+    {
+        LogMessage("[mode_vote] WARNING: sm_mode_vote_duration=%.2f out of range [%.2f..%.2f] in %s. Clamped to %.2f.", value, MODE_VOTE_DURATION_MIN, MODE_VOTE_DURATION_MAX, source, clamped);
+    }
+
+    return clamped;
+}
+
+int ClampVoteCooldown(int value, const char[] source)
+{
+    int clamped = value;
+    if (value < MODE_VOTE_COOLDOWN_MIN)
+    {
+        clamped = MODE_VOTE_COOLDOWN_MIN;
+    }
+    else if (value > MODE_VOTE_COOLDOWN_MAX)
+    {
+        clamped = MODE_VOTE_COOLDOWN_MAX;
+    }
+
+    if (clamped != value)
+    {
+        LogMessage("[mode_vote] WARNING: sm_mode_vote_cooldown=%d out of range [%d..%d] in %s. Clamped to %d.", value, MODE_VOTE_COOLDOWN_MIN, MODE_VOTE_COOLDOWN_MAX, source, clamped);
+    }
+
+    return clamped;
+}
+
+int ClampVoteMinPlayers(int value, const char[] source)
+{
+    int clamped = value;
+    if (value < MODE_VOTE_MIN_PLAYERS_MIN)
+    {
+        clamped = MODE_VOTE_MIN_PLAYERS_MIN;
+    }
+    else if (value > MODE_VOTE_MIN_PLAYERS_MAX)
+    {
+        clamped = MODE_VOTE_MIN_PLAYERS_MAX;
+    }
+
+    if (clamped != value)
+    {
+        LogMessage("[mode_vote] WARNING: sm_mode_vote_min_players=%d out of range [%d..%d] in %s. Clamped to %d.", value, MODE_VOTE_MIN_PLAYERS_MIN, MODE_VOTE_MIN_PLAYERS_MAX, source, clamped);
+    }
+
+    return clamped;
 }
 
 public int VoteMenuHandler(Menu menu, MenuAction action, int client, int item)

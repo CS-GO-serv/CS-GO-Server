@@ -157,7 +157,7 @@ public Action Command_DzSize(int client, int args)
 {
     if (args < 1)
     {
-        ReplyToCommand(client, "Usage: sm_dzsize <solo|duo|trio>");
+        ReplyToCommand(client, "%t", "Cmd Usage DzSize");
         return Plugin_Handled;
     }
 
@@ -175,7 +175,7 @@ public Action Command_DzSize(int client, int args)
     }
     else if (!StrEqual(dzSize, "duo", false) && !StrEqual(dzSize, "2", false))
     {
-        ReplyToCommand(client, "Unknown dzsize value: %s. Use solo|duo|trio.", dzSize);
+        ReplyToCommand(client, "%t", "Error Unknown DzSize", dzSize);
         return Plugin_Handled;
     }
 
@@ -184,7 +184,7 @@ public Action Command_DzSize(int client, int args)
     RunModeRouterAlias(teamCfg);
 
     LogModeAction(client, "sm_dzsize", "dz team size set to %d", teamCount);
-    ReplyToCommand(client, "Danger Zone team size set: %d", teamCount);
+    ReplyToCommand(client, "%t", "Success DzSize Set", teamCount);
     return Plugin_Handled;
 }
 
@@ -192,7 +192,7 @@ public Action Command_DzTeams(int client, int args)
 {
     if (args < 1)
     {
-        ReplyToCommand(client, "Usage: sm_dzteams <open|auto>");
+        ReplyToCommand(client, "%t", "Cmd Usage DzTeams");
         return Plugin_Handled;
     }
 
@@ -203,7 +203,7 @@ public Action Command_DzTeams(int client, int args)
     {
         SetDzTeamAssignMode(true);
         LogModeAction(client, "sm_dzteams", "dz teams set to auto");
-        ReplyToCommand(client, "Danger Zone team assignment set to auto.");
+        ReplyToCommand(client, "%t", "Success DzTeams Auto");
         return Plugin_Handled;
     }
 
@@ -211,11 +211,11 @@ public Action Command_DzTeams(int client, int args)
     {
         SetDzTeamAssignMode(false);
         LogModeAction(client, "sm_dzteams", "dz teams set to manual/open");
-        ReplyToCommand(client, "Danger Zone team assignment set to manual (open).");
+        ReplyToCommand(client, "%t", "Success DzTeams Manual");
         return Plugin_Handled;
     }
 
-    ReplyToCommand(client, "Unknown dzteams mode: %s. Use open|auto.", teamMode);
+    ReplyToCommand(client, "%t", "Error Unknown DzTeams", teamMode);
     return Plugin_Handled;
 }
 
@@ -272,10 +272,18 @@ public int ModeMenuHandler(Menu menu, MenuAction action, int client, int item)
 void ShowDzTeamSizeMenu(int client)
 {
     Menu menu = new Menu(DzTeamSizeMenuHandler);
-    menu.SetTitle("Danger Zone: Solo / Duo / Trio");
-    menu.AddItem("1", "Solo");
-    menu.AddItem("2", "Duo");
-    menu.AddItem("3", "Trio");
+    menu.SetTitle("%T", "Menu Dz Team Size Title", client);
+
+    char soloLabel[32];
+    char duoLabel[32];
+    char trioLabel[32];
+    Format(soloLabel, sizeof(soloLabel), "%T", "Menu Dz Team Size Solo", client);
+    Format(duoLabel, sizeof(duoLabel), "%T", "Menu Dz Team Size Duo", client);
+    Format(trioLabel, sizeof(trioLabel), "%T", "Menu Dz Team Size Trio", client);
+
+    menu.AddItem("1", soloLabel);
+    menu.AddItem("2", duoLabel);
+    menu.AddItem("3", trioLabel);
     menu.ExitButton = true;
     menu.Display(client, 20);
 }
@@ -312,9 +320,15 @@ public int DzTeamSizeMenuHandler(Menu menu, MenuAction action, int client, int i
 void ShowDzTeamAssignMenu(int client)
 {
     Menu menu = new Menu(DzTeamAssignMenuHandler);
-    menu.SetTitle("Danger Zone: Авто-распределение / Ручной выбор");
-    menu.AddItem("auto", "Авто-распределение");
-    menu.AddItem("open", "Ручной выбор");
+    menu.SetTitle("%T", "Menu Dz Team Assign Title", client);
+
+    char autoLabel[48];
+    char manualLabel[48];
+    Format(autoLabel, sizeof(autoLabel), "%T", "Menu Dz Team Assign Auto", client);
+    Format(manualLabel, sizeof(manualLabel), "%T", "Menu Dz Team Assign Manual", client);
+
+    menu.AddItem("auto", autoLabel);
+    menu.AddItem("open", manualLabel);
     menu.ExitButton = true;
     menu.Display(client, 20);
 }
@@ -348,11 +362,11 @@ public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int
         char assignLabel[32];
         if (g_SelectedDzAutoAssign[client])
         {
-            strcopy(assignLabel, sizeof(assignLabel), "auto");
+            Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Auto", client);
         }
         else
         {
-            strcopy(assignLabel, sizeof(assignLabel), "open");
+            Format(assignLabel, sizeof(assignLabel), "%T", "Menu Dz Team Assign Manual", client);
         }
 
         char modeName[64];
@@ -360,7 +374,7 @@ public int DzTeamAssignMenuHandler(Menu menu, MenuAction action, int client, int
         PrintToChat(client, "%t", "Mode Details", modeName, g_Modes[dzModeIndex].gameType, g_Modes[dzModeIndex].gameMode, g_Modes[dzModeIndex].mapgroup, g_Modes[dzModeIndex].startMap, cfgFile);
 
         ApplyDzSelection(g_SelectedDzTeamCount[client], g_SelectedDzAutoAssign[client], client, "chat !dz");
-        PrintToChat(client, "DZ profile applied: team_count=%d, teams=%s", g_SelectedDzTeamCount[client], assignLabel);
+        PrintToChat(client, "%t", "Success Dz Profile Applied", g_SelectedDzTeamCount[client], assignLabel);
     }
 
     return 0;
@@ -675,8 +689,8 @@ void NotifyModeSwitchCancelled(int actorClient, const char[] source, const char[
 {
     if (IsValidClient(actorClient))
     {
-        PrintToChat(actorClient, "[ModeVote] Переключение режима отменено: ошибка конфигурации сервера (mode=%s).", modeId);
-        PrintToConsole(actorClient, "[ModeVote] Переключение режима отменено: отсутствуют обязательные ConVar. source='%s' mode='%s'.", source, modeId);
+        PrintToChat(actorClient, "%t", "Error Mode Switch Cancelled", modeId);
+        PrintToConsole(actorClient, "%t", "Hint Missing Convars Console", source, modeId);
     }
 }
 

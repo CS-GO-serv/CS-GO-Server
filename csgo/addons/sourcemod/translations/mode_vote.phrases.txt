@@ -216,6 +216,25 @@
         "ru"    "{red}Сейчас нет админов онлайн. Используйте голосование для режима: %s"
     }
 
+
+    "Vote Started Details"
+    {
+        "en"    "{olive}[ModeVote]{default} Vote is open for {lightgreen}%d{default}s. Min players: {lightgreen}%d{default}. Cooldown after vote: {lightgreen}%d{default}s."
+        "ru"    "{olive}[ModeVote]{default} Голосование открыто на {lightgreen}%d{default} сек. Мин. игроков: {lightgreen}%d{default}. Кулдаун после голосования: {lightgreen}%d{default} сек."
+    }
+
+    "Mode Switching"
+    {
+        "en"    "{olive}[ModeVote]{default} Switching mode to {lightgreen}%s{default}. Next map: {lightgreen}%s"
+        "ru"    "{olive}[ModeVote]{default} Переключаю режим на {lightgreen}%s{default}. Следующая карта: {lightgreen}%s"
+    }
+
+    "Mode Switching DZ"
+    {
+        "en"    "{olive}[ModeVote]{default} Applying DZ profile: team_size={lightgreen}%d{default}, auto_assign={lightgreen}%d{default}, map={lightgreen}%s"
+        "ru"    "{olive}[ModeVote]{default} Применяю профиль DZ: размер={lightgreen}%d{default}, авто-раскид={lightgreen}%d{default}, карта={lightgreen}%s"
+    }
+
     "Vote Started By"
     {
         "en"    "{green}%s {default}started a mode vote!"
@@ -293,6 +312,25 @@
     {
         "en"    "Tip: !mode -> pick mode -> action (vote / ask admin / info). For DZ: size + team assign, then apply by admin or vote DZ."
         "ru"    "Подсказка: !mode -> режим -> действие (голосование / попросить админа / инфо). Для DZ: размер + назначение команд, затем применить админом или запустить голосование за DZ."
+    }
+
+
+    "Help Mode Line 1"
+    {
+        "en"    "{olive}[ModeVote]{default} Player menu: {lightgreen}!mode{default} / {lightgreen}!dz{default} / {lightgreen}!votemode"
+        "ru"    "{olive}[ModeVote]{default} Меню игрока: {lightgreen}!mode{default} / {lightgreen}!dz{default} / {lightgreen}!votemode"
+    }
+
+    "Help Mode Line 2"
+    {
+        "en"    "{olive}[ModeVote]{default} Admin commands: {lightgreen}sm_forcemode{default}, {lightgreen}sm_dzsize{default}, {lightgreen}sm_dzteams{default}, {lightgreen}sm_modeadmin"
+        "ru"    "{olive}[ModeVote]{default} Команды админа: {lightgreen}sm_forcemode{default}, {lightgreen}sm_dzsize{default}, {lightgreen}sm_dzteams{default}, {lightgreen}sm_modeadmin"
+    }
+
+    "Help Mode Line 3"
+    {
+        "en"    "{olive}[ModeVote]{default} If commands are unknown, check plugin load: {lightgreen}sm plugins list{default}."
+        "ru"    "{olive}[ModeVote]{default} Если команды не найдены — проверьте загрузку плагина: {lightgreen}sm plugins list{default}."
     }
 
     "Mode Details"

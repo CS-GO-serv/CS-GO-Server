@@ -48,3 +48,11 @@ csgo/backup_round*.txt
 *.local.bat
 start_dz.local.bat
 start_classic.local.bat
+
+# Documentation
+!/docs/
+!/docs/*.md
+
+# Allow committed diagnostic logs from repo-level Log folder
+!/Log/
+!/Log/**

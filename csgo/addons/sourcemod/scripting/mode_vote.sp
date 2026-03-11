@@ -5,7 +5,6 @@
 
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 #define MODE_ROUTER_CFG "mode_router.cfg"
-#define MODE_ADMINMENU_CUSTOM "addons/sourcemod/configs/adminmenu_custom.txt"
 #define SAFE_HUB_MAP "de_mirage"
 #define MODE_DZ_SIZE_DUO_ALIAS "mode_dz_duo"
 #define MODE_DZ_SIZE_SOLO_ALIAS "mode_dz_solo"
@@ -57,6 +56,7 @@ int g_NextVoteAllowedAt;
 ConVar g_CvarVoteDuration = null;
 ConVar g_CvarVoteCooldown = null;
 ConVar g_CvarVoteMinPlayers = null;
+ConVar g_CvarVerbose = null;
 
 float g_VoteDuration = MODE_VOTE_DURATION_DEFAULT;
 int g_VoteCooldown = MODE_VOTE_COOLDOWN_DEFAULT;
@@ -87,6 +87,7 @@ public void OnPluginStart()
     g_CvarVoteDuration = CreateConVar("sm_mode_vote_duration", "20.0", "Mode vote duration in seconds.", FCVAR_NOTIFY, true, MODE_VOTE_DURATION_MIN, true, MODE_VOTE_DURATION_MAX);
     g_CvarVoteCooldown = CreateConVar("sm_mode_vote_cooldown", "120", "Cooldown between mode votes in seconds.", FCVAR_NOTIFY, true, float(MODE_VOTE_COOLDOWN_MIN), true, float(MODE_VOTE_COOLDOWN_MAX));
     g_CvarVoteMinPlayers = CreateConVar("sm_mode_vote_min_players", "4", "Minimum human players required to start a mode vote.", FCVAR_NOTIFY, true, float(MODE_VOTE_MIN_PLAYERS_MIN), true, float(MODE_VOTE_MIN_PLAYERS_MAX));
+    g_CvarVerbose = CreateConVar("sm_mode_vote_verbose", "1", "Verbose console logging for mode_vote (0/1).", FCVAR_NOTIFY, true, 0.0, true, 1.0);
     AutoExecConfig(true, "mode_vote", "sourcemod");
 
     RefreshVoteSettings("OnPluginStart");
@@ -97,12 +98,14 @@ public void OnPluginStart()
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_dz", Command_DzAlias);
     RegConsoleCmd("sm_comp", Command_CompAlias);
+    RegConsoleCmd("sm_help_mode", Command_HelpMode);
 
     RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzsize", Command_DzSize, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzteams", Command_DzTeams, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_mode_reloadlists", Command_ReloadModeLists, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_modeadmin", Command_ModeAdminMenu, ADMFLAG_CHANGEMAP);
 
     HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 
@@ -112,6 +115,8 @@ public void OnPluginStart()
     {
         g_SelectedModeIndex[i] = -1;
     }
+
+    ModeDebug("plugin started: version=%s modes=%d", myinfo.version, MAX_MODES);
 }
 
 public void OnMapStart()
@@ -143,6 +148,19 @@ public Action Command_DzAlias(int client, int args)
     g_SelectedDzTeamCount[client] = 2;
     g_SelectedDzAutoAssign[client] = true;
     ShowDzTeamSizeMenu(client);
+    return Plugin_Handled;
+}
+
+public Action Command_HelpMode(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    PrintToChat(client, "%t", "Help Mode Line 1");
+    PrintToChat(client, "%t", "Help Mode Line 2");
+    PrintToChat(client, "%t", "Help Mode Line 3");
     return Plugin_Handled;
 }
 
@@ -271,6 +289,241 @@ public Action Command_DzTeams(int client, int args)
 
     ReplyToCommand(client, "%t", "Error Unknown DzTeams", teamMode);
     return Plugin_Handled;
+}
+
+
+public Action Command_ModeAdminMenu(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    ShowModeAdminMenu(client);
+    return Plugin_Handled;
+}
+
+void ShowModeAdminMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminMenuHandler);
+    menu.SetTitle("ModeVote Admin: управление");
+    menu.AddItem("forcemode", "Сменить режим");
+    menu.AddItem("dzsize", "DZ: Solo / Duo / Trio");
+    menu.AddItem("dzteams", "DZ: Auto / Open");
+    menu.AddItem("votemode", "Запустить голосование");
+    menu.AddItem("reloadlists", "Перезагрузить maplist кэш");
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char actionId[32];
+        menu.GetItem(item, actionId, sizeof(actionId));
+
+        if (StrEqual(actionId, "forcemode", false))
+        {
+            ShowModeAdminForceMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "dzsize", false))
+        {
+            ShowModeAdminDzSizeMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "dzteams", false))
+        {
+            ShowModeAdminDzTeamsMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "votemode", false))
+        {
+            TryStartVote(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "reloadlists", false))
+        {
+            bool allLoaded = ReloadModeMapCaches("sm_modeadmin", client);
+            if (allLoaded)
+            {
+                PrintToChat(client, "[mode_vote] maplist кэш перезагружен успешно.");
+            }
+            else
+            {
+                PrintToChat(client, "[mode_vote] maplist кэш перезагружен с ошибками. Смотрите логи.");
+            }
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
+void ShowModeAdminForceMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminForceMenuHandler);
+    menu.SetTitle("ModeVote Admin: выбрать режим");
+
+    for (int i = 0; i < MAX_MODES; i++)
+    {
+        char modeName[64];
+        Format(modeName, sizeof(modeName), "%T", g_Modes[i].namePhrase, client);
+        menu.AddItem(g_Modes[i].id, modeName);
+    }
+
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminForceMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char modeId[16];
+        menu.GetItem(item, modeId, sizeof(modeId));
+
+        int modeIndex = FindModeById(modeId);
+        if (modeIndex == -1)
+        {
+            PrintToChat(client, "%t", "Unknown Mode", modeId);
+            return 0;
+        }
+
+        ApplyMode(modeIndex, client, "sm_modeadmin");
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
+}
+
+void ShowModeAdminDzSizeMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminDzSizeMenuHandler);
+    menu.SetTitle("ModeVote Admin: DZ размер отряда");
+    menu.AddItem("1", "Solo");
+    menu.AddItem("2", "Duo");
+    menu.AddItem("3", "Trio");
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminDzSizeMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char val[8];
+        menu.GetItem(item, val, sizeof(val));
+        int teamCount = StringToInt(val);
+
+        char teamAlias[64];
+        GetDzTeamCountAlias(teamCount, teamAlias, sizeof(teamAlias));
+        RunModeRouterAliasByName(teamAlias);
+
+        LogModeAction(client, "sm_modeadmin_dzsize", "dz team size set to %d", teamCount);
+        PrintToChat(client, "%t", "Success DzSize Set", teamCount);
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
+}
+
+void ShowModeAdminDzTeamsMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminDzTeamsMenuHandler);
+    menu.SetTitle("ModeVote Admin: DZ назначение команд");
+    menu.AddItem("auto", "Авто-распределение");
+    menu.AddItem("open", "Ручной выбор");
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminDzTeamsMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char modeVal[16];
+        menu.GetItem(item, modeVal, sizeof(modeVal));
+
+        if (StrEqual(modeVal, "auto", false))
+        {
+            SetDzTeamAssignMode(true);
+            PrintToChat(client, "%t", "Success DzTeams Auto");
+            LogModeAction(client, "sm_modeadmin_dzteams", "dz teams set to auto");
+        }
+        else
+        {
+            SetDzTeamAssignMode(false);
+            PrintToChat(client, "%t", "Success DzTeams Manual");
+            LogModeAction(client, "sm_modeadmin_dzteams", "dz teams set to manual/open");
+        }
+
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
 }
 
 public Action Command_ReloadModeLists(int client, int args)
@@ -598,18 +851,21 @@ void TryStartVote(int caller)
     if (g_VoteInProgress)
     {
         PrintToChat(caller, "%t", "Vote Already Running");
+        ModeDebug("vote start denied: caller=%d reason=in_progress", caller);
         return;
     }
 
     if (now < g_NextVoteAllowedAt)
     {
         PrintToChat(caller, "%t", "Vote Cooldown", g_NextVoteAllowedAt - now);
+        ModeDebug("vote start denied: caller=%d reason=cooldown remaining=%d", caller, g_NextVoteAllowedAt - now);
         return;
     }
 
     if (playersOnline < g_VoteMinPlayers)
     {
         PrintToChat(caller, "%t", "Vote Not Enough Players", g_VoteMinPlayers, playersOnline);
+        ModeDebug("vote start denied: caller=%d reason=not_enough_players online=%d required=%d", caller, playersOnline, g_VoteMinPlayers);
         return;
     }
 
@@ -640,8 +896,10 @@ void StartVote(int caller)
     char callerName[MAX_NAME_LENGTH];
     GetClientName(caller, callerName, sizeof(callerName));
     PrintToChatAll("%t", "Vote Started By", callerName);
+    PrintToChatAll("%t", "Vote Started Details", RoundToCeil(g_VoteDuration), g_VoteMinPlayers, g_VoteCooldown);
 
     LogModeAction(caller, "sm_votemode", "started mode vote");
+    ModeDebug("vote started: caller=%N duration=%.1f cooldown=%d min_players=%d", caller, g_VoteDuration, g_VoteCooldown, g_VoteMinPlayers);
 
     if (g_VoteTimer != null)
     {
@@ -820,7 +1078,12 @@ public Action Timer_FinishVote(Handle timer)
     if (!ApplyMode(winnerIndex, 0, "vote winner", applyError, sizeof(applyError)))
     {
         PrintToChatAll("%t", "Vote Apply Failed Fallback", applyError);
+        ModeDebug("vote winner apply failed: mode=%s reason=%s", g_Modes[winnerIndex].id, applyError);
         ApplyModeFallback(0, "vote", applyError);
+    }
+    else
+    {
+        ModeDebug("vote winner applied: mode=%s", g_Modes[winnerIndex].id);
     }
 
     return Plugin_Stop;
@@ -884,7 +1147,12 @@ bool ApplyMode(int modeIndex, int actorClient, const char[] source, char[] failu
         LogMessage("[mode_vote] Start map '%s' unavailable for mode '%s'; switching to fallback '%s'.", g_Modes[modeIndex].startMap, g_Modes[modeIndex].id, nextMap);
     }
 
+    char modeName[64];
+    Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, LANG_SERVER);
+    PrintToChatAll("%t", "Mode Switching", modeName, nextMap);
+
     LogModeAction(actorClient, source, "mode=%s game_type=%d game_mode=%d map=%s", g_Modes[modeIndex].id, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, nextMap);
+    ModeDebug("apply mode: source=%s mode=%s map=%s", source, g_Modes[modeIndex].id, nextMap);
     ServerCommand("changelevel %s", nextMap);
     strcopy(failureReason, failureReasonMaxlen, "ok");
     return true;
@@ -946,7 +1214,9 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
         LogMessage("[mode_vote] DZ start map unavailable, fallback selected: %s.", nextMap);
     }
 
+    PrintToChatAll("%t", "Mode Switching DZ", teamCount, autoAssign ? 1 : 0, nextMap);
     LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=%s", teamCount, autoAssign ? 1 : 0, nextMap);
+    ModeDebug("apply dz selection: source=%s team_count=%d auto=%d map=%s", source, teamCount, autoAssign ? 1 : 0, nextMap);
     ServerCommand("changelevel %s", nextMap);
     strcopy(failureReason, failureReasonMaxlen, "ok");
     return true;
@@ -955,6 +1225,7 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
 void ApplyModeFallback(int actorClient, const char[] sourceTag, const char[] reason)
 {
     LogModeAction(actorClient, "mode_apply_fallback", "source=%s reason=%s action=exec mode_lobby.cfg + changelevel %s", sourceTag, reason, SAFE_HUB_MAP);
+    ModeDebug("fallback apply: source=%s reason=%s map=%s", sourceTag, reason, SAFE_HUB_MAP);
     ServerCommand("exec mode_lobby.cfg");
     ServerCommand("changelevel %s", SAFE_HUB_MAP);
     PrintToChatAll("%t", "Mode Fallback Applied", SAFE_HUB_MAP);
@@ -1043,6 +1314,8 @@ bool PreflightModeSwitchCvars(const char[] source, const char[] modeId, int acto
 
 void NotifyModeSwitchCancelled(int actorClient, const char[] source, const char[] modeId)
 {
+    ModeDebug("mode switch cancelled: source=%s mode=%s actor=%d", source, modeId, actorClient);
+
     if (IsValidClient(actorClient))
     {
         PrintToChat(actorClient, "%t", "Error Mode Switch Cancelled", modeId);
@@ -1142,6 +1415,7 @@ bool ReloadModeMapCaches(const char[] source, int actorClient)
         }
     }
 
+    ModeDebug("reload map caches: source=%s actor=%d allLoaded=%d", source, actorClient, allLoaded ? 1 : 0);
     return allLoaded;
 }
 
@@ -1293,13 +1567,14 @@ int FindModeById(const char[] modeId)
 
 void ValidateModeProfilesOrFail()
 {
-    bool hasErrors = false;
+    bool hasFatalErrors = false;
+    bool hasNonFatalIssues = false;
 
     char routerPath[PLATFORM_MAX_PATH];
     BuildPath(Path_Game, routerPath, sizeof(routerPath), "%s", MODE_ROUTER_CFG);
     if (!FileExists(routerPath))
     {
-        hasErrors = true;
+        hasFatalErrors = true;
         LogError("[mode_vote] Missing mode router cfg '%s' (resolved '%s').", MODE_ROUTER_CFG, routerPath);
     }
 
@@ -1307,36 +1582,15 @@ void ValidateModeProfilesOrFail()
     bool hasRouterContent = ReadTextFileToBuffer(routerPath, routerBuffer, sizeof(routerBuffer));
     if (!hasRouterContent)
     {
-        hasErrors = true;
+        hasFatalErrors = true;
         LogError("[mode_vote] Failed to read mode router cfg '%s' for alias validation.", routerPath);
-    }
-
-    char adminMenuPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, adminMenuPath, sizeof(adminMenuPath), "%s", MODE_ADMINMENU_CUSTOM);
-    char adminMenuBuffer[8192];
-    bool hasAdminMenuContent = ReadTextFileToBuffer(adminMenuPath, adminMenuBuffer, sizeof(adminMenuBuffer));
-    if (!hasAdminMenuContent)
-    {
-        hasErrors = true;
-        LogError("[mode_vote] Failed to read admin menu file '%s' for mode registry sync validation.", adminMenuPath);
-    }
-
-    bool adminMenuHasSyncHint = false;
-    if (hasAdminMenuContent)
-    {
-        adminMenuHasSyncHint = (StrContains(adminMenuBuffer, "mode_vote registry sync", false) != -1);
-        if (!adminMenuHasSyncHint)
-        {
-            hasErrors = true;
-            LogError("[mode_vote] Admin menu file '%s' does not contain registry sync hint comment.", adminMenuPath);
-        }
     }
 
     for (int i = 0; i < MAX_MODES; i++)
     {
         if (g_Modes[i].id[0] == '\0' || g_Modes[i].routerAlias[0] == '\0')
         {
-            hasErrors = true;
+            hasFatalErrors = true;
             LogError("[mode_vote] Invalid mode registry entry at index %d: id='%s' alias='%s'.", i, g_Modes[i].id, g_Modes[i].routerAlias);
         }
 
@@ -1344,13 +1598,13 @@ void ValidateModeProfilesOrFail()
         {
             if (StrEqual(g_Modes[i].id, g_Modes[j].id, false))
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Duplicate mode id detected: '%s' (indexes %d and %d).", g_Modes[i].id, i, j);
             }
 
             if (StrEqual(g_Modes[i].routerAlias, g_Modes[j].routerAlias, false))
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Duplicate router alias detected: '%s' (indexes %d and %d).", g_Modes[i].routerAlias, i, j);
             }
         }
@@ -1359,7 +1613,7 @@ void ValidateModeProfilesOrFail()
         BuildPath(Path_Game, cfgPath, sizeof(cfgPath), "%s", g_Modes[i].cfgFile);
         if (!FileExists(cfgPath))
         {
-            hasErrors = true;
+            hasNonFatalIssues = true;
             LogError("[mode_vote] Missing cfg for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].cfgFile, cfgPath);
         }
 
@@ -1369,53 +1623,46 @@ void ValidateModeProfilesOrFail()
             Format(aliasNeedle, sizeof(aliasNeedle), "alias %s", g_Modes[i].routerAlias);
             if (StrContains(routerBuffer, aliasNeedle, false) == -1)
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Missing router alias for mode '%s': expected '%s' inside '%s'.", g_Modes[i].id, g_Modes[i].routerAlias, MODE_ROUTER_CFG);
             }
         }
 
         if (!IsMapValid(g_Modes[i].startMap))
         {
-            hasErrors = true;
-            LogError("[mode_vote] Invalid start map for mode '%s': '%s'.", g_Modes[i].id, g_Modes[i].startMap);
+            hasNonFatalIssues = true;
+            LogError("[mode_vote] Invalid start map for mode '%s': '%s' (non-fatal, fallback may be used).", g_Modes[i].id, g_Modes[i].startMap);
         }
 
         if (!IsMapValid(g_Modes[i].fallbackMap))
         {
-            hasErrors = true;
-            LogError("[mode_vote] Invalid fallback map for mode '%s': '%s'.", g_Modes[i].id, g_Modes[i].fallbackMap);
+            hasNonFatalIssues = true;
+            LogError("[mode_vote] Invalid fallback map for mode '%s': '%s' (non-fatal).", g_Modes[i].id, g_Modes[i].fallbackMap);
         }
 
         char mapListPath[PLATFORM_MAX_PATH];
         BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Modes[i].mapListFile);
         if (!FileExists(mapListPath))
         {
-            hasErrors = true;
+            hasNonFatalIssues = true;
             LogError("[mode_vote] Missing maplist for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].mapListFile, mapListPath);
         }
-        else
+        else if (!ValidateModeMapList(g_Modes[i], mapListPath))
         {
-            if (!ValidateModeMapList(g_Modes[i], mapListPath))
-            {
-                hasErrors = true;
-            }
+            hasNonFatalIssues = true;
         }
 
-        if (hasAdminMenuContent)
-        {
-            char menuToken[24];
-            Format(menuToken, sizeof(menuToken), "\"%s\"", g_Modes[i].id);
-            if (StrContains(adminMenuBuffer, menuToken, false) == -1)
-            {
-                hasErrors = true;
-                LogError("[mode_vote] Admin menu '%s' is out of sync: mode id '%s' not found in sm_forcemode list.", MODE_ADMINMENU_CUSTOM, g_Modes[i].id);
-            }
-        }
     }
 
-    if (hasErrors)
+    if (hasFatalErrors)
     {
-        SetFailState("[mode_vote] Mode registry validation failed. Check error logs.");
+        SetFailState("[mode_vote] Mode registry validation failed (fatal). Check error logs.");
+        return;
+    }
+
+    if (hasNonFatalIssues)
+    {
+        LogMessage("[mode_vote] Validation finished with non-fatal issues. Plugin continues in fail-safe mode; see error logs.");
     }
 }
 
@@ -1506,6 +1753,19 @@ void RunModeRouterAliasByName(const char[] aliasName)
     }
 
     ServerCommand("exec %s; %s", MODE_ROUTER_CFG, aliasName);
+}
+
+void ModeDebug(const char[] fmt, any ...)
+{
+    if (g_CvarVerbose == null || !g_CvarVerbose.BoolValue)
+    {
+        return;
+    }
+
+    char msg[256];
+    VFormat(msg, sizeof(msg), fmt, 2);
+    PrintToServer("[mode_vote] %s", msg);
+    LogMessage("[mode_vote] %s", msg);
 }
 
 void LogModeAction(int client, const char[] action, const char[] fmt, any ...)

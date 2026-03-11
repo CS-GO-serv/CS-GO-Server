@@ -131,6 +131,18 @@ srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup 
 - Ручные админ-действия в консоли тоже должны идти через router: сначала `exec mode_router.cfg`, затем `mode_comp`, `mode_dz`, `mode_dz_solo`, `mode_dz_duo`, `mode_dz_trio`, `mode_dz_teams_auto`, `mode_dz_teams_open`.
 - Не выполняйте напрямую `exec mode_*.cfg` в обход router, чтобы не ломать единый путь применения профилей.
 
+
+## ✅ Чеклист добавления нового режима
+
+Единый источник правды для режимов — массив `g_Modes[]` в `csgo/addons/sourcemod/scripting/mode_vote.sp`.
+
+1. Добавьте запись в `g_Modes[]` с обязательными полями: `id`, `routerAlias`, `mapListFile`, `cfgFile`, `mapgroup`, а также `startMap` и `fallbackMap`.
+2. Создайте/проверьте соответствующий router alias в `csgo/cfg/mode_router.cfg` (имя должно совпадать с `routerAlias`).
+3. Убедитесь, что существует файл режима `cfgFile` в `csgo/cfg/` и файл списка карт `mapListFile`.
+4. Проверьте валидность `startMap` и `fallbackMap` (карты должны существовать на сервере).
+5. Синхронизируйте `csgo/addons/sourcemod/configs/adminmenu_custom.txt` с `g_Modes[]` в формате 1:1 по `id` для `sm_forcemode`.
+6. После запуска сервера проверьте логи `mode_vote`: стартовая валидация должна пройти без ошибок (alias/cfg/maplist/map).
+
 ## 🎛️ `mode_vote` параметры: влияние на UX/баланс
 
 Ниже — ключевые параметры голосования за режим, вынесенные в `ConVar` и autoexec-конфиг `csgo/cfg/sourcemod/mode_vote.cfg`.

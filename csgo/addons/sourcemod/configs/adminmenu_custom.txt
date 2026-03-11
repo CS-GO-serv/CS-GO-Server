@@ -5,6 +5,7 @@
 //
 // Note: This file must be in Valve KeyValues format (no multiline comments)
 //
+// mode_vote registry sync: IDs below must match g_Modes[] in addons/sourcemod/scripting/mode_vote.sp 1:1 (id/routerAlias/maplist/cfg/mapgroup).
 
 "Commands"
 {

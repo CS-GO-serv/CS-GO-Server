@@ -14,7 +14,11 @@ if not exist "%SRC%" (
 
 if not exist "%SPCOMP%" (
   echo [mode_vote build] spcomp.exe not found: %SPCOMP%
-  echo [mode_vote build] install full SourceMod package (with scripting compiler) and retry.
+  if exist "%OUT%" (
+    echo [mode_vote build] using existing compiled plugin: %OUT%
+    exit /b 0
+  )
+  echo [mode_vote build] install full SourceMod package (with scripting compiler) or provide mode_vote.smx.
   exit /b 2
 )
 
@@ -22,6 +26,10 @@ echo [mode_vote build] compiling mode_vote.sp ...
 "%SPCOMP%" "%SRC%" -i "%INCLUDE%" -o "%OUT%"
 if errorlevel 1 (
   echo [mode_vote build] compile failed.
+  if exist "%OUT%" (
+    echo [mode_vote build] falling back to existing plugin binary: %OUT%
+    exit /b 0
+  )
   exit /b 3
 )
 

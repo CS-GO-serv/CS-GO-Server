@@ -80,7 +80,8 @@ call build_mode_vote.bat
 ```
 
 Скрипт компилирует `csgo/addons/sourcemod/scripting/mode_vote.sp` в `csgo/addons/sourcemod/plugins/mode_vote.smx` через `spcomp.exe`.
-Если `spcomp.exe` отсутствует, установите полный пакет SourceMod (не только runtime-плагины).
+Если `spcomp.exe` отсутствует, скрипт использует уже существующий `mode_vote.smx` (если он есть).
+Если нет ни `spcomp.exe`, ни готового `mode_vote.smx`, запуск будет остановлен с понятной ошибкой.
 
 
 Чтобы не смешивать режимы, используйте отдельные bat-скрипты:
@@ -183,3 +184,10 @@ ModeVote теперь использует собственное меню и н
 
 - Открыть отдельное меню ModeVote: `sm_modeadmin`
 - Внутри доступны: смена режима, DZ size, DZ teams, запуск голосования, перезагрузка maplist-кэша.
+
+
+## ❓ Команда меню плагина
+
+- Для игроков: `!mode` (или `sm_mode`), быстрый DZ: `!dz`, помощь: `!help_mode`.
+- Для админов: `sm_modeadmin` — отдельное меню управления ModeVote.
+

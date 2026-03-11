@@ -56,6 +56,7 @@ int g_NextVoteAllowedAt;
 ConVar g_CvarVoteDuration = null;
 ConVar g_CvarVoteCooldown = null;
 ConVar g_CvarVoteMinPlayers = null;
+ConVar g_CvarVerbose = null;
 
 float g_VoteDuration = MODE_VOTE_DURATION_DEFAULT;
 int g_VoteCooldown = MODE_VOTE_COOLDOWN_DEFAULT;
@@ -86,6 +87,7 @@ public void OnPluginStart()
     g_CvarVoteDuration = CreateConVar("sm_mode_vote_duration", "20.0", "Mode vote duration in seconds.", FCVAR_NOTIFY, true, MODE_VOTE_DURATION_MIN, true, MODE_VOTE_DURATION_MAX);
     g_CvarVoteCooldown = CreateConVar("sm_mode_vote_cooldown", "120", "Cooldown between mode votes in seconds.", FCVAR_NOTIFY, true, float(MODE_VOTE_COOLDOWN_MIN), true, float(MODE_VOTE_COOLDOWN_MAX));
     g_CvarVoteMinPlayers = CreateConVar("sm_mode_vote_min_players", "4", "Minimum human players required to start a mode vote.", FCVAR_NOTIFY, true, float(MODE_VOTE_MIN_PLAYERS_MIN), true, float(MODE_VOTE_MIN_PLAYERS_MAX));
+    g_CvarVerbose = CreateConVar("sm_mode_vote_verbose", "1", "Verbose console logging for mode_vote (0/1).", FCVAR_NOTIFY, true, 0.0, true, 1.0);
     AutoExecConfig(true, "mode_vote", "sourcemod");
 
     RefreshVoteSettings("OnPluginStart");
@@ -96,6 +98,7 @@ public void OnPluginStart()
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_dz", Command_DzAlias);
     RegConsoleCmd("sm_comp", Command_CompAlias);
+    RegConsoleCmd("sm_help_mode", Command_HelpMode);
 
     RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP);
@@ -112,6 +115,8 @@ public void OnPluginStart()
     {
         g_SelectedModeIndex[i] = -1;
     }
+
+    ModeDebug("plugin started: version=%s modes=%d", myinfo.version, MAX_MODES);
 }
 
 public void OnMapStart()
@@ -143,6 +148,19 @@ public Action Command_DzAlias(int client, int args)
     g_SelectedDzTeamCount[client] = 2;
     g_SelectedDzAutoAssign[client] = true;
     ShowDzTeamSizeMenu(client);
+    return Plugin_Handled;
+}
+
+public Action Command_HelpMode(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    PrintToChat(client, "%t", "Help Mode Line 1");
+    PrintToChat(client, "%t", "Help Mode Line 2");
+    PrintToChat(client, "%t", "Help Mode Line 3");
     return Plugin_Handled;
 }
 
@@ -833,18 +851,21 @@ void TryStartVote(int caller)
     if (g_VoteInProgress)
     {
         PrintToChat(caller, "%t", "Vote Already Running");
+        ModeDebug("vote start denied: caller=%d reason=in_progress", caller);
         return;
     }
 
     if (now < g_NextVoteAllowedAt)
     {
         PrintToChat(caller, "%t", "Vote Cooldown", g_NextVoteAllowedAt - now);
+        ModeDebug("vote start denied: caller=%d reason=cooldown remaining=%d", caller, g_NextVoteAllowedAt - now);
         return;
     }
 
     if (playersOnline < g_VoteMinPlayers)
     {
         PrintToChat(caller, "%t", "Vote Not Enough Players", g_VoteMinPlayers, playersOnline);
+        ModeDebug("vote start denied: caller=%d reason=not_enough_players online=%d required=%d", caller, playersOnline, g_VoteMinPlayers);
         return;
     }
 
@@ -875,8 +896,10 @@ void StartVote(int caller)
     char callerName[MAX_NAME_LENGTH];
     GetClientName(caller, callerName, sizeof(callerName));
     PrintToChatAll("%t", "Vote Started By", callerName);
+    PrintToChatAll("%t", "Vote Started Details", RoundToCeil(g_VoteDuration), g_VoteMinPlayers, g_VoteCooldown);
 
     LogModeAction(caller, "sm_votemode", "started mode vote");
+    ModeDebug("vote started: caller=%N duration=%.1f cooldown=%d min_players=%d", caller, g_VoteDuration, g_VoteCooldown, g_VoteMinPlayers);
 
     if (g_VoteTimer != null)
     {
@@ -1055,7 +1078,12 @@ public Action Timer_FinishVote(Handle timer)
     if (!ApplyMode(winnerIndex, 0, "vote winner", applyError, sizeof(applyError)))
     {
         PrintToChatAll("%t", "Vote Apply Failed Fallback", applyError);
+        ModeDebug("vote winner apply failed: mode=%s reason=%s", g_Modes[winnerIndex].id, applyError);
         ApplyModeFallback(0, "vote", applyError);
+    }
+    else
+    {
+        ModeDebug("vote winner applied: mode=%s", g_Modes[winnerIndex].id);
     }
 
     return Plugin_Stop;
@@ -1119,7 +1147,12 @@ bool ApplyMode(int modeIndex, int actorClient, const char[] source, char[] failu
         LogMessage("[mode_vote] Start map '%s' unavailable for mode '%s'; switching to fallback '%s'.", g_Modes[modeIndex].startMap, g_Modes[modeIndex].id, nextMap);
     }
 
+    char modeName[64];
+    Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, LANG_SERVER);
+    PrintToChatAll("%t", "Mode Switching", modeName, nextMap);
+
     LogModeAction(actorClient, source, "mode=%s game_type=%d game_mode=%d map=%s", g_Modes[modeIndex].id, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, nextMap);
+    ModeDebug("apply mode: source=%s mode=%s map=%s", source, g_Modes[modeIndex].id, nextMap);
     ServerCommand("changelevel %s", nextMap);
     strcopy(failureReason, failureReasonMaxlen, "ok");
     return true;
@@ -1181,7 +1214,9 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
         LogMessage("[mode_vote] DZ start map unavailable, fallback selected: %s.", nextMap);
     }
 
+    PrintToChatAll("%t", "Mode Switching DZ", teamCount, autoAssign ? 1 : 0, nextMap);
     LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=%s", teamCount, autoAssign ? 1 : 0, nextMap);
+    ModeDebug("apply dz selection: source=%s team_count=%d auto=%d map=%s", source, teamCount, autoAssign ? 1 : 0, nextMap);
     ServerCommand("changelevel %s", nextMap);
     strcopy(failureReason, failureReasonMaxlen, "ok");
     return true;
@@ -1190,6 +1225,7 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
 void ApplyModeFallback(int actorClient, const char[] sourceTag, const char[] reason)
 {
     LogModeAction(actorClient, "mode_apply_fallback", "source=%s reason=%s action=exec mode_lobby.cfg + changelevel %s", sourceTag, reason, SAFE_HUB_MAP);
+    ModeDebug("fallback apply: source=%s reason=%s map=%s", sourceTag, reason, SAFE_HUB_MAP);
     ServerCommand("exec mode_lobby.cfg");
     ServerCommand("changelevel %s", SAFE_HUB_MAP);
     PrintToChatAll("%t", "Mode Fallback Applied", SAFE_HUB_MAP);
@@ -1278,6 +1314,8 @@ bool PreflightModeSwitchCvars(const char[] source, const char[] modeId, int acto
 
 void NotifyModeSwitchCancelled(int actorClient, const char[] source, const char[] modeId)
 {
+    ModeDebug("mode switch cancelled: source=%s mode=%s actor=%d", source, modeId, actorClient);
+
     if (IsValidClient(actorClient))
     {
         PrintToChat(actorClient, "%t", "Error Mode Switch Cancelled", modeId);
@@ -1377,6 +1415,7 @@ bool ReloadModeMapCaches(const char[] source, int actorClient)
         }
     }
 
+    ModeDebug("reload map caches: source=%s actor=%d allLoaded=%d", source, actorClient, allLoaded ? 1 : 0);
     return allLoaded;
 }
 
@@ -1714,6 +1753,19 @@ void RunModeRouterAliasByName(const char[] aliasName)
     }
 
     ServerCommand("exec %s; %s", MODE_ROUTER_CFG, aliasName);
+}
+
+void ModeDebug(const char[] fmt, any ...)
+{
+    if (g_CvarVerbose == null || !g_CvarVerbose.BoolValue)
+    {
+        return;
+    }
+
+    char msg[256];
+    VFormat(msg, sizeof(msg), fmt, 2);
+    PrintToServer("[mode_vote] %s", msg);
+    LogMessage("[mode_vote] %s", msg);
 }
 
 void LogModeAction(int client, const char[] action, const char[] fmt, any ...)

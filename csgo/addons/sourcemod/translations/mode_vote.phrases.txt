@@ -164,6 +164,12 @@
         "ru"    "{red}[ModeVote] Переключение режима отменено: ошибка конфигурации сервера (режим=%s)."
     }
 
+    "Error Mode Apply Failed"
+    {
+        "en"    "{red}[ModeVote] Failed to apply mode: %s"
+        "ru"    "{red}[ModeVote] Не удалось применить режим: %s"
+    }
+
     // ====================
     // SUCCESS
     // ====================
@@ -226,6 +232,18 @@
     {
         "en"    "{green}Vote finished: {lightgreen}%s{green} won with {lightgreen}%d {green}votes. Applying mode..."
         "ru"    "{green}Голосование завершено: победил режим {lightgreen}%s{green} (%d голосов). Применяю режим..."
+    }
+
+    "Vote Apply Failed Fallback"
+    {
+        "en"    "{red}[ModeVote] Mode apply failed: %s. Emergency rollback started (exec mode_lobby.cfg + safe map)."
+        "ru"    "{red}[ModeVote] Не удалось применить режим: %s. Запущен аварийный откат (exec mode_lobby.cfg + безопасная карта)."
+    }
+
+    "Mode Fallback Applied"
+    {
+        "en"    "{green}[ModeVote] Emergency rollback applied: lobby config loaded, changing level to %s."
+        "ru"    "{green}[ModeVote] Аварийный откат применён: загружен lobby-конфиг, смена карты на %s."
     }
 
     // ====================

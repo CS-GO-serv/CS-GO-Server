@@ -6,6 +6,7 @@
 #define MAX_MODES 3
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 #define MODE_ROUTER_CFG "mode_router.cfg"
+#define SAFE_HUB_MAP "de_mirage"
 
 #define MODE_VOTE_DURATION_DEFAULT 20.0
 #define MODE_VOTE_DURATION_MIN 5.0
@@ -184,7 +185,12 @@ public Action Command_ForceMode(int client, int args)
         return Plugin_Handled;
     }
 
-    ApplyMode(modeIndex, client, "sm_forcemode");
+    char applyError[192];
+    if (!ApplyMode(modeIndex, client, "sm_forcemode", applyError, sizeof(applyError)))
+    {
+        ReplyToCommand(client, "%t", "Error Mode Apply Failed", applyError);
+        return Plugin_Handled;
+    }
 
     char modeName[64];
     Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
@@ -802,16 +808,23 @@ public Action Timer_FinishVote(Handle timer)
     Format(modeName, sizeof(modeName), "%T", g_Modes[winnerIndex].namePhrase, LANG_SERVER);
     PrintToChatAll("%t", "Vote Finished", modeName, g_VoteCounts[winnerIndex]);
 
-    ApplyMode(winnerIndex, 0, "vote winner");
+    char applyError[192];
+    if (!ApplyMode(winnerIndex, 0, "vote winner", applyError, sizeof(applyError)))
+    {
+        PrintToChatAll("%t", "Vote Apply Failed Fallback", applyError);
+        ApplyModeFallback(0, "vote", applyError);
+    }
 
     return Plugin_Stop;
 }
 
-void ApplyMode(int modeIndex, int actorClient, const char[] source)
+bool ApplyMode(int modeIndex, int actorClient, const char[] source, char[] failureReason, int failureReasonMaxlen)
 {
     if (modeIndex < 0 || modeIndex >= MAX_MODES)
     {
-        return;
+        strcopy(failureReason, failureReasonMaxlen, "invalid mode index");
+        LogModeApplyError(actorClient, source, "unknown", failureReason);
+        return false;
     }
 
     ConVar gameType = null;
@@ -819,7 +832,9 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
     ConVar mapCycle = null;
     if (!PreflightModeSwitchCvars(source, g_Modes[modeIndex].id, actorClient, gameType, gameMode, mapCycle))
     {
-        return;
+        strcopy(failureReason, failureReasonMaxlen, "required cvars are missing");
+        LogModeApplyError(actorClient, source, g_Modes[modeIndex].id, failureReason);
+        return false;
     }
 
     gameType.SetInt(g_Modes[modeIndex].gameType);
@@ -831,16 +846,20 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
     bool usingFallback = false;
     if (!ResolveModeMap(modeIndex, nextMap, sizeof(nextMap), usingFallback))
     {
+        strcopy(failureReason, failureReasonMaxlen, "no valid start/fallback map");
         LogError("[mode_vote] Mode '%s' has no valid map/start fallback pair. Skipping mode switch.", g_Modes[modeIndex].id);
-        return;
+        LogModeApplyError(actorClient, source, g_Modes[modeIndex].id, failureReason);
+        return false;
     }
 
     char modeCfgPath[PLATFORM_MAX_PATH];
     BuildPath(Path_Game, modeCfgPath, sizeof(modeCfgPath), "%s", g_Modes[modeIndex].cfgFile);
     if (!FileExists(modeCfgPath))
     {
+        Format(failureReason, failureReasonMaxlen, "mode cfg missing: %s", g_Modes[modeIndex].cfgFile);
         LogError("[mode_vote] Mode '%s' cfg is missing: '%s' (resolved '%s'). Skipping mode switch.", g_Modes[modeIndex].id, g_Modes[modeIndex].cfgFile, modeCfgPath);
-        return;
+        LogModeApplyError(actorClient, source, g_Modes[modeIndex].id, failureReason);
+        return false;
     }
 
     ServerCommand("mapgroup %s", g_Modes[modeIndex].mapgroup);
@@ -859,16 +878,20 @@ void ApplyMode(int modeIndex, int actorClient, const char[] source)
 
     LogModeAction(actorClient, source, "mode=%s game_type=%d game_mode=%d map=%s", g_Modes[modeIndex].id, g_Modes[modeIndex].gameType, g_Modes[modeIndex].gameMode, nextMap);
     ServerCommand("changelevel %s", nextMap);
+    strcopy(failureReason, failureReasonMaxlen, "ok");
+    return true;
 }
 
-void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const char[] source)
+bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const char[] source, char[] failureReason, int failureReasonMaxlen)
 {
     ConVar gameType = null;
     ConVar gameMode = null;
     ConVar mapCycle = null;
     if (!PreflightModeSwitchCvars(source, "dz", actorClient, gameType, gameMode, mapCycle))
     {
-        return;
+        strcopy(failureReason, failureReasonMaxlen, "required cvars are missing");
+        LogModeApplyError(actorClient, source, "dz", failureReason);
+        return false;
     }
 
     gameType.SetInt(6);
@@ -888,7 +911,8 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
     {
         LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=dz_blacksite", teamCount, autoAssign ? 1 : 0);
         ServerCommand("changelevel dz_blacksite");
-        return;
+        strcopy(failureReason, failureReasonMaxlen, "ok");
+        return true;
     }
 
     SetModeMapList(dzModeIndex, mapCycle);
@@ -897,8 +921,10 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
     bool usingFallback = false;
     if (!ResolveModeMap(dzModeIndex, nextMap, sizeof(nextMap), usingFallback))
     {
+        strcopy(failureReason, failureReasonMaxlen, "no valid start/fallback map");
         LogError("[mode_vote] DZ selection failed: both start/fallback maps are invalid.");
-        return;
+        LogModeApplyError(actorClient, source, "dz", failureReason);
+        return false;
     }
 
     if (usingFallback)
@@ -908,6 +934,46 @@ void ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
 
     LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=%s", teamCount, autoAssign ? 1 : 0, nextMap);
     ServerCommand("changelevel %s", nextMap);
+    strcopy(failureReason, failureReasonMaxlen, "ok");
+    return true;
+}
+
+void ApplyModeFallback(int actorClient, const char[] sourceTag, const char[] reason)
+{
+    LogModeAction(actorClient, "mode_apply_fallback", "source=%s reason=%s action=exec mode_lobby.cfg + changelevel %s", sourceTag, reason, SAFE_HUB_MAP);
+    ServerCommand("exec mode_lobby.cfg");
+    ServerCommand("changelevel %s", SAFE_HUB_MAP);
+    PrintToChatAll("%t", "Mode Fallback Applied", SAFE_HUB_MAP);
+}
+
+void ResolveModeApplyOrigin(const char[] source, char[] origin, int maxlen)
+{
+    if (StrContains(source, "vote", false) != -1)
+    {
+        strcopy(origin, maxlen, "vote");
+        return;
+    }
+
+    if (StrContains(source, "chat", false) != -1)
+    {
+        strcopy(origin, maxlen, "chat");
+        return;
+    }
+
+    if (StrContains(source, "admin", false) != -1 || StrContains(source, "sm_", false) != -1)
+    {
+        strcopy(origin, maxlen, "admin");
+        return;
+    }
+
+    strcopy(origin, maxlen, source);
+}
+
+void LogModeApplyError(int actorClient, const char[] source, const char[] modeId, const char[] reason)
+{
+    char origin[16];
+    ResolveModeApplyOrigin(source, origin, sizeof(origin));
+    LogModeAction(actorClient, "mode_apply_error", "origin=%s source=%s mode=%s reason=%s", origin, source, modeId, reason);
 }
 
 void SetModeMapList(int modeIndex, ConVar mapCycle)

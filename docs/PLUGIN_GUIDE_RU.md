@@ -106,10 +106,9 @@
    - `+sv_setsteamaccount YOUR_GSLT_TOKEN_HERE`
 
 ### Как правильно хранить реальные значения
-- Реальные секреты держите в:
-  - `csgo/cfg/server.private.cfg`
-  - `start_dz.local.bat`, `start_classic.local.bat` (или один общий локальный launcher)
-- Эти файлы **не коммитятся** (контролируется `.gitignore`).
+- Реальные `rcon_password` и `sv_password` допускаются **только** в `csgo/cfg/server.private.cfg`.
+- В `csgo/cfg/server.cfg` должны оставаться только заглушки (`CHANGE_ME`) и строка `exec server.private.cfg`.
+- Эти приватные файлы **не коммитятся** (контролируется `.gitignore`).
 
 ---
 

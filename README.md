@@ -142,6 +142,7 @@ srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup 
 4. Проверьте валидность `startMap` и `fallbackMap` (карты должны существовать на сервере).
 5. Синхронизируйте `csgo/addons/sourcemod/configs/adminmenu_custom.txt` с `g_Modes[]` в формате 1:1 по `id` для `sm_forcemode`.
 6. После запуска сервера проверьте логи `mode_vote`: стартовая валидация должна пройти без ошибок (alias/cfg/maplist/map).
+7. Проверьте, что `adminmenu_custom.txt` содержит все `id` из `g_Modes[]` (это тоже контролируется стартовой валидацией плагина).
 
 ## 🎛️ `mode_vote` параметры: влияние на UX/баланс
 

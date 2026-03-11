@@ -46,6 +46,7 @@
 - `sm_dzsize <solo|duo|trio>` — размер отрядов в DZ.
 - `sm_dzteams <open|auto>` — ручной выбор команд или авто-раскид.
 - `sm_mode_reloadlists` — перезагрузить кэш карт режимов из maplist-файлов.
+- `sm_modeadmin` — открыть отдельное админ-меню ModeVote (не связано со стандартным adminmenu).
 
 ### Рекомендуемый лайв-поток
 1. `sm_forcemode dz`
@@ -85,6 +86,9 @@
 - `csgo/addons/sourcemod/translations/mode_vote.phrases.txt` — локализация меню и сообщений.
 
 ### Админ-UX
+- `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — стандартное меню SourceMod (ModeVote туда не встраивается).
+- `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
+- Отдельное меню ModeVote открывается командой `sm_modeadmin`.
 - `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — пункты админ-меню.
 - `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
 

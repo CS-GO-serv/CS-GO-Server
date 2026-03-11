@@ -5,7 +5,6 @@
 
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 #define MODE_ROUTER_CFG "mode_router.cfg"
-#define MODE_ADMINMENU_CUSTOM "addons/sourcemod/configs/adminmenu_custom.txt"
 #define SAFE_HUB_MAP "de_mirage"
 #define MODE_DZ_SIZE_DUO_ALIAS "mode_dz_duo"
 #define MODE_DZ_SIZE_SOLO_ALIAS "mode_dz_solo"
@@ -103,6 +102,7 @@ public void OnPluginStart()
     RegAdminCmd("sm_dzsize", Command_DzSize, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_dzteams", Command_DzTeams, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_mode_reloadlists", Command_ReloadModeLists, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_modeadmin", Command_ModeAdminMenu, ADMFLAG_CHANGEMAP);
 
     HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 
@@ -271,6 +271,241 @@ public Action Command_DzTeams(int client, int args)
 
     ReplyToCommand(client, "%t", "Error Unknown DzTeams", teamMode);
     return Plugin_Handled;
+}
+
+
+public Action Command_ModeAdminMenu(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    ShowModeAdminMenu(client);
+    return Plugin_Handled;
+}
+
+void ShowModeAdminMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminMenuHandler);
+    menu.SetTitle("ModeVote Admin: управление");
+    menu.AddItem("forcemode", "Сменить режим");
+    menu.AddItem("dzsize", "DZ: Solo / Duo / Trio");
+    menu.AddItem("dzteams", "DZ: Auto / Open");
+    menu.AddItem("votemode", "Запустить голосование");
+    menu.AddItem("reloadlists", "Перезагрузить maplist кэш");
+    menu.ExitButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char actionId[32];
+        menu.GetItem(item, actionId, sizeof(actionId));
+
+        if (StrEqual(actionId, "forcemode", false))
+        {
+            ShowModeAdminForceMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "dzsize", false))
+        {
+            ShowModeAdminDzSizeMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "dzteams", false))
+        {
+            ShowModeAdminDzTeamsMenu(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "votemode", false))
+        {
+            TryStartVote(client);
+            return 0;
+        }
+
+        if (StrEqual(actionId, "reloadlists", false))
+        {
+            bool allLoaded = ReloadModeMapCaches("sm_modeadmin", client);
+            if (allLoaded)
+            {
+                PrintToChat(client, "[mode_vote] maplist кэш перезагружен успешно.");
+            }
+            else
+            {
+                PrintToChat(client, "[mode_vote] maplist кэш перезагружен с ошибками. Смотрите логи.");
+            }
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
+void ShowModeAdminForceMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminForceMenuHandler);
+    menu.SetTitle("ModeVote Admin: выбрать режим");
+
+    for (int i = 0; i < MAX_MODES; i++)
+    {
+        char modeName[64];
+        Format(modeName, sizeof(modeName), "%T", g_Modes[i].namePhrase, client);
+        menu.AddItem(g_Modes[i].id, modeName);
+    }
+
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminForceMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char modeId[16];
+        menu.GetItem(item, modeId, sizeof(modeId));
+
+        int modeIndex = FindModeById(modeId);
+        if (modeIndex == -1)
+        {
+            PrintToChat(client, "%t", "Unknown Mode", modeId);
+            return 0;
+        }
+
+        ApplyMode(modeIndex, client, "sm_modeadmin");
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
+}
+
+void ShowModeAdminDzSizeMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminDzSizeMenuHandler);
+    menu.SetTitle("ModeVote Admin: DZ размер отряда");
+    menu.AddItem("1", "Solo");
+    menu.AddItem("2", "Duo");
+    menu.AddItem("3", "Trio");
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminDzSizeMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char val[8];
+        menu.GetItem(item, val, sizeof(val));
+        int teamCount = StringToInt(val);
+
+        char teamAlias[64];
+        GetDzTeamCountAlias(teamCount, teamAlias, sizeof(teamAlias));
+        RunModeRouterAliasByName(teamAlias);
+
+        LogModeAction(client, "sm_modeadmin_dzsize", "dz team size set to %d", teamCount);
+        PrintToChat(client, "%t", "Success DzSize Set", teamCount);
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
+}
+
+void ShowModeAdminDzTeamsMenu(int client)
+{
+    Menu menu = new Menu(ModeAdminDzTeamsMenuHandler);
+    menu.SetTitle("ModeVote Admin: DZ назначение команд");
+    menu.AddItem("auto", "Авто-распределение");
+    menu.AddItem("open", "Ручной выбор");
+    menu.ExitBackButton = true;
+    menu.Display(client, 20);
+}
+
+public int ModeAdminDzTeamsMenuHandler(Menu menu, MenuAction action, int client, int item)
+{
+    if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    else if (action == MenuAction_Cancel)
+    {
+        if (item == MenuCancel_ExitBack && IsValidClient(client))
+        {
+            ShowModeAdminMenu(client);
+        }
+    }
+    else if (action == MenuAction_Select)
+    {
+        if (!IsValidClient(client))
+        {
+            return 0;
+        }
+
+        char modeVal[16];
+        menu.GetItem(item, modeVal, sizeof(modeVal));
+
+        if (StrEqual(modeVal, "auto", false))
+        {
+            SetDzTeamAssignMode(true);
+            PrintToChat(client, "%t", "Success DzTeams Auto");
+            LogModeAction(client, "sm_modeadmin_dzteams", "dz teams set to auto");
+        }
+        else
+        {
+            SetDzTeamAssignMode(false);
+            PrintToChat(client, "%t", "Success DzTeams Manual");
+            LogModeAction(client, "sm_modeadmin_dzteams", "dz teams set to manual/open");
+        }
+
+        ShowModeAdminMenu(client);
+    }
+
+    return 0;
 }
 
 public Action Command_ReloadModeLists(int client, int args)

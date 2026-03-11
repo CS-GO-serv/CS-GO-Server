@@ -5,6 +5,7 @@
 
 #define MODE_ACTION_LOG "addons/sourcemod/logs/mode_actions.log"
 #define MODE_ROUTER_CFG "mode_router.cfg"
+#define MODE_ADMINMENU_CUSTOM "addons/sourcemod/configs/adminmenu_custom.txt"
 #define SAFE_HUB_MAP "de_mirage"
 #define MODE_DZ_SIZE_DUO_ALIAS "mode_dz_duo"
 #define MODE_DZ_SIZE_SOLO_ALIAS "mode_dz_solo"
@@ -891,6 +892,13 @@ bool ApplyMode(int modeIndex, int actorClient, const char[] source, char[] failu
 
 bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const char[] source, char[] failureReason, int failureReasonMaxlen)
 {
+    int dzModeIndex = FindModeById("dz");
+    const char[] dzRouterAlias = "mode_dz";
+    if (dzModeIndex != -1)
+    {
+        dzRouterAlias = g_Modes[dzModeIndex].routerAlias;
+    }
+
     ConVar gameType = null;
     ConVar gameMode = null;
     ConVar mapCycle = null;
@@ -905,7 +913,7 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
     gameMode.SetInt(0);
 
     ServerCommand("mapgroup mg_dz_blacksite");
-    RunModeRouterAliasByName("mode_dz");
+    RunModeRouterAliasByName(dzRouterAlias);
 
     char teamAlias[64];
     GetDzTeamCountAlias(teamCount, teamAlias, sizeof(teamAlias));
@@ -913,7 +921,6 @@ bool ApplyDzSelection(int teamCount, bool autoAssign, int actorClient, const cha
 
     SetDzTeamAssignMode(autoAssign);
 
-    int dzModeIndex = FindModeById("dz");
     if (dzModeIndex == -1)
     {
         LogModeAction(actorClient, source, "mode=dz team_count=%d auto=%d map=dz_blacksite", teamCount, autoAssign ? 1 : 0);
@@ -1296,6 +1303,35 @@ void ValidateModeProfilesOrFail()
         LogError("[mode_vote] Missing mode router cfg '%s' (resolved '%s').", MODE_ROUTER_CFG, routerPath);
     }
 
+    char routerBuffer[8192];
+    bool hasRouterContent = ReadTextFileToBuffer(routerPath, routerBuffer, sizeof(routerBuffer));
+    if (!hasRouterContent)
+    {
+        hasErrors = true;
+        LogError("[mode_vote] Failed to read mode router cfg '%s' for alias validation.", routerPath);
+    }
+
+    char adminMenuPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_Game, adminMenuPath, sizeof(adminMenuPath), "%s", MODE_ADMINMENU_CUSTOM);
+    char adminMenuBuffer[8192];
+    bool hasAdminMenuContent = ReadTextFileToBuffer(adminMenuPath, adminMenuBuffer, sizeof(adminMenuBuffer));
+    if (!hasAdminMenuContent)
+    {
+        hasErrors = true;
+        LogError("[mode_vote] Failed to read admin menu file '%s' for mode registry sync validation.", adminMenuPath);
+    }
+
+    bool adminMenuHasSyncHint = false;
+    if (hasAdminMenuContent)
+    {
+        adminMenuHasSyncHint = (StrContains(adminMenuBuffer, "mode_vote registry sync", false) != -1);
+        if (!adminMenuHasSyncHint)
+        {
+            hasErrors = true;
+            LogError("[mode_vote] Admin menu file '%s' does not contain registry sync hint comment.", adminMenuPath);
+        }
+    }
+
     for (int i = 0; i < MAX_MODES; i++)
     {
         if (g_Modes[i].id[0] == '\0' || g_Modes[i].routerAlias[0] == '\0')
@@ -1327,6 +1363,17 @@ void ValidateModeProfilesOrFail()
             LogError("[mode_vote] Missing cfg for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].cfgFile, cfgPath);
         }
 
+        if (hasRouterContent)
+        {
+            char aliasNeedle[64];
+            Format(aliasNeedle, sizeof(aliasNeedle), "alias %s", g_Modes[i].routerAlias);
+            if (StrContains(routerBuffer, aliasNeedle, false) == -1)
+            {
+                hasErrors = true;
+                LogError("[mode_vote] Missing router alias for mode '%s': expected '%s' inside '%s'.", g_Modes[i].id, g_Modes[i].routerAlias, MODE_ROUTER_CFG);
+            }
+        }
+
         if (!IsMapValid(g_Modes[i].startMap))
         {
             hasErrors = true;
@@ -1346,12 +1393,103 @@ void ValidateModeProfilesOrFail()
             hasErrors = true;
             LogError("[mode_vote] Missing maplist for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].mapListFile, mapListPath);
         }
+        else
+        {
+            if (!ValidateModeMapList(g_Modes[i], mapListPath))
+            {
+                hasErrors = true;
+            }
+        }
+
+        if (hasAdminMenuContent)
+        {
+            char menuToken[24];
+            Format(menuToken, sizeof(menuToken), "\"%s\"", g_Modes[i].id);
+            if (StrContains(adminMenuBuffer, menuToken, false) == -1)
+            {
+                hasErrors = true;
+                LogError("[mode_vote] Admin menu '%s' is out of sync: mode id '%s' not found in sm_forcemode list.", MODE_ADMINMENU_CUSTOM, g_Modes[i].id);
+            }
+        }
     }
 
     if (hasErrors)
     {
         SetFailState("[mode_vote] Mode registry validation failed. Check error logs.");
     }
+}
+
+bool ValidateModeMapList(const ModeInfo mode, const char[] mapListPath)
+{
+    File mapList = OpenFile(mapListPath, "r");
+    if (mapList == null)
+    {
+        LogError("[mode_vote] Failed to open maplist '%s' for mode '%s'.", mapListPath, mode.id);
+        return false;
+    }
+
+    char line[192];
+    bool hasAnyMap = false;
+    bool hasValidMap = false;
+
+    while (!IsEndOfFile(mapList) && ReadFileLine(mapList, line, sizeof(line)))
+    {
+        TrimString(line);
+        if (line[0] == '\0' || line[0] == ';' || (line[0] == '/' && line[1] == '/'))
+        {
+            continue;
+        }
+
+        hasAnyMap = true;
+        if (!IsMapValid(line))
+        {
+            LogError("[mode_vote] Invalid map '%s' in maplist '%s' for mode '%s'.", line, mode.mapListFile, mode.id);
+            continue;
+        }
+
+        hasValidMap = true;
+    }
+
+    delete mapList;
+
+    if (!hasAnyMap)
+    {
+        LogError("[mode_vote] Empty maplist '%s' for mode '%s'.", mode.mapListFile, mode.id);
+        return false;
+    }
+
+    if (!hasValidMap)
+    {
+        LogError("[mode_vote] Maplist '%s' for mode '%s' does not contain any valid map.", mode.mapListFile, mode.id);
+        return false;
+    }
+
+    return true;
+}
+
+bool ReadTextFileToBuffer(const char[] filePath, char[] buffer, int bufferMaxlen)
+{
+    buffer[0] = '\0';
+
+    File file = OpenFile(filePath, "r");
+    if (file == null)
+    {
+        return false;
+    }
+
+    char line[256];
+    while (!IsEndOfFile(file) && ReadFileLine(file, line, sizeof(line)))
+    {
+        if (strlen(buffer) + strlen(line) + 1 >= bufferMaxlen)
+        {
+            break;
+        }
+
+        StrCat(buffer, bufferMaxlen, line);
+    }
+
+    delete file;
+    return true;
 }
 
 void EnsureModeRouterLoaded()

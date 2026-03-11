@@ -1547,27 +1547,6 @@ void ValidateModeProfilesOrFail()
         LogError("[mode_vote] Failed to read mode router cfg '%s' for alias validation.", routerPath);
     }
 
-    char adminMenuPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, adminMenuPath, sizeof(adminMenuPath), "%s", MODE_ADMINMENU_CUSTOM);
-    char adminMenuBuffer[8192];
-    bool hasAdminMenuContent = ReadTextFileToBuffer(adminMenuPath, adminMenuBuffer, sizeof(adminMenuBuffer));
-    if (!hasAdminMenuContent)
-    {
-        hasNonFatalIssues = true;
-        LogError("[mode_vote] Failed to read admin menu file '%s' for mode registry sync validation (non-fatal).", adminMenuPath);
-    }
-
-    bool adminMenuHasSyncHint = false;
-    if (hasAdminMenuContent)
-    {
-        adminMenuHasSyncHint = (StrContains(adminMenuBuffer, "mode_vote registry sync", false) != -1);
-        if (!adminMenuHasSyncHint)
-        {
-            hasNonFatalIssues = true;
-            LogMessage("[mode_vote] Admin menu file '%s' does not contain registry sync hint comment (non-fatal).", adminMenuPath);
-        }
-    }
-
     for (int i = 0; i < MAX_MODES; i++)
     {
         if (g_Modes[i].id[0] == '\0' || g_Modes[i].routerAlias[0] == '\0')
@@ -1634,16 +1613,6 @@ void ValidateModeProfilesOrFail()
             hasNonFatalIssues = true;
         }
 
-        if (hasAdminMenuContent)
-        {
-            char menuToken[24];
-            Format(menuToken, sizeof(menuToken), "\"%s\"", g_Modes[i].id);
-            if (StrContains(adminMenuBuffer, menuToken, false) == -1)
-            {
-                hasNonFatalIssues = true;
-                LogError("[mode_vote] Admin menu '%s' is out of sync: mode id '%s' not found in sm_forcemode list (non-fatal).", MODE_ADMINMENU_CUSTOM, g_Modes[i].id);
-            }
-        }
     }
 
     if (hasFatalErrors)

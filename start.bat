@@ -1,1 +1,2 @@
-srcds.exe -game csgo -console -tickrate 128 +map de_mirage +exec mode_lobby.cfg -port 27015 +sv_setsteamaccount EC46101BCBC4BEEC8C3DC4B8C4B4FB93
+call build_mode_vote.bat
+srcds.exe -game csgo -console -tickrate 128 +map de_mirage +exec mode_lobby.cfg -port 27015 +sv_setsteamaccount YOUR_GSLT_TOKEN_HERE

@@ -89,8 +89,6 @@
 - `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — стандартное меню SourceMod (ModeVote туда не встраивается).
 - `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
 - Отдельное меню ModeVote открывается командой `sm_modeadmin`.
-- `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — пункты админ-меню.
-- `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
 
 ---
 
@@ -162,6 +160,18 @@
 - Действия режима: `addons/sourcemod/logs/mode_actions.log`
 
 ### Частые причины проблем
+
+### Критичный симптом из логов
+
+Если видите `Unknown command "sm_votemode"`, `Unknown command "sm_forcemode"`, `Unknown command "sm_dzsize"` — это почти всегда значит:
+- `mode_vote.smx` не скомпилирован/не лежит в `csgo/addons/sourcemod/plugins/`, или
+- SourceMod не может загрузить плагин.
+
+Исправление:
+1. Запустите `build_mode_vote.bat` (или вручную `spcomp` на `mode_vote.sp`).
+2. Проверьте, что появился `csgo/addons/sourcemod/plugins/mode_vote.smx`.
+3. В серверной консоли проверьте `sm plugins list`.
+
 1. Не найден файл профиля режима (`mode_*.cfg`).
 2. Карта невалидна или отсутствует в maplist.
 3. Отсутствуют обязательные ConVar (`game_type`, `game_mode`, `mapcyclefile`).

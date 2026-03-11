@@ -67,6 +67,22 @@ git pull origin S_Cfg_V1
 ⚠️ **Важно по безопасности:** секреты (`RCON`, `GSLT`, пароли, токены) нельзя коммитить в репозиторий. Храните их в локальных/серверных приватных файлах, которые добавлены в `.gitignore`.
 ## 🚀 Запуск сервера (Classic и Danger Zone)
 
+
+### Важный шаг перед запуском (обязательно)
+
+В логах из `Log/` были ошибки `Unknown command "sm_votemode"` / `Unknown command "sm_forcemode"`.
+Это означает, что `mode_vote` не был скомпилирован в `mode_vote.smx` (или не загрузился).
+
+Чтобы это не повторялось, стартовые скрипты теперь автоматически вызывают:
+
+```bat
+call build_mode_vote.bat
+```
+
+Скрипт компилирует `csgo/addons/sourcemod/scripting/mode_vote.sp` в `csgo/addons/sourcemod/plugins/mode_vote.smx` через `spcomp.exe`.
+Если `spcomp.exe` отсутствует, установите полный пакет SourceMod (не только runtime-плагины).
+
+
 Чтобы не смешивать режимы, используйте отдельные bat-скрипты:
 
 - `start_classic.bat` — классический режим (de_mirage).

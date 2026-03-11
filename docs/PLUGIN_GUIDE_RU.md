@@ -107,6 +107,12 @@
 2. `start.bat`, `start_dz.bat`, `start_classic.bat`
    - `+sv_setsteamaccount YOUR_GSLT_TOKEN_HERE`
 
+### Единое правило по секретам (обязательное)
+- `csgo/cfg/server.cfg` содержит только заглушки (`CHANGE_ME`) и `exec server.private.cfg`.
+- `csgo/cfg/server.private.cfg` — **единственный** источник реальных `rcon_password`, `sv_password` и других приватных cvar.
+- Секреты запуска (`GSLT`, токены) хранятся только в локальных `*.local.bat`.
+- `server.private.cfg` и `*.local.bat` не коммитятся и должны оставаться только локальными файлами.
+
 ### Как правильно хранить реальные значения
 - Реальные `rcon_password` и `sv_password` допускаются **только** в `csgo/cfg/server.private.cfg`.
 - В `csgo/cfg/server.cfg` должны оставаться только заглушки (`CHANGE_ME`) и строка `exec server.private.cfg`.

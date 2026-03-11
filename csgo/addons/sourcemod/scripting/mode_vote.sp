@@ -145,6 +145,7 @@ public Action Command_DzAlias(int client, int args)
         return Plugin_Handled;
     }
 
+    PrintToChat(client, "%t", "Hint Dz Main Flow");
     g_SelectedDzTeamCount[client] = 2;
     g_SelectedDzAutoAssign[client] = true;
     ShowDzTeamSizeMenu(client);
@@ -603,7 +604,7 @@ void ShowModeActionMenu(int client, int modeIndex)
     Format(adminLabel, sizeof(adminLabel), "%T", "Menu Mode Action Ask Admin", client);
     Format(infoLabel, sizeof(infoLabel), "%T", "Menu Mode Action Info", client);
 
-    menu.AddItem("vote", voteLabel);
+    menu.AddItem("start_global_vote", voteLabel);
     menu.AddItem("admin", adminLabel);
     menu.AddItem("info", infoLabel);
     menu.ExitButton = true;
@@ -632,8 +633,9 @@ public int ModeActionMenuHandler(Menu menu, MenuAction action, int client, int i
         char actionId[16];
         menu.GetItem(item, actionId, sizeof(actionId));
 
-        if (StrEqual(actionId, "vote", false))
+        if (StrEqual(actionId, "start_global_vote", false))
         {
+            // Starts the common vote menu for all modes; caller gets the first vote for preselected mode.
             TryStartVote(client, modeIndex);
             return 0;
         }
@@ -757,7 +759,7 @@ void ShowDzFinalActionMenu(int client)
     Format(voteLabel, sizeof(voteLabel), "%T", "Menu Dz Final Action Vote", client);
 
     menu.AddItem("apply", applyLabel);
-    menu.AddItem("vote", voteLabel);
+    menu.AddItem("start_global_vote", voteLabel);
     menu.ExitButton = true;
     menu.Display(client, 20);
 }
@@ -784,7 +786,11 @@ public int DzFinalActionMenuHandler(Menu menu, MenuAction action, int client, in
             return 0;
         }
 
-        TryStartVote(client, FindModeById("dz"));
+        if (StrEqual(actionId, "start_global_vote", false))
+        {
+            // Starts the common vote menu for all modes; caller gets the first vote for DZ.
+            TryStartVote(client, FindModeById("dz"));
+        }
     }
 
     return 0;

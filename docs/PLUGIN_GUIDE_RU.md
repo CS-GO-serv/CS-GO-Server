@@ -140,12 +140,13 @@
 - Для открытых сквадов игроки используют `dz_jointeam`.
 
 ### D) Настроить права
-- В `admin_overrides.cfg` задайте флаги на **полный набор admin-команд Mode Vote** (должен совпадать с `RegAdminCmd(...)` в `mode_vote.sp`):
-  - `sm_forcemode`
-  - `sm_dzsize`
-  - `sm_dzteams`
-  - `sm_mode_reloadlists`
-  - `sm_modeadmin`
+- В `admin_overrides.cfg` задайте флаг `g` (`ADMFLAG_CHANGEMAP`) на **полный набор admin-команд Mode Vote**.
+- Актуальный список (1:1 с `RegAdminCmd(...)` в `mode_vote.sp`):
+  - `sm_forcemode` → `"g"`
+  - `sm_dzsize` → `"g"`
+  - `sm_dzteams` → `"g"`
+  - `sm_mode_reloadlists` → `"g"`
+  - `sm_modeadmin` → `"g"`
 
 ---
 

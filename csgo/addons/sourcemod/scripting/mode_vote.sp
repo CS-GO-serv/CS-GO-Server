@@ -1293,13 +1293,14 @@ int FindModeById(const char[] modeId)
 
 void ValidateModeProfilesOrFail()
 {
-    bool hasErrors = false;
+    bool hasFatalErrors = false;
+    bool hasNonFatalIssues = false;
 
     char routerPath[PLATFORM_MAX_PATH];
     BuildPath(Path_Game, routerPath, sizeof(routerPath), "%s", MODE_ROUTER_CFG);
     if (!FileExists(routerPath))
     {
-        hasErrors = true;
+        hasFatalErrors = true;
         LogError("[mode_vote] Missing mode router cfg '%s' (resolved '%s').", MODE_ROUTER_CFG, routerPath);
     }
 
@@ -1307,7 +1308,7 @@ void ValidateModeProfilesOrFail()
     bool hasRouterContent = ReadTextFileToBuffer(routerPath, routerBuffer, sizeof(routerBuffer));
     if (!hasRouterContent)
     {
-        hasErrors = true;
+        hasFatalErrors = true;
         LogError("[mode_vote] Failed to read mode router cfg '%s' for alias validation.", routerPath);
     }
 
@@ -1317,8 +1318,8 @@ void ValidateModeProfilesOrFail()
     bool hasAdminMenuContent = ReadTextFileToBuffer(adminMenuPath, adminMenuBuffer, sizeof(adminMenuBuffer));
     if (!hasAdminMenuContent)
     {
-        hasErrors = true;
-        LogError("[mode_vote] Failed to read admin menu file '%s' for mode registry sync validation.", adminMenuPath);
+        hasNonFatalIssues = true;
+        LogError("[mode_vote] Failed to read admin menu file '%s' for mode registry sync validation (non-fatal).", adminMenuPath);
     }
 
     bool adminMenuHasSyncHint = false;
@@ -1327,8 +1328,8 @@ void ValidateModeProfilesOrFail()
         adminMenuHasSyncHint = (StrContains(adminMenuBuffer, "mode_vote registry sync", false) != -1);
         if (!adminMenuHasSyncHint)
         {
-            hasErrors = true;
-            LogError("[mode_vote] Admin menu file '%s' does not contain registry sync hint comment.", adminMenuPath);
+            hasNonFatalIssues = true;
+            LogMessage("[mode_vote] Admin menu file '%s' does not contain registry sync hint comment (non-fatal).", adminMenuPath);
         }
     }
 
@@ -1336,7 +1337,7 @@ void ValidateModeProfilesOrFail()
     {
         if (g_Modes[i].id[0] == '\0' || g_Modes[i].routerAlias[0] == '\0')
         {
-            hasErrors = true;
+            hasFatalErrors = true;
             LogError("[mode_vote] Invalid mode registry entry at index %d: id='%s' alias='%s'.", i, g_Modes[i].id, g_Modes[i].routerAlias);
         }
 
@@ -1344,13 +1345,13 @@ void ValidateModeProfilesOrFail()
         {
             if (StrEqual(g_Modes[i].id, g_Modes[j].id, false))
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Duplicate mode id detected: '%s' (indexes %d and %d).", g_Modes[i].id, i, j);
             }
 
             if (StrEqual(g_Modes[i].routerAlias, g_Modes[j].routerAlias, false))
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Duplicate router alias detected: '%s' (indexes %d and %d).", g_Modes[i].routerAlias, i, j);
             }
         }
@@ -1359,7 +1360,7 @@ void ValidateModeProfilesOrFail()
         BuildPath(Path_Game, cfgPath, sizeof(cfgPath), "%s", g_Modes[i].cfgFile);
         if (!FileExists(cfgPath))
         {
-            hasErrors = true;
+            hasNonFatalIssues = true;
             LogError("[mode_vote] Missing cfg for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].cfgFile, cfgPath);
         }
 
@@ -1369,36 +1370,33 @@ void ValidateModeProfilesOrFail()
             Format(aliasNeedle, sizeof(aliasNeedle), "alias %s", g_Modes[i].routerAlias);
             if (StrContains(routerBuffer, aliasNeedle, false) == -1)
             {
-                hasErrors = true;
+                hasFatalErrors = true;
                 LogError("[mode_vote] Missing router alias for mode '%s': expected '%s' inside '%s'.", g_Modes[i].id, g_Modes[i].routerAlias, MODE_ROUTER_CFG);
             }
         }
 
         if (!IsMapValid(g_Modes[i].startMap))
         {
-            hasErrors = true;
-            LogError("[mode_vote] Invalid start map for mode '%s': '%s'.", g_Modes[i].id, g_Modes[i].startMap);
+            hasNonFatalIssues = true;
+            LogError("[mode_vote] Invalid start map for mode '%s': '%s' (non-fatal, fallback may be used).", g_Modes[i].id, g_Modes[i].startMap);
         }
 
         if (!IsMapValid(g_Modes[i].fallbackMap))
         {
-            hasErrors = true;
-            LogError("[mode_vote] Invalid fallback map for mode '%s': '%s'.", g_Modes[i].id, g_Modes[i].fallbackMap);
+            hasNonFatalIssues = true;
+            LogError("[mode_vote] Invalid fallback map for mode '%s': '%s' (non-fatal).", g_Modes[i].id, g_Modes[i].fallbackMap);
         }
 
         char mapListPath[PLATFORM_MAX_PATH];
         BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Modes[i].mapListFile);
         if (!FileExists(mapListPath))
         {
-            hasErrors = true;
+            hasNonFatalIssues = true;
             LogError("[mode_vote] Missing maplist for mode '%s': '%s' (resolved '%s').", g_Modes[i].id, g_Modes[i].mapListFile, mapListPath);
         }
-        else
+        else if (!ValidateModeMapList(g_Modes[i], mapListPath))
         {
-            if (!ValidateModeMapList(g_Modes[i], mapListPath))
-            {
-                hasErrors = true;
-            }
+            hasNonFatalIssues = true;
         }
 
         if (hasAdminMenuContent)
@@ -1407,15 +1405,21 @@ void ValidateModeProfilesOrFail()
             Format(menuToken, sizeof(menuToken), "\"%s\"", g_Modes[i].id);
             if (StrContains(adminMenuBuffer, menuToken, false) == -1)
             {
-                hasErrors = true;
-                LogError("[mode_vote] Admin menu '%s' is out of sync: mode id '%s' not found in sm_forcemode list.", MODE_ADMINMENU_CUSTOM, g_Modes[i].id);
+                hasNonFatalIssues = true;
+                LogError("[mode_vote] Admin menu '%s' is out of sync: mode id '%s' not found in sm_forcemode list (non-fatal).", MODE_ADMINMENU_CUSTOM, g_Modes[i].id);
             }
         }
     }
 
-    if (hasErrors)
+    if (hasFatalErrors)
     {
-        SetFailState("[mode_vote] Mode registry validation failed. Check error logs.");
+        SetFailState("[mode_vote] Mode registry validation failed (fatal). Check error logs.");
+        return;
+    }
+
+    if (hasNonFatalIssues)
+    {
+        LogMessage("[mode_vote] Validation finished with non-fatal issues. Plugin continues in fail-safe mode; see error logs.");
     }
 }
 

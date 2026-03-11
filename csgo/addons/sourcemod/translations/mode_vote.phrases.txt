@@ -66,8 +66,8 @@
 
     "Menu Mode Action Vote"
     {
-        "en"    "Start vote"
-        "ru"    "Запустить голосование"
+        "en"    "Start global vote (your vote for this mode)"
+        "ru"    "Запустить общее голосование (ваш голос за этот режим)"
     }
 
     "Menu Mode Action Ask Admin"
@@ -97,8 +97,8 @@
 
     "Menu Dz Final Action Vote"
     {
-        "en"    "Start vote for DZ"
-        "ru"    "Запустить голосование за DZ"
+        "en"    "Start global vote (your vote for DZ)"
+        "ru"    "Запустить общее голосование (ваш голос за DZ)"
     }
 
     "Mode Name DZ"
@@ -310,8 +310,8 @@
 
     "Hint Mode Main Flow"
     {
-        "en"    "Tip: !mode -> pick mode -> action (vote / ask admin / info). For DZ: size + team assign, then apply by admin or vote DZ."
-        "ru"    "Подсказка: !mode -> режим -> действие (голосование / попросить админа / инфо). Для DZ: размер + назначение команд, затем применить админом или запустить голосование за DZ."
+        "en"    "Tip: !mode -> pick mode -> action (start global vote with your first vote for this mode / ask admin / info). For DZ: size + team assign, then apply by admin or start global vote with your first vote for DZ."
+        "ru"    "Подсказка: !mode -> режим -> действие (запустить общее голосование с вашим первым голосом за этот режим / попросить админа / инфо). Для DZ: размер + назначение команд, затем применить админом или запустить общее голосование с вашим первым голосом за DZ."
     }
 
 

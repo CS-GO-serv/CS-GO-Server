@@ -634,7 +634,7 @@ public int ModeActionMenuHandler(Menu menu, MenuAction action, int client, int i
 
         if (StrEqual(actionId, "vote", false))
         {
-            TryStartVote(client);
+            TryStartVote(client, modeIndex);
             return 0;
         }
 
@@ -784,7 +784,7 @@ public int DzFinalActionMenuHandler(Menu menu, MenuAction action, int client, in
             return 0;
         }
 
-        TryStartVote(client);
+        TryStartVote(client, FindModeById("dz"));
     }
 
     return 0;
@@ -843,7 +843,7 @@ void RequestAdminModeApply(int client, int modeIndex, bool dzProfile)
     }
 }
 
-void TryStartVote(int caller)
+void TryStartVote(int caller, int preselectedModeIndex = -1)
 {
     int now = GetTime();
     int playersOnline = CountHumanPlayers();
@@ -869,10 +869,10 @@ void TryStartVote(int caller)
         return;
     }
 
-    StartVote(caller);
+    StartVote(caller, preselectedModeIndex);
 }
 
-void StartVote(int caller)
+void StartVote(int caller, int preselectedModeIndex = -1)
 {
     g_VoteInProgress = true;
     g_NextVoteAllowedAt = GetTime() + g_VoteCooldown;
@@ -907,6 +907,31 @@ void StartVote(int caller)
     }
 
     g_VoteTimer = CreateTimer(g_VoteDuration, Timer_FinishVote);
+
+    if (preselectedModeIndex >= 0 && preselectedModeIndex < MAX_MODES)
+    {
+        RegisterVote(caller, preselectedModeIndex);
+    }
+}
+
+void RegisterVote(int client, int modeIndex)
+{
+    if (!g_VoteInProgress || !IsValidClient(client) || g_HasVoted[client])
+    {
+        return;
+    }
+
+    if (modeIndex < 0 || modeIndex >= MAX_MODES)
+    {
+        return;
+    }
+
+    g_HasVoted[client] = true;
+    g_VoteCounts[modeIndex]++;
+
+    char modeName[64];
+    Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
+    PrintToChat(client, "%t", "Vote Accepted", modeName);
 }
 
 void ShowVoteMenu(int client)
@@ -1006,26 +1031,11 @@ public int VoteMenuHandler(Menu menu, MenuAction action, int client, int item)
     }
     else if (action == MenuAction_Select)
     {
-        if (!g_VoteInProgress || !IsValidClient(client) || g_HasVoted[client])
-        {
-            return 0;
-        }
-
         char modeId[16];
         menu.GetItem(item, modeId, sizeof(modeId));
 
         int modeIndex = FindModeById(modeId);
-        if (modeIndex == -1)
-        {
-            return 0;
-        }
-
-        g_HasVoted[client] = true;
-        g_VoteCounts[modeIndex]++;
-
-        char modeName[64];
-        Format(modeName, sizeof(modeName), "%T", g_Modes[modeIndex].namePhrase, client);
-        PrintToChat(client, "%t", "Vote Accepted", modeName);
+        RegisterVote(client, modeIndex);
     }
 
     return 0;

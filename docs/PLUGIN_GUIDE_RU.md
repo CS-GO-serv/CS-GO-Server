@@ -89,6 +89,8 @@
 - `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — стандартное меню SourceMod (ModeVote туда не встраивается).
 - `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
 - Отдельное меню ModeVote открывается командой `sm_modeadmin`.
+- `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — пункты админ-меню.
+- `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
 
 ---
 

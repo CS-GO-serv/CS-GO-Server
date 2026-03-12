@@ -41,8 +41,10 @@ void Session_Init()
     g_Session.pendingChange.state = Pending_None;
     g_Session.pendingChange.scenarioId[0] = '\0';
     g_Session.pendingChange.mapName[0] = '\0';
+    g_Session.pendingChange.source[0] = '\0';
     g_Session.pendingChange.requestedBy = 0;
     g_Session.pendingChange.requestedAt = 0;
+    g_Session.pendingChange.confirmDeadline = 0;
 
     Session_ResetVote();
 
@@ -99,13 +101,15 @@ void Session_GetQueuedScenario(char[] buffer, int maxlen)
     strcopy(buffer, maxlen, g_Session.queuedScenario);
 }
 
-void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, int actor)
+void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, const char[] source, int actor, int confirmWindow)
 {
     g_Session.pendingChange.state = Pending_Proposed;
     strcopy(g_Session.pendingChange.scenarioId, sizeof(g_Session.pendingChange.scenarioId), scenarioId);
     strcopy(g_Session.pendingChange.mapName, sizeof(g_Session.pendingChange.mapName), mapName);
+    strcopy(g_Session.pendingChange.source, sizeof(g_Session.pendingChange.source), source);
     g_Session.pendingChange.requestedBy = actor;
     g_Session.pendingChange.requestedAt = GetTime();
+    g_Session.pendingChange.confirmDeadline = g_Session.pendingChange.requestedAt + confirmWindow;
 }
 
 void Session_SetPendingChangeState(PendingChangeState state)
@@ -128,8 +132,10 @@ void Session_ClearPendingChange()
     g_Session.pendingChange.state = Pending_None;
     g_Session.pendingChange.scenarioId[0] = '\0';
     g_Session.pendingChange.mapName[0] = '\0';
+    g_Session.pendingChange.source[0] = '\0';
     g_Session.pendingChange.requestedBy = 0;
     g_Session.pendingChange.requestedAt = 0;
+    g_Session.pendingChange.confirmDeadline = 0;
 }
 
 bool Session_IsVoteInProgress()

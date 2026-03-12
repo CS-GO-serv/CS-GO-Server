@@ -19,10 +19,12 @@ ConVar g_CvarVoteDuration = null;
 ConVar g_CvarVoteCooldown = null;
 ConVar g_CvarVoteMinPlayers = null;
 ConVar g_CvarVerbose = null;
+ConVar g_CvarPendingConfirmWindow = null;
 
 float g_VoteDuration = MODE_VOTE_DURATION_DEFAULT;
 int g_VoteCooldown = MODE_VOTE_COOLDOWN_DEFAULT;
 int g_VoteMinPlayers = MODE_VOTE_MIN_PLAYERS_DEFAULT;
+int g_PendingConfirmWindow = MODE_PENDING_CONFIRM_WINDOW_DEFAULT;
 
 ArrayList g_ModeMapCache[MAX_MODES];
 bool g_ModeMapCacheLoaded[MAX_MODES];

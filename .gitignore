@@ -58,3 +58,7 @@ start_classic.local.bat
 # Allow committed diagnostic logs from repo-level Log folder
 !/Log/
 !/Log/**
+
+# ServerFlow modular includes
+!/csgo/addons/sourcemod/scripting/serverflow/
+!/csgo/addons/sourcemod/scripting/serverflow/**

@@ -6,29 +6,37 @@
 void Transition_QueueScenario(const char[] scenarioId, int actor)
 {
     Session_SetQueuedScenario(scenarioId);
-    Session_SetPendingChange(scenarioId, "", actor);
+    Pending_Create(scenarioId, "", actor);
 }
 
 void Transition_QueueMap(const char[] mapName, int actor)
 {
-    Session_SetPendingChange(g_Session.currentScenario, mapName, actor);
+    char currentScenario[16];
+    Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
+    Pending_Create(currentScenario, mapName, actor);
 }
 
 bool Transition_ApplyPending()
 {
-    if (g_PendingChange.state != Pending_Confirmed)
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+
+    if (pending.state != Pending_Confirmed)
     {
         return false;
     }
 
-    if (g_PendingChange.scenarioId[0] != '\0')
+    Session_SetTransitionType(TransitionType_ApplyPending);
+    Session_SetPendingChangeState(Pending_Applying);
+
+    if (pending.scenarioId[0] != '\0')
     {
-        Session_SetCurrentScenario(g_PendingChange.scenarioId);
+        Session_SetCurrentScenario(pending.scenarioId);
     }
 
-    if (g_PendingChange.mapName[0] != '\0')
+    if (pending.mapName[0] != '\0')
     {
-        strcopy(g_Session.queuedMap, sizeof(g_Session.queuedMap), g_PendingChange.mapName);
+        Session_SetQueuedMap(pending.mapName);
     }
 
     Session_ClearPendingChange();

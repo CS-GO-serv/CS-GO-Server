@@ -5,28 +5,20 @@
 
 void Vote_Reset()
 {
-    g_VoteInProgress = false;
-    for (int i = 0; i < MAX_MODES; i++)
-    {
-        g_VoteCounts[i] = 0;
-    }
-
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        g_HasVoted[i] = false;
-    }
+    Session_StartVote(VoteType_None, 0, 0.0, 0);
+    Session_FinishVote();
 }
 
 void Vote_Start(int caller)
 {
-    if (g_VoteInProgress)
+    if (Session_IsVoteInProgress())
     {
         return;
     }
 
-    Vote_Reset();
-    g_VoteInProgress = true;
-    g_VoteTimer = CreateTimer(g_VoteDuration, Timer_FinishVote);
+    Session_StartVote(VoteType_Scenario, caller, g_VoteDuration, g_VoteCooldown);
+    Session_SetVoteTimer(CreateTimer(g_VoteDuration, Timer_FinishVote));
+
     for (int i = 1; i <= MaxClients; i++)
     {
         if (IsValidClient(i))
@@ -40,30 +32,27 @@ void Vote_Start(int caller)
 
 void Vote_Cast(int client, int modeIndex)
 {
-    if (!g_VoteInProgress || modeIndex < 0 || modeIndex >= MAX_MODES)
+    if (!Session_IsVoteInProgress() || modeIndex < 0 || modeIndex >= MAX_MODES)
     {
         return;
     }
 
-    if (g_HasVoted[client])
+    if (Session_HasClientVoted(client))
     {
         return;
     }
 
-    g_HasVoted[client] = true;
-    g_VoteCounts[modeIndex]++;
+    Session_RecordVote(client, modeIndex);
 }
 
 public Action Timer_FinishVote(Handle timer)
 {
-    g_VoteTimer = null;
-    g_VoteInProgress = false;
-    g_NextVoteAllowedAt = GetTime() + g_VoteCooldown;
+    Session_FinishVote();
 
     int winner = 0;
     for (int i = 1; i < MAX_MODES; i++)
     {
-        if (g_VoteCounts[i] > g_VoteCounts[winner])
+        if (Session_GetVoteCount(i) > Session_GetVoteCount(winner))
         {
             winner = i;
         }
@@ -74,7 +63,7 @@ public Action Timer_FinishVote(Handle timer)
 
     Call_StartForward(g_FwdOnVoteCompleted);
     Call_PushString(g_Modes[winner].id);
-    Call_PushCell(g_VoteCounts[winner]);
+    Call_PushCell(Session_GetVoteCount(winner));
     Call_Finish();
 
     PrintToChatAll("[ServerFlow] Vote finished: %s", g_Modes[winner].id);

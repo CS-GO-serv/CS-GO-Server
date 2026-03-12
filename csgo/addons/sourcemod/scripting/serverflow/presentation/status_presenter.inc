@@ -5,5 +5,10 @@
 
 void Status_ShowToClient(int client)
 {
-    PrintToChat(client, "[ServerFlow] state=%d scenario=%s queued=%s", g_Session.currentState, g_Session.currentScenario, g_Session.queuedScenario);
+    char currentScenario[16];
+    char queuedScenario[16];
+    Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
+    Session_GetQueuedScenario(queuedScenario, sizeof(queuedScenario));
+
+    PrintToChat(client, "[ServerFlow] state=%d scenario=%s queued=%s", Session_GetState(), currentScenario, queuedScenario);
 }

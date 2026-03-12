@@ -8,17 +8,31 @@ void Pending_Create(const char[] scenarioId, const char[] mapName, int actor)
     Session_SetPendingChange(scenarioId, mapName, actor);
 }
 
-void Pending_Confirm()
+void Pending_Select()
 {
-    if (g_PendingChange.state != Pending_Queued)
+    if (Session_GetPendingChangeState() != Pending_Proposed)
     {
         return;
     }
 
-    g_PendingChange.state = Pending_Confirmed;
+    Session_SetPendingChangeState(Pending_Selected);
+}
+
+void Pending_Confirm()
+{
+    if (Session_GetPendingChangeState() != Pending_Selected && Session_GetPendingChangeState() != Pending_Proposed)
+    {
+        return;
+    }
+
+    Session_SetPendingChangeState(Pending_Confirmed);
+
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+
     Call_StartForward(g_FwdOnPendingChangeConfirmed);
-    Call_PushString(g_PendingChange.scenarioId);
-    Call_PushString(g_PendingChange.mapName);
+    Call_PushString(pending.scenarioId);
+    Call_PushString(pending.mapName);
     Call_Finish();
 }
 

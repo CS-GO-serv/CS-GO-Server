@@ -13,13 +13,7 @@ static const ModeInfo g_Modes[] =
 #define MAX_MODES (sizeof(g_Modes))
 
 RuntimeSession g_Session;
-PendingChange g_PendingChange;
-
-bool g_VoteInProgress;
-int g_VoteCounts[MAX_MODES];
-bool g_HasVoted[MAXPLAYERS + 1];
-Handle g_VoteTimer = null;
-int g_NextVoteAllowedAt;
+PlayerRuntimeState g_PlayerState[MAXPLAYERS + 1];
 
 ConVar g_CvarVoteDuration = null;
 ConVar g_CvarVoteCooldown = null;
@@ -33,7 +27,3 @@ int g_VoteMinPlayers = MODE_VOTE_MIN_PLAYERS_DEFAULT;
 ArrayList g_ModeMapCache[MAX_MODES];
 bool g_ModeMapCacheLoaded[MAX_MODES];
 char g_ModeMapCacheError[MAX_MODES][192];
-
-int g_SelectedDzTeamCount[MAXPLAYERS + 1];
-bool g_SelectedDzAutoAssign[MAXPLAYERS + 1];
-int g_SelectedModeIndex[MAXPLAYERS + 1];

@@ -27,7 +27,7 @@ public Action Command_VoteMode(int client, int args)
         return Plugin_Handled;
     }
 
-    if (GetTime() < g_NextVoteAllowedAt)
+    if (GetTime() < Session_GetVoteNextAllowedAt())
     {
         PrintToChat(client, "[ServerFlow] Vote is on cooldown.");
         return Plugin_Handled;

@@ -32,7 +32,7 @@ public int ModeMenuHandler(Menu menu, MenuAction action, int client, int item)
         char info[8];
         menu.GetItem(item, info, sizeof(info));
         int index = StringToInt(info);
-        Transition_QueueScenario(g_Modes[index].id, client);
+        Transition_QueueScenario(g_Modes[index].id, client, "menu_play");
         PrintToChat(client, "[ServerFlow] Queued scenario: %s", g_Modes[index].id);
     }
 

@@ -22,8 +22,10 @@ enum struct PendingChange
     PendingChangeState state;
     char scenarioId[16];
     char mapName[64];
+    char source[32];
     int requestedBy;
     int requestedAt;
+    int confirmDeadline;
 }
 
 enum struct VoteRecord

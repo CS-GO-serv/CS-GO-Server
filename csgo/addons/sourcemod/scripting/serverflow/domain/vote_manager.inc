@@ -58,14 +58,13 @@ public Action Timer_FinishVote(Handle timer)
         }
     }
 
-    Transition_QueueScenario(g_Modes[winner].id, 0);
-    Pending_Confirm();
+    Transition_QueueScenario(g_Modes[winner].id, 0, "vote_winner");
 
     Call_StartForward(g_FwdOnVoteCompleted);
     Call_PushString(g_Modes[winner].id);
     Call_PushCell(Session_GetVoteCount(winner));
     Call_Finish();
 
-    PrintToChatAll("[ServerFlow] Vote finished: %s", g_Modes[winner].id);
+    PrintToChatAll("[ServerFlow] Vote finished, pending scenario queued: %s", g_Modes[winner].id);
     return Plugin_Stop;
 }

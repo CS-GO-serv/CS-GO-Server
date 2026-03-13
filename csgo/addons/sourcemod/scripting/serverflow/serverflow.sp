@@ -11,6 +11,8 @@
 #include "core/helpers.inc"
 #include "core/debug.inc"
 
+#include "diagnostics/audit_logger.inc"
+
 #include "runtime/session_store.inc"
 #include "runtime/state_manager.inc"
 #include "runtime/pending_change.inc"

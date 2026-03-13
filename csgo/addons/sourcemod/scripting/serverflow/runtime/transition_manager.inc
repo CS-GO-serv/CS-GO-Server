@@ -21,13 +21,14 @@ void Transition_CancelPending(const char[] reason = "cancel")
     Pending_Cancel(reason);
 }
 
-static void Transition_ApplyScenario(const char[] scenarioId)
+static bool Transition_ApplyScenario(const char[] scenarioId)
 {
     int scenarioIndex = FindModeById(scenarioId);
     if (scenarioIndex == -1)
     {
         ModeDebug("transition apply rejected: unknown scenario %s", scenarioId);
-        return;
+        Audit_Log("transition_apply_rejected_unknown_scenario");
+        return false;
     }
 
     Session_SetCurrentScenario(scenarioId);
@@ -42,6 +43,8 @@ static void Transition_ApplyScenario(const char[] scenarioId)
     {
         ServerCommand("mapgroup %s", g_Scenarios[scenarioIndex].mapgroup);
     }
+
+    return true;
 }
 
 bool Transition_ApplyPending(const char[] source = "")
@@ -57,9 +60,11 @@ bool Transition_ApplyPending(const char[] source = "")
     Session_SetTransitionType(TransitionType_ApplyPending);
     Session_SetPendingChangeState(Pending_Applying);
 
-    if (pending.scenarioId[0] != '\0')
+    if (pending.scenarioId[0] != '\0' && !Transition_ApplyScenario(pending.scenarioId))
     {
-        Transition_ApplyScenario(pending.scenarioId);
+        Pending_Cancel("apply_failed_unknown_scenario");
+        Audit_Log("pending_apply_fallback_cancelled");
+        return false;
     }
 
     if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
@@ -70,8 +75,27 @@ bool Transition_ApplyPending(const char[] source = "")
         ServerCommand("changelevel %s", resolvedMap);
     }
 
+    char auditMessage[224];
+    Format(auditMessage, sizeof(auditMessage), "pending_applied scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);
+    Audit_Log(auditMessage);
     ModeDebug("pending applied: scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);
 
     Session_ClearPendingChange();
+    return true;
+}
+
+bool Transition_ConfirmAndApplyPending(int actor, const char[] source = "")
+{
+    if (!Pending_Confirm(actor, source))
+    {
+        return false;
+    }
+
+    if (!Transition_ApplyPending(source))
+    {
+        Audit_Log("pending_apply_fallback_after_confirm");
+        return false;
+    }
+
     return true;
 }

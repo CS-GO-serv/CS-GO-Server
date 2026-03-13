@@ -80,24 +80,5 @@ bool Scenario_IsAdminOnly(int scenarioIndex)
 
 bool Scenario_CanPlayerSelect(int client, int scenarioIndex, char[] reason, int reasonLen)
 {
-    if (!IsValidClient(client))
-    {
-        strcopy(reason, reasonLen, "invalid_client");
-        return false;
-    }
-
-    if (!Scenario_IsValidIndex(scenarioIndex))
-    {
-        strcopy(reason, reasonLen, "invalid_scenario");
-        return false;
-    }
-
-    if (!State_IsScenarioSelectionAllowed(Session_GetState()))
-    {
-        strcopy(reason, reasonLen, "blocked_by_state");
-        return false;
-    }
-
-    reason[0] = '\0';
-    return true;
+    return State_CanClientSelectScenario(client, scenarioIndex, reason, reasonLen);
 }

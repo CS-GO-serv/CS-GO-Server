@@ -5,12 +5,11 @@
 
 public Action Command_ModeMenu(int client, int args)
 {
-    if (!IsValidClient(client))
+    if (IsValidClient(client))
     {
-        return Plugin_Handled;
+        ShowModeMenu(client);
     }
 
-    ShowModeMenu(client);
     return Plugin_Handled;
 }
 

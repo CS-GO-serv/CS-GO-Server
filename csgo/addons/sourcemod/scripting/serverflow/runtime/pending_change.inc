@@ -24,6 +24,10 @@ void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] 
 {
     Session_SetPendingChange(scenarioId, mapName, source, actor, g_PendingConfirmWindow);
     Pending_StartConfirmTimer(g_PendingConfirmWindow);
+
+    char auditMessage[192];
+    Format(auditMessage, sizeof(auditMessage), "pending_created actor=%d scenario=%s map=%s source=%s", actor, scenarioId, mapName, source);
+    Audit_Log(auditMessage);
 }
 
 void Pending_Select()
@@ -36,8 +40,14 @@ void Pending_Select()
     Session_SetPendingChangeState(Pending_Selected);
 }
 
-bool Pending_Confirm(const char[] source = "")
+bool Pending_Confirm(int actor, const char[] source = "")
 {
+    char reason[48];
+    if (!State_CanClientManageTransitions(actor, reason, sizeof(reason)))
+    {
+        return false;
+    }
+
     PendingChangeState state = Session_GetPendingChangeState();
     if (state != Pending_Selected && state != Pending_Proposed)
     {
@@ -61,7 +71,10 @@ bool Pending_Confirm(const char[] source = "")
     Call_PushString(pending.mapName);
     Call_Finish();
 
-    Transition_ApplyPending(source);
+    char auditMessage[192];
+    Format(auditMessage, sizeof(auditMessage), "pending_confirmed actor=%d scenario=%s map=%s source=%s", actor, pending.scenarioId, pending.mapName, source);
+    Audit_Log(auditMessage);
+
     return true;
 }
 
@@ -70,6 +83,10 @@ void Pending_Cancel(const char[] reason = "cancel")
     Pending_StopConfirmTimer();
     Session_ClearPendingChange();
     ModeDebug("pending canceled: reason=%s", reason);
+
+    char auditMessage[160];
+    Format(auditMessage, sizeof(auditMessage), "pending_canceled reason=%s", reason);
+    Audit_Log(auditMessage);
 }
 
 public Action Timer_PendingConfirmDeadline(Handle timer)

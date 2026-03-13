@@ -8,6 +8,8 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegConsoleCmd("sm_status", Command_Status);
+    RegConsoleCmd("sm_ready", Command_Ready);
+    RegConsoleCmd("sm_unready", Command_Unready);
 
     RegConsoleCmd("sm_queuescenario", Command_QueueScenario);
     RegConsoleCmd("sm_queuemap", Command_QueueMap);
@@ -55,6 +57,22 @@ bool CommandRouter_RequestVoteCast(int client, int modeIndex)
     return true;
 }
 
+
+bool CommandRouter_RequestReadyToggle(int client, bool ready, const char[] source = "player_ready")
+{
+    if (!IsValidClient(client))
+    {
+        return false;
+    }
+
+    if (!ReadyManager_SetClientReady(client, ready, source))
+    {
+        Notify_RequestDenied(client, "blocked_by_state");
+        return false;
+    }
+
+    return true;
+}
 
 bool CommandRouter_RequestQueueScenario(int client, const char[] scenarioId)
 {
@@ -115,20 +133,11 @@ bool CommandRouter_RequestCancelPending(int client)
 
 bool CommandRouter_RequestOverrideScenario(int client, const char[] scenarioId)
 {
-    char reason[48];
-    if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
+    if (!AdminOverride_RequestScenario(client, scenarioId, "admin_override"))
     {
-        Notify_RequestDenied(client, reason);
+        ReplyToCommand(client, "Override denied or unknown scenario: %s", scenarioId);
         return false;
     }
 
-    if (!Scenario_Exists(scenarioId))
-    {
-        ReplyToCommand(client, "Unknown scenario: %s", scenarioId);
-        return false;
-    }
-
-    Transition_CancelPending("override_replace");
-    Transition_QueueScenario(scenarioId, client, "admin_override");
     return true;
 }

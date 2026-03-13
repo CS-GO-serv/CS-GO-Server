@@ -33,3 +33,24 @@ public Action Command_Status(int client, int args)
 
     return Plugin_Handled;
 }
+
+
+public Action Command_Ready(int client, int args)
+{
+    if (IsValidClient(client))
+    {
+        CommandRouter_RequestReadyToggle(client, true, "player_ready_cmd");
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_Unready(int client, int args)
+{
+    if (IsValidClient(client))
+    {
+        CommandRouter_RequestReadyToggle(client, false, "player_unready_cmd");
+    }
+
+    return Plugin_Handled;
+}

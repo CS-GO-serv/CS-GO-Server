@@ -67,6 +67,13 @@ bool Transition_ApplyPending(const char[] source = "")
         return false;
     }
 
+    if (pending.scenarioId[0] != '\0')
+    {
+        State_EnterPreMatch("pending_confirmed");
+        TeamManager_EnterPreMatchSetup("pending_confirmed");
+        ReadyManager_ResetAll("pending_confirmed");
+    }
+
     if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
     {
         char resolvedMap[64];

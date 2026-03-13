@@ -1,4 +1,4 @@
-#if defined _SERVERFLOW_PLACEHOLDER_INC_
+#if defined _SERVERFLOW_TIMERS_INC_
  #endinput
 #endif
-#define _SERVERFLOW_PLACEHOLDER_INC_
+#define _SERVERFLOW_TIMERS_INC_

@@ -6,7 +6,13 @@
 void ShowModeMenu(int client)
 {
     Menu menu = new Menu(ModeMenuHandler);
-    menu.SetTitle("ServerFlow: Select mode");
+
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+
+    char title[128];
+    Format(title, sizeof(title), "ServerFlow: Select mode (pending=%d)", pending.state);
+    menu.SetTitle(title);
 
     char info[8], display[64];
     int scenarioCount = Scenario_GetCount();

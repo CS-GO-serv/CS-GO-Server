@@ -5,7 +5,7 @@
 
 void Status_ShowToClient(int client)
 {
-    char line[192];
+    char line[256];
     Status_GetCompactText(line, sizeof(line));
     PrintToChat(client, "%s", line);
 }
@@ -17,5 +17,29 @@ void Status_GetCompactText(char[] buffer, int maxlen)
     Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
     Session_GetQueuedScenario(queuedScenario, sizeof(queuedScenario));
 
-    Format(buffer, maxlen, "[ServerFlow] state=%d scenario=%s queued=%s", Session_GetState(), currentScenario, queuedScenario);
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+
+    int readyCount = ReadyManager_GetReadyCount();
+    int readyPool = ReadyManager_GetPoolCount();
+    int countdownLeft = Session_IsCountdownActive() ? Session_GetCountdownEndsAt() - GetTime() : 0;
+    if (countdownLeft < 0)
+    {
+        countdownLeft = 0;
+    }
+
+    Format(
+        buffer,
+        maxlen,
+        "[ServerFlow] state=%d prematch=%d lock=%d ready=%d/%d countdown=%d pending=%d scenario=%s queued=%s",
+        Session_GetState(),
+        Session_GetPreMatchPhase(),
+        Session_IsLockPhase(),
+        readyCount,
+        readyPool,
+        countdownLeft,
+        pending.state,
+        currentScenario,
+        queuedScenario
+    );
 }

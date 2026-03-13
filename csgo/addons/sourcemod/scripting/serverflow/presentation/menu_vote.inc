@@ -6,7 +6,13 @@
 void ShowVoteMenu(int client)
 {
     Menu menu = new Menu(VoteMenuHandler);
-    menu.SetTitle("ServerFlow Vote");
+
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+
+    char title[128];
+    Format(title, sizeof(title), "ServerFlow Vote (pending=%d)", pending.state);
+    menu.SetTitle(title);
 
     char info[8], display[64];
     int scenarioCount = Scenario_GetCount();

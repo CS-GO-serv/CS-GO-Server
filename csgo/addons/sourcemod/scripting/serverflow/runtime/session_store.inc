@@ -73,6 +73,42 @@ void Session_SetTransitionType(TransitionType transitionType)
     g_Session.lastTransitionType = transitionType;
 }
 
+void Session_SetPreMatchPhase(PreMatchPhase phase)
+{
+    g_Session.preMatchPhase = phase;
+}
+
+PreMatchPhase Session_GetPreMatchPhase()
+{
+    return g_Session.preMatchPhase;
+}
+
+void Session_SetLockPhase(bool enabled)
+{
+    g_Session.lockPhase = enabled;
+}
+
+bool Session_IsLockPhase()
+{
+    return g_Session.lockPhase;
+}
+
+void Session_SetCountdownState(bool active, int endsAt)
+{
+    g_Session.countdownActive = active;
+    g_Session.countdownEndsAt = endsAt;
+}
+
+bool Session_IsCountdownActive()
+{
+    return g_Session.countdownActive;
+}
+
+int Session_GetCountdownEndsAt()
+{
+    return g_Session.countdownEndsAt;
+}
+
 void Session_SetCurrentScenario(const char[] scenarioId)
 {
     strcopy(g_Session.previousScenario, sizeof(g_Session.previousScenario), g_Session.currentScenario);

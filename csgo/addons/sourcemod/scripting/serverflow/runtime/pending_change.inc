@@ -28,6 +28,7 @@ void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] 
     char auditMessage[192];
     Format(auditMessage, sizeof(auditMessage), "pending_created actor=%d scenario=%s map=%s source=%s", actor, scenarioId, mapName, source);
     Audit_Log(auditMessage);
+    Notify_PendingCreated(scenarioId, mapName, g_PendingConfirmWindow);
 }
 
 void Pending_Select()
@@ -74,6 +75,7 @@ bool Pending_Confirm(int actor, const char[] source = "")
     char auditMessage[192];
     Format(auditMessage, sizeof(auditMessage), "pending_confirmed actor=%d scenario=%s map=%s source=%s", actor, pending.scenarioId, pending.mapName, source);
     Audit_Log(auditMessage);
+    Notify_PendingConfirmed(actor);
 
     return true;
 }

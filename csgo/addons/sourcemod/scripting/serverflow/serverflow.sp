@@ -26,6 +26,27 @@
 
 #include "domain/scenario_registry.inc"
 #include "domain/playlist_manager.inc"
+#include "domain/player_state_manager.inc"
+#include "domain/ready_manager.inc"
+#include "domain/countdown_manager.inc"
+#include "domain/team_manager.inc"
+#include "domain/vote_manager.inc"
+#include "domain/admin_override_manager.inc"
+
+#include "presentation/status_presenter.inc"
+#include "presentation/chat_notifier.inc"
+#include "presentation/menu_play.inc"
+#include "presentation/menu_vote.inc"
+#include "presentation/menu_team.inc"
+#include "presentation/menu_admin.inc"
+
+#include "commands/cmd_player.inc"
+#include "commands/cmd_admin.inc"
+#include "commands/command_router.inc"
+
+#include "integrations/client_hooks.inc"
+#include "integrations/game_events.inc"
+#include "integrations/timers.inc"
 
 #include "diagnostics/health_check.inc"
 
@@ -42,6 +63,10 @@ static void Bootstrap_Minimal()
     Forwards_Init();
     Session_Init();
     Config_LoadAll();
+    PlayerState_ResetAll();
+
+    CommandRouter_Register();
+    Integrations_RegisterEvents();
 }
 
 public void OnPluginStart()
@@ -58,4 +83,19 @@ public void OnMapStart()
 {
     Config_ReloadAll();
     Health_RunFullCheck("OnMapStart");
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+    PlayerState_OnClientAuthorized(client);
+}
+
+public void OnClientDisconnect(int client)
+{
+    PlayerState_OnClientDisconnected(client);
+}
+
+public void OnServerStateChanged(ServerState oldState, ServerState newState, const char[] reason)
+{
+    Notify_StateChanged(oldState, newState, reason);
 }

@@ -21,19 +21,7 @@ public Action Command_VoteMode(int client, int args)
         return Plugin_Handled;
     }
 
-    if (CountHumanPlayers() < g_VoteMinPlayers)
-    {
-        PrintToChat(client, "[ServerFlow] Not enough players for vote.");
-        return Plugin_Handled;
-    }
-
-    if (GetTime() < Session_GetVoteNextAllowedAt())
-    {
-        PrintToChat(client, "[ServerFlow] Vote is on cooldown.");
-        return Plugin_Handled;
-    }
-
-    Vote_Start(client);
+    CommandRouter_RequestVoteStart(client);
     return Plugin_Handled;
 }
 

@@ -3,6 +3,148 @@
 #endif
 #define _SERVERFLOW_TRANSITION_MANAGER_INC_
 
+static void Transition_AuditDeniedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
+{
+    char auditMessage[256];
+    Format(auditMessage, sizeof(auditMessage), "pending_apply_denied reason=%s context=%s scenario=%s map=%s requested_source=%s", reasonCode, context, pending.scenarioId, pending.mapName, pending.source);
+    Audit_Log(auditMessage);
+
+    char fallbackMessage[224];
+    Format(fallbackMessage, sizeof(fallbackMessage), "pending_apply_fallback decision=%s reason=%s", fallbackDecision, reasonCode);
+    Audit_Log(fallbackMessage);
+}
+
+static void Transition_AuditFailedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
+{
+    char auditMessage[256];
+    Format(auditMessage, sizeof(auditMessage), "pending_apply_failed reason=%s context=%s scenario=%s map=%s requested_source=%s", reasonCode, context, pending.scenarioId, pending.mapName, pending.source);
+    Audit_Log(auditMessage);
+
+    char fallbackMessage[224];
+    Format(fallbackMessage, sizeof(fallbackMessage), "pending_apply_fallback decision=%s reason=%s", fallbackDecision, reasonCode);
+    Audit_Log(fallbackMessage);
+}
+
+static void Transition_ApplyScenario(const char[] scenarioId)
+{
+    int scenarioIndex = FindModeById(scenarioId);
+
+    Session_SetCurrentScenario(scenarioId);
+    Session_SetQueuedScenario(scenarioId);
+
+    if (g_Scenarios[scenarioIndex].cfgFile[0] != '\0')
+    {
+        ServerCommand("exec %s", g_Scenarios[scenarioIndex].cfgFile);
+    }
+
+    if (g_Scenarios[scenarioIndex].mapgroup[0] != '\0')
+    {
+        ServerCommand("mapgroup %s", g_Scenarios[scenarioIndex].mapgroup);
+    }
+}
+
+static bool Transition_ValidateAndApply(PendingChange &pending, const char[] context)
+{
+    char reasonCode[64];
+    reasonCode[0] = '\0';
+
+    ServerState state = Session_GetState();
+    OverrideLevel overrideLevel = Session_GetOverrideLevel();
+
+    if (pending.state != Pending_Confirmed)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_pending_state_not_confirmed");
+    }
+    else if (state == ServerState_Transition && overrideLevel < OverrideLevel_Console)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_state_transition_locked");
+    }
+    else if (Session_IsLockPhase() && overrideLevel < OverrideLevel_Admin)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_lock_phase_active");
+    }
+    else if (pending.scenarioId[0] != '\0' && FindModeById(pending.scenarioId) == -1)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_invalid_scenario");
+    }
+    else if (pending.scenarioId[0] != '\0' && !State_CanTransition(state, ServerState_PreMatch))
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_illegal_state_transition");
+    }
+
+    char mapScenarioId[16];
+    mapScenarioId[0] = '\0';
+
+    if (reasonCode[0] == '\0')
+    {
+        if (pending.scenarioId[0] != '\0')
+        {
+            strcopy(mapScenarioId, sizeof(mapScenarioId), pending.scenarioId);
+        }
+        else
+        {
+            Session_GetCurrentScenario(mapScenarioId, sizeof(mapScenarioId));
+        }
+
+        if (pending.mapName[0] != '\0')
+        {
+            int mapScenarioIndex = FindModeById(mapScenarioId);
+            if (mapScenarioIndex == -1)
+            {
+                strcopy(reasonCode, sizeof(reasonCode), "deny_map_validation_missing_scenario");
+            }
+            else if (!Playlist_IsMapAllowed(mapScenarioIndex, pending.mapName) || !IsMapValid(pending.mapName))
+            {
+                strcopy(reasonCode, sizeof(reasonCode), "deny_map_not_allowed");
+            }
+        }
+    }
+
+    if (reasonCode[0] != '\0')
+    {
+        Transition_AuditDeniedApply(pending, reasonCode, context, "cancel_pending");
+        Pending_Cancel(reasonCode);
+        Session_SetFallbackReason(reasonCode);
+        return false;
+    }
+
+    Session_SetTransitionType(TransitionType_ApplyPending);
+    Session_SetPendingChangeState(Pending_Applying);
+
+    if (pending.scenarioId[0] != '\0')
+    {
+        Transition_ApplyScenario(pending.scenarioId);
+
+        if (!State_EnterPreMatch("pending_confirmed"))
+        {
+            Transition_AuditFailedApply(pending, "failed_prematch_transition", context, "cancel_pending");
+            Pending_Cancel("failed_prematch_transition");
+            Session_SetFallbackReason("failed_prematch_transition");
+            return false;
+        }
+
+        TeamManager_EnterPreMatchSetup("pending_confirmed");
+        ReadyManager_ResetAll("pending_confirmed");
+    }
+
+    if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
+    {
+        char resolvedMap[64];
+        if (!Playlist_ResolveNextMap(mapScenarioId, pending.mapName, resolvedMap, sizeof(resolvedMap)) || !IsMapValid(resolvedMap))
+        {
+            Transition_AuditFailedApply(pending, "failed_map_resolution", context, "cancel_pending");
+            Pending_Cancel("failed_map_resolution");
+            Session_SetFallbackReason("failed_map_resolution");
+            return false;
+        }
+
+        Session_SetQueuedMap(resolvedMap);
+        ServerCommand("changelevel %s", resolvedMap);
+    }
+
+    return true;
+}
+
 void Transition_QueueScenario(const char[] scenarioId, int actor, const char[] source = "scenario_queue")
 {
     Session_SetQueuedScenario(scenarioId);
@@ -21,65 +163,14 @@ void Transition_CancelPending(const char[] reason = "cancel")
     Pending_Cancel(reason);
 }
 
-static bool Transition_ApplyScenario(const char[] scenarioId)
-{
-    int scenarioIndex = FindModeById(scenarioId);
-    if (scenarioIndex == -1)
-    {
-        ModeDebug("transition apply rejected: unknown scenario %s", scenarioId);
-        Audit_Log("transition_apply_rejected_unknown_scenario");
-        return false;
-    }
-
-    Session_SetCurrentScenario(scenarioId);
-    Session_SetQueuedScenario(scenarioId);
-
-    if (g_Scenarios[scenarioIndex].cfgFile[0] != '\0')
-    {
-        ServerCommand("exec %s", g_Scenarios[scenarioIndex].cfgFile);
-    }
-
-    if (g_Scenarios[scenarioIndex].mapgroup[0] != '\0')
-    {
-        ServerCommand("mapgroup %s", g_Scenarios[scenarioIndex].mapgroup);
-    }
-
-    return true;
-}
-
 bool Transition_ApplyPending(const char[] source = "")
 {
     PendingChange pending;
     Session_GetPendingChange(pending);
 
-    if (pending.state != Pending_Confirmed)
+    if (!Transition_ValidateAndApply(pending, source))
     {
         return false;
-    }
-
-    Session_SetTransitionType(TransitionType_ApplyPending);
-    Session_SetPendingChangeState(Pending_Applying);
-
-    if (pending.scenarioId[0] != '\0' && !Transition_ApplyScenario(pending.scenarioId))
-    {
-        Pending_Cancel("apply_failed_unknown_scenario");
-        Audit_Log("pending_apply_fallback_cancelled");
-        return false;
-    }
-
-    if (pending.scenarioId[0] != '\0')
-    {
-        State_EnterPreMatch("pending_confirmed");
-        TeamManager_EnterPreMatchSetup("pending_confirmed");
-        ReadyManager_ResetAll("pending_confirmed");
-    }
-
-    if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
-    {
-        char resolvedMap[64];
-        Playlist_ResolveNextMap(pending.scenarioId, pending.mapName, resolvedMap, sizeof(resolvedMap));
-        Session_SetQueuedMap(resolvedMap);
-        ServerCommand("changelevel %s", resolvedMap);
     }
 
     char auditMessage[224];
@@ -88,6 +179,7 @@ bool Transition_ApplyPending(const char[] source = "")
     ModeDebug("pending applied: scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);
 
     Session_ClearPendingChange();
+    Session_SetFallbackReason("apply_success");
     return true;
 }
 
@@ -100,7 +192,6 @@ bool Transition_ConfirmAndApplyPending(int actor, const char[] source = "")
 
     if (!Transition_ApplyPending(source))
     {
-        Audit_Log("pending_apply_fallback_after_confirm");
         return false;
     }
 

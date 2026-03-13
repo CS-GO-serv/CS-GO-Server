@@ -109,6 +109,27 @@ int Session_GetCountdownEndsAt()
     return g_Session.countdownEndsAt;
 }
 
+
+void Session_SetOverrideLevel(OverrideLevel level)
+{
+    g_Session.overrideLevel = level;
+}
+
+OverrideLevel Session_GetOverrideLevel()
+{
+    return g_Session.overrideLevel;
+}
+
+void Session_SetFallbackReason(const char[] reason)
+{
+    strcopy(g_Session.fallbackReason, sizeof(g_Session.fallbackReason), reason);
+}
+
+void Session_GetFallbackReason(char[] buffer, int maxlen)
+{
+    strcopy(buffer, maxlen, g_Session.fallbackReason);
+}
+
 void Session_SetCurrentScenario(const char[] scenarioId)
 {
     strcopy(g_Session.previousScenario, sizeof(g_Session.previousScenario), g_Session.currentScenario);
@@ -172,6 +193,7 @@ void Session_ClearPendingChange()
     g_Session.pendingChange.requestedBy = 0;
     g_Session.pendingChange.requestedAt = 0;
     g_Session.pendingChange.confirmDeadline = 0;
+    g_Session.overrideLevel = OverrideLevel_None;
 }
 
 bool Session_IsVoteInProgress()

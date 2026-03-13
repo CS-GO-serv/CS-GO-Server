@@ -6,6 +6,9 @@
 ModeInfo g_Scenarios[MAX_RUNTIME_MODES];
 int g_ScenarioCount;
 
+PlaylistDefinition g_Playlists[MAX_RUNTIME_MODES];
+int g_PlaylistCount;
+
 RuntimeSession g_Session;
 PlayerRuntimeState g_PlayerState[MAXPLAYERS + 1];
 

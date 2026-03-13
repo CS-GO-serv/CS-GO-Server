@@ -3,6 +3,34 @@
 #endif
 #define _SERVERFLOW_PLAYLIST_MANAGER_INC_
 
+static int PlaylistManager_FindPlaylistById(const char[] playlistId)
+{
+    for (int i = 0; i < g_PlaylistCount; i++)
+    {
+        if (StrEqual(g_Playlists[i].id, playlistId, false))
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static int PlaylistManager_GetScenarioPlaylistIndex(int scenarioIndex)
+{
+    if (scenarioIndex < 0 || scenarioIndex >= g_ScenarioCount)
+    {
+        return -1;
+    }
+
+    if (g_Scenarios[scenarioIndex].maplistPolicy == MaplistPolicy_Scenario)
+    {
+        return PlaylistManager_FindPlaylistById(g_Scenarios[scenarioIndex].id);
+    }
+
+    return PlaylistManager_FindPlaylistById(g_Scenarios[scenarioIndex].playlistId);
+}
+
 bool Playlists_LoadFromConfig()
 {
     for (int i = 0; i < MAX_RUNTIME_MODES; i++)
@@ -71,17 +99,24 @@ bool Playlist_GetNextMap(const char[] scenarioId, char[] mapName, int maxlen)
         return false;
     }
 
+    int playlistIndex = PlaylistManager_GetScenarioPlaylistIndex(scenarioIndex);
+    if (playlistIndex == -1)
+    {
+        mapName[0] = '\0';
+        return false;
+    }
+
     int length = g_ModeMapCache[scenarioIndex].Length;
     int selected = g_PlaylistCursor[scenarioIndex] % length;
 
-    if (g_Scenarios[scenarioIndex].rotationMode == RotationMode_Random)
+    if (g_Playlists[playlistIndex].rotationMode == RotationMode_Random)
     {
         selected = GetRandomInt(0, length - 1);
     }
 
     g_ModeMapCache[scenarioIndex].GetString(selected, mapName, maxlen);
 
-    if (g_Scenarios[scenarioIndex].rotationMode == RotationMode_Sequential)
+    if (g_Playlists[playlistIndex].rotationMode == RotationMode_Sequential)
     {
         g_PlaylistCursor[scenarioIndex] = (selected + 1) % length;
     }
@@ -131,9 +166,10 @@ bool Playlist_ResolveNextMap(const char[] scenarioId, const char[] requestedMap,
         return true;
     }
 
-    if (g_Scenarios[scenarioIndex].fallbackMap[0] != '\0' && IsMapValid(g_Scenarios[scenarioIndex].fallbackMap))
+    int playlistIndex = PlaylistManager_GetScenarioPlaylistIndex(scenarioIndex);
+    if (playlistIndex != -1 && g_Playlists[playlistIndex].fallbackMap[0] != '\0' && IsMapValid(g_Playlists[playlistIndex].fallbackMap))
     {
-        strcopy(resolvedMap, maxlen, g_Scenarios[scenarioIndex].fallbackMap);
+        strcopy(resolvedMap, maxlen, g_Playlists[playlistIndex].fallbackMap);
         return true;
     }
 

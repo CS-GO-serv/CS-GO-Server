@@ -3,6 +3,14 @@
 #endif
 #define _SERVERFLOW_TYPES_INC_
 
+enum struct PlaylistDefinition
+{
+    char id[16];
+    char mapListFile[96];
+    char fallbackMap[64];
+    RotationMode rotationMode;
+}
+
 enum struct ModeInfo
 {
     char id[16];
@@ -13,9 +21,8 @@ enum struct ModeInfo
     char mapgroup[32];
     char startMap[64];
     char cfgFile[64];
-    char mapListFile[96];
-    char fallbackMap[64];
-    RotationMode rotationMode;
+    char playlistId[16];
+    MaplistPolicy maplistPolicy;
 }
 
 enum struct PendingChange

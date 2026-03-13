@@ -42,7 +42,7 @@ bool State_TransitionTo(ServerState newState, const char[] reason)
     ServerState oldState = Session_GetState();
     if (!State_CanTransition(oldState, newState))
     {
-        Audit_Log("state_transition_denied");
+        Audit_LogEvent("state", "transition", 0, "denied", reason);
         ModeDebug("state transition denied: %d -> %d reason=%s", oldState, newState, reason);
         return false;
     }
@@ -55,9 +55,7 @@ bool State_TransitionTo(ServerState newState, const char[] reason)
     Call_PushString(reason);
     Call_Finish();
 
-    char auditMessage[160];
-    Format(auditMessage, sizeof(auditMessage), "state_transition_applied old=%d new=%d reason=%s", oldState, newState, reason);
-    Audit_Log(auditMessage);
+    Audit_LogEvent("state", "transition", 0, "applied", reason);
 
     return true;
 }

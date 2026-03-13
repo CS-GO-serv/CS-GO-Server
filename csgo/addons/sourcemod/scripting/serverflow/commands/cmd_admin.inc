@@ -90,3 +90,26 @@ public Action Command_OverrideScenario(int client, int args)
     ReplyToCommand(client, "Override queued via transition manager: %s", id);
     return Plugin_Handled;
 }
+
+
+public Action Command_RuntimeHealth(int client, int args)
+{
+    if (!CommandRouter_RequestRuntimeHealth(client))
+    {
+        return Plugin_Handled;
+    }
+
+    ReplyToCommand(client, "Runtime health check executed. See server logs for details.");
+    return Plugin_Handled;
+}
+
+public Action Command_RuntimeDump(int client, int args)
+{
+    if (!CommandRouter_RequestRuntimeDump(client))
+    {
+        return Plugin_Handled;
+    }
+
+    ReplyToCommand(client, "Runtime state dump emitted to server console.");
+    return Plugin_Handled;
+}

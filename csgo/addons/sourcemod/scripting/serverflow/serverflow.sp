@@ -50,6 +50,7 @@
 #include "integrations/timers.inc"
 
 #include "diagnostics/health_check.inc"
+#include "diagnostics/state_dump.inc"
 
 public Plugin myinfo =
 {

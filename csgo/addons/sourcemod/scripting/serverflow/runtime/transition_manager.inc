@@ -5,24 +5,14 @@
 
 static void Transition_AuditDeniedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
 {
-    char auditMessage[256];
-    Format(auditMessage, sizeof(auditMessage), "pending_apply_denied reason=%s context=%s scenario=%s map=%s requested_source=%s", reasonCode, context, pending.scenarioId, pending.mapName, pending.source);
-    Audit_Log(auditMessage);
-
-    char fallbackMessage[224];
-    Format(fallbackMessage, sizeof(fallbackMessage), "pending_apply_fallback decision=%s reason=%s", fallbackDecision, reasonCode);
-    Audit_Log(fallbackMessage);
+    Audit_LogEvent("transition", "apply_pending", pending.requestedBy, "denied", reasonCode);
+    Audit_LogEvent("transition", "fallback", pending.requestedBy, fallbackDecision, context);
 }
 
 static void Transition_AuditFailedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
 {
-    char auditMessage[256];
-    Format(auditMessage, sizeof(auditMessage), "pending_apply_failed reason=%s context=%s scenario=%s map=%s requested_source=%s", reasonCode, context, pending.scenarioId, pending.mapName, pending.source);
-    Audit_Log(auditMessage);
-
-    char fallbackMessage[224];
-    Format(fallbackMessage, sizeof(fallbackMessage), "pending_apply_fallback decision=%s reason=%s", fallbackDecision, reasonCode);
-    Audit_Log(fallbackMessage);
+    Audit_LogEvent("transition", "apply_pending", pending.requestedBy, "failed", reasonCode);
+    Audit_LogEvent("transition", "fallback", pending.requestedBy, fallbackDecision, context);
 }
 
 static void Transition_ApplyScenario(const char[] scenarioId)
@@ -181,9 +171,7 @@ bool Transition_ApplyPending(const char[] source = "")
         return false;
     }
 
-    char auditMessage[224];
-    Format(auditMessage, sizeof(auditMessage), "pending_applied scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);
-    Audit_Log(auditMessage);
+    Audit_LogEvent("transition", "apply_pending", pending.requestedBy, "ok", source);
     ModeDebug("pending applied: scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);
 
     Session_ClearPendingChange();

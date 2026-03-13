@@ -15,17 +15,45 @@ void Notify_VoteStarted(int caller)
 
 void Notify_VoteFinished(const char[] scenarioId)
 {
-    PrintToChatAll("[ServerFlow] Vote finished. Pending confirm required for scenario: %s", scenarioId);
+    PrintToChatAll("[ServerFlow] Vote complete: selected mode %s.", scenarioId);
 }
 
-void Notify_PendingCreated(const char[] scenarioId, const char[] mapName, int seconds)
+void Notify_PendingCreated(const char[] scenarioId, const char[] mapName, int seconds, const char[] why, ServerState allowedApplyState, PendingConfirmPolicy confirmPolicy)
 {
-    PrintToChatAll("[ServerFlow] Pending: scenario=%s map=%s confirm in %d sec (sm_confirmpending).", scenarioId, mapName, seconds);
+    PrintToChatAll("[ServerFlow] Selected next mode: %s (map: %s).", scenarioId, mapName[0] == '\0' ? "auto" : mapName);
+    PrintToChatAll("[ServerFlow] Reason: %s", why[0] == '\0' ? "no reason provided" : why);
+
+    if (confirmPolicy == PendingConfirm_Manual)
+    {
+        PrintToChatAll("[ServerFlow] Needs admin confirmation in %d sec (sm_confirmpending).", seconds);
+    }
+    else
+    {
+        PrintToChatAll("[ServerFlow] Waiting to apply automatically when state=%d is reached.", allowedApplyState);
+    }
 }
 
-void Notify_PendingConfirmed(int actor)
+void Notify_PendingSelected(const char[] scenarioId, const char[] mapName, const char[] why, int expiresAt)
 {
-    PrintToChatAll("[ServerFlow] Pending confirmed by %N. Applying through TransitionManager.", actor);
+    int left = expiresAt - GetTime();
+    if (left < 0)
+    {
+        left = 0;
+    }
+
+    PrintToChatAll("[ServerFlow] Selected: %s (map: %s).", scenarioId, mapName[0] == '\0' ? "auto" : mapName);
+    PrintToChatAll("[ServerFlow] Confirm to continue. Reason: %s. Deadline: %d sec.", why[0] == '\0' ? "no reason provided" : why, left);
+}
+
+void Notify_PendingConfirmed(int actor, const char[] scenarioId, const char[] mapName)
+{
+    PrintToChatAll("[ServerFlow] %N confirmed transition to %s (map: %s).", actor, scenarioId, mapName[0] == '\0' ? "auto" : mapName);
+}
+
+void Notify_PendingCanceled(const char[] reason, const char[] why, const char[] scenarioId, const char[] mapName)
+{
+    PrintToChatAll("[ServerFlow] Transition canceled for %s (map: %s).", scenarioId[0] == '\0' ? "current mode" : scenarioId, mapName[0] == '\0' ? "auto" : mapName);
+    PrintToChatAll("[ServerFlow] Cancel reason: %s%s%s.", reason, why[0] == '\0' ? "" : " / ", why);
 }
 
 void Notify_ReadyChanged(int client, bool ready, int readyCount, int poolCount)

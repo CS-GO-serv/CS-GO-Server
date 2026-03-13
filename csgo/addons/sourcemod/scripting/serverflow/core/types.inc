@@ -26,7 +26,13 @@ enum struct PendingChange
     char source[32];
     int requestedBy;
     int requestedAt;
-    int confirmDeadline;
+    int confirmedBy;
+    int confirmedAt;
+    char why[96];
+    char cancelReason[96];
+    ServerState allowedApplyState;
+    int expiresAt;
+    PendingConfirmPolicy confirmPolicy;
 }
 
 enum struct VoteRecord

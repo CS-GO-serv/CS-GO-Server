@@ -55,7 +55,16 @@ public Action Command_ConfirmPending(int client, int args)
 
 public Action Command_CancelPending(int client, int args)
 {
-    if (CommandRouter_RequestCancelPending(client))
+    char why[96];
+    why[0] = '\0';
+
+    if (args >= 1)
+    {
+        GetCmdArgString(why, sizeof(why));
+        TrimString(why);
+    }
+
+    if (CommandRouter_RequestCancelPending(client, why))
     {
         ReplyToCommand(client, "Pending change canceled.");
     }

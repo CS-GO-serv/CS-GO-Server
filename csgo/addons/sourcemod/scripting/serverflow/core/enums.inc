@@ -36,6 +36,12 @@ enum PendingChangeState
     Pending_Applying
 };
 
+enum PendingConfirmPolicy
+{
+    PendingConfirm_Manual = 0,
+    PendingConfirm_Auto
+};
+
 enum PlayerLifecycleState
 {
     PlayerLifecycle_Connected = 0,

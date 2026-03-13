@@ -129,6 +129,12 @@ enum RotationMode
     RotationMode_Random
 };
 
+enum MaplistPolicy
+{
+    MaplistPolicy_Playlist = 0,
+    MaplistPolicy_Scenario
+};
+
 enum TransitionType
 {
     TransitionType_None = 0,

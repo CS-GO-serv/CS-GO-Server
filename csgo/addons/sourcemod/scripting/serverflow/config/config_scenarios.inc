@@ -86,7 +86,7 @@ bool Scenarios_LoadFromConfig()
         ModeInfo scenario;
         kv.GetSectionName(scenario.id, sizeof(scenario.id));
         kv.GetString("router_alias", scenario.routerAlias, sizeof(scenario.routerAlias), "");
-        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "Mode Name Default");
+        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "mode.name.default");
         scenario.gameType = kv.GetNum("game_type", 0);
         scenario.gameMode = kv.GetNum("game_mode", 0);
         kv.GetString("mapgroup", scenario.mapgroup, sizeof(scenario.mapgroup), "");

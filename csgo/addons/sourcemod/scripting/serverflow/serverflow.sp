@@ -24,33 +24,8 @@
 
 #include "domain/scenario_registry.inc"
 #include "domain/playlist_manager.inc"
-#include "domain/player_state_manager.inc"
-#include "domain/ready_manager.inc"
-#include "domain/countdown_manager.inc"
-#include "domain/team_manager.inc"
-#include "domain/vote_manager.inc"
-#include "domain/admin_override_manager.inc"
 
-#include "presentation/status_presenter.inc"
-#include "presentation/chat_notifier.inc"
-#include "presentation/menu_play.inc"
-#include "presentation/menu_vote.inc"
-#include "presentation/menu_team.inc"
-#include "presentation/menu_admin.inc"
-
-#include "commands/command_router.inc"
-#include "commands/cmd_player.inc"
-#include "commands/cmd_admin.inc"
-
-#include "diagnostics/audit_logger.inc"
 #include "diagnostics/health_check.inc"
-#include "diagnostics/state_dump.inc"
-
-#include "integrations/game_events.inc"
-#include "integrations/map_control.inc"
-#include "integrations/timers.inc"
-#include "integrations/client_hooks.inc"
-#include "integrations/afk_monitor.inc"
 
 public Plugin myinfo =
 {
@@ -60,17 +35,19 @@ public Plugin myinfo =
     version = "2.0.0"
 };
 
+static void Bootstrap_Minimal()
+{
+    Forwards_Init();
+    Session_Init();
+    Config_LoadAll();
+}
+
 public void OnPluginStart()
 {
     LoadTranslations("mode_vote.phrases");
 
-    Forwards_Init();
-    Session_Init();
-    Config_LoadAll();
-
-    CommandRouter_Register();
-    Integrations_RegisterEvents();
-    Health_RunFullCheck();
+    Bootstrap_Minimal();
+    Health_RunFullCheck("OnPluginStart");
 
     ModeDebug("serverflow boot complete");
 }
@@ -78,4 +55,5 @@ public void OnPluginStart()
 public void OnMapStart()
 {
     Config_ReloadAll();
+    Health_RunFullCheck("OnMapStart");
 }

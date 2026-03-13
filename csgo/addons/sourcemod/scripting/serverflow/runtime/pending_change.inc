@@ -65,6 +65,7 @@ bool Pending_Confirm(int actor, const char[] source = "")
     }
 
     Session_SetPendingChangeState(Pending_Confirmed);
+    Session_SetOverrideLevel(Policy_GetActorOverrideLevel(actor));
     Pending_StopConfirmTimer();
 
     Call_StartForward(g_FwdOnPendingChangeConfirmed);

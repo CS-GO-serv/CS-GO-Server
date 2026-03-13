@@ -16,6 +16,8 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_confirmpending", Command_ConfirmPending);
     RegConsoleCmd("sm_cancelpending", Command_CancelPending);
     RegConsoleCmd("sm_forcescenario", Command_OverrideScenario);
+    RegAdminCmd("sm_sfhealth", Command_RuntimeHealth, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_sfdump", Command_RuntimeDump, ADMFLAG_CHANGEMAP);
 }
 
 bool CommandRouter_RequestScenarioSelect(int client, int modeIndex, const char[] source = "player_select")
@@ -139,5 +141,32 @@ bool CommandRouter_RequestOverrideScenario(int client, const char[] scenarioId)
         return false;
     }
 
+    return true;
+}
+
+
+bool CommandRouter_RequestRuntimeHealth(int client)
+{
+    char reason[48];
+    if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
+    {
+        Notify_RequestDenied(client, reason);
+        return false;
+    }
+
+    Health_RunFullCheck("admin_runtime");
+    return true;
+}
+
+bool CommandRouter_RequestRuntimeDump(int client)
+{
+    char reason[48];
+    if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
+    {
+        Notify_RequestDenied(client, reason);
+        return false;
+    }
+
+    StateDump_ToServer();
     return true;
 }

@@ -33,9 +33,7 @@ void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] 
     Session_SetPendingChange(scenarioId, mapName, source, actor, why, allowedApplyState, expiresAt, confirmPolicy);
     Pending_StartConfirmTimer(g_PendingConfirmWindow);
 
-    char auditMessage[256];
-    Format(auditMessage, sizeof(auditMessage), "pending_created actor=%d scenario=%s map=%s source=%s why=%s allowed_state=%d expires_at=%d confirm_policy=%d", actor, scenarioId, mapName, source, why, allowedApplyState, expiresAt, confirmPolicy);
-    Audit_Log(auditMessage);
+    Audit_LogEvent("pending", "create", actor, "ok", why);
     Notify_PendingCreated(scenarioId, mapName, g_PendingConfirmWindow, why, allowedApplyState, confirmPolicy);
 }
 
@@ -86,9 +84,7 @@ bool Pending_Confirm(int actor, const char[] source = "")
     Call_PushString(pending.mapName);
     Call_Finish();
 
-    char auditMessage[224];
-    Format(auditMessage, sizeof(auditMessage), "pending_confirmed actor=%d scenario=%s map=%s source=%s", actor, pending.scenarioId, pending.mapName, source);
-    Audit_Log(auditMessage);
+    Audit_LogEvent("pending", "confirm", actor, "ok", source);
     Notify_PendingConfirmed(actor, pending.scenarioId, pending.mapName);
 
     return true;
@@ -102,9 +98,7 @@ void Pending_Cancel(const char[] reason = "cancel", const char[] why = "")
     Pending_StopConfirmTimer();
     Session_SetPendingChangeCancellationReason(why);
 
-    char auditMessage[224];
-    Format(auditMessage, sizeof(auditMessage), "pending_canceled reason=%s why=%s scenario=%s map=%s", reason, why, pending.scenarioId, pending.mapName);
-    Audit_Log(auditMessage);
+    Audit_LogEvent("pending", "cancel", pending.requestedBy, "ok", reason);
 
     Notify_PendingCanceled(reason, why, pending.scenarioId, pending.mapName);
     Session_ClearPendingChange();

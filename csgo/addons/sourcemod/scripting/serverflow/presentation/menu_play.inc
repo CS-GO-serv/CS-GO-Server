@@ -9,7 +9,8 @@ void ShowModeMenu(int client)
     menu.SetTitle("ServerFlow: Select mode");
 
     char info[8], display[64];
-    for (int i = 0; i < MAX_MODES; i++)
+    int scenarioCount = Scenario_GetCount();
+    for (int i = 0; i < scenarioCount; i++)
     {
         IntToString(i, info, sizeof(info));
         Scenario_GetNameByIndex(i, client, display, sizeof(display));
@@ -31,9 +32,7 @@ public int ModeMenuHandler(Menu menu, MenuAction action, int client, int item)
     {
         char info[8];
         menu.GetItem(item, info, sizeof(info));
-        int index = StringToInt(info);
-        Transition_QueueScenario(g_Modes[index].id, client, "menu_play");
-        PrintToChat(client, "[ServerFlow] Queued scenario: %s", g_Modes[index].id);
+        CommandRouter_RequestScenarioSelect(client, StringToInt(info), "menu_play");
     }
 
     return 0;

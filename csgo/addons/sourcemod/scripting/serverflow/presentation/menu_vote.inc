@@ -9,14 +9,15 @@ void ShowVoteMenu(int client)
     menu.SetTitle("ServerFlow Vote");
 
     char info[8], display[64];
-    for (int i = 0; i < MAX_MODES; i++)
+    int scenarioCount = Scenario_GetCount();
+    for (int i = 0; i < scenarioCount; i++)
     {
         IntToString(i, info, sizeof(info));
         Scenario_GetNameByIndex(i, client, display, sizeof(display));
         menu.AddItem(info, display);
     }
 
-    menu.Display(client, RoundToNearest(g_VoteDuration));
+    menu.Display(client, RoundToNearest(VoteManager_GetDuration()));
 }
 
 public int VoteMenuHandler(Menu menu, MenuAction action, int client, int item)
@@ -34,6 +35,6 @@ public int VoteMenuHandler(Menu menu, MenuAction action, int client, int item)
 
     char info[8];
     menu.GetItem(item, info, sizeof(info));
-    Vote_Cast(client, StringToInt(info));
+    CommandRouter_RequestVoteCast(client, StringToInt(info));
     return 0;
 }

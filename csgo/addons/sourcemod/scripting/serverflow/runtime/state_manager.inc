@@ -37,6 +37,16 @@ bool State_CanTransition(ServerState from, ServerState to)
     return false;
 }
 
+bool State_IsScenarioSelectionAllowed(ServerState state)
+{
+    return (state != ServerState_Transition);
+}
+
+bool State_IsVoteAllowed(ServerState state)
+{
+    return (state == ServerState_Lobby || state == ServerState_PostMatch);
+}
+
 bool State_TransitionTo(ServerState newState, const char[] reason)
 {
     ServerState oldState = Session_GetState();

@@ -47,11 +47,96 @@ bool State_IsVoteAllowed(ServerState state)
     return (state == ServerState_Lobby || state == ServerState_PostMatch);
 }
 
+bool State_CanClientSelectScenario(int client, int scenarioIndex, char[] reason, int reasonLen)
+{
+    if (!IsValidClient(client))
+    {
+        strcopy(reason, reasonLen, "invalid_client");
+        return false;
+    }
+
+    if (!Scenario_IsValidIndex(scenarioIndex))
+    {
+        strcopy(reason, reasonLen, "invalid_scenario");
+        return false;
+    }
+
+    if (!State_IsScenarioSelectionAllowed(Session_GetState()))
+    {
+        strcopy(reason, reasonLen, "blocked_by_state");
+        return false;
+    }
+
+    reason[0] = '\0';
+    return true;
+}
+
+bool State_CanClientStartVote(int client, char[] reason, int reasonLen)
+{
+    if (!IsValidClient(client))
+    {
+        strcopy(reason, reasonLen, "invalid_client");
+        return false;
+    }
+
+    if (!State_IsVoteAllowed(Session_GetState()))
+    {
+        strcopy(reason, reasonLen, "blocked_by_state");
+        return false;
+    }
+
+    if (Session_IsVoteInProgress())
+    {
+        strcopy(reason, reasonLen, "vote_in_progress");
+        return false;
+    }
+
+    if (CountHumanPlayers() < g_VoteMinPlayers)
+    {
+        strcopy(reason, reasonLen, "not_enough_players");
+        return false;
+    }
+
+    if (GetTime() < Session_GetVoteNextAllowedAt())
+    {
+        strcopy(reason, reasonLen, "cooldown");
+        return false;
+    }
+
+    reason[0] = '\0';
+    return true;
+}
+
+bool State_CanClientManageTransitions(int client, char[] reason, int reasonLen)
+{
+    if (client == 0)
+    {
+        reason[0] = '\0';
+        return true;
+    }
+
+    if (!IsValidClient(client))
+    {
+        strcopy(reason, reasonLen, "invalid_client");
+        return false;
+    }
+
+    if (!CheckCommandAccess(client, "serverflow_transition_admin", ADMFLAG_CHANGEMAP, true))
+    {
+        strcopy(reason, reasonLen, "missing_permission");
+        return false;
+    }
+
+    reason[0] = '\0';
+    return true;
+}
+
 bool State_TransitionTo(ServerState newState, const char[] reason)
 {
     ServerState oldState = Session_GetState();
     if (!State_CanTransition(oldState, newState))
     {
+        Audit_Log("state_transition_denied");
         ModeDebug("state transition denied: %d -> %d reason=%s", oldState, newState, reason);
         return false;
     }
@@ -63,6 +148,10 @@ bool State_TransitionTo(ServerState newState, const char[] reason)
     Call_PushCell(newState);
     Call_PushString(reason);
     Call_Finish();
+
+    char auditMessage[160];
+    Format(auditMessage, sizeof(auditMessage), "state_transition_applied old=%d new=%d reason=%s", oldState, newState, reason);
+    Audit_Log(auditMessage);
 
     return true;
 }

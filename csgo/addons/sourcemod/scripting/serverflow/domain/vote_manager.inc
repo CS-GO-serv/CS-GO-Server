@@ -16,38 +16,7 @@ void Vote_Reset()
 
 bool VoteManager_CanStartVote(int caller, char[] reason, int reasonLen)
 {
-    if (!IsValidClient(caller))
-    {
-        strcopy(reason, reasonLen, "invalid_client");
-        return false;
-    }
-
-    if (!State_IsVoteAllowed(Session_GetState()))
-    {
-        strcopy(reason, reasonLen, "blocked_by_state");
-        return false;
-    }
-
-    if (Session_IsVoteInProgress())
-    {
-        strcopy(reason, reasonLen, "vote_in_progress");
-        return false;
-    }
-
-    if (CountHumanPlayers() < g_VoteMinPlayers)
-    {
-        strcopy(reason, reasonLen, "not_enough_players");
-        return false;
-    }
-
-    if (GetTime() < Session_GetVoteNextAllowedAt())
-    {
-        strcopy(reason, reasonLen, "cooldown");
-        return false;
-    }
-
-    reason[0] = '\0';
-    return true;
+    return State_CanClientStartVote(caller, reason, reasonLen);
 }
 
 bool VoteManager_RequestVoteStart(int caller, char[] reason, int reasonLen)

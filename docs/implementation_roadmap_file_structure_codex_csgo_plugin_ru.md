@@ -1130,3 +1130,19 @@ Roadmap реализован успешно, если:
 
 Система должна оставаться читаемой, расширяемой и устойчивой к ошибкам. Это важнее, чем быстро написать первый работающий, но хрупкий вариант.
 
+---
+
+# 25. Этапы реализации (контрольный список)
+
+Ниже — практический список этапов реализации в том порядке, в котором их нужно проходить.
+
+1. **Этап 1**: core types/enums/constants + runtime session store + config loader + scenario registry + playlist manager.
+2. **Этап 2**: StateManager + TransitionManager + pending change model + fallback to Lobby.
+3. **Этап 3**: PlayerStateManager + ready manager + countdown manager + lock phase.
+4. **Этап 4**: TeamManager с политиками команд и валидацией.
+5. **Этап 5**: VoteManager с pending selection, confirm window, apply timing.
+6. **Этап 6**: AdminOverrideManager (override levels, cancel pending safely, audit trail).
+7. **Этап 7**: Status/UI layer поверх domain API без дублирования правил.
+8. **Этап 8**: diagnostics/health-check/state dump и финальная стабилизация.
+
+Каждый следующий этап должен строиться поверх предыдущего без нарушения слоёв `core -> runtime -> domain -> presentation -> diagnostics/integrations`.

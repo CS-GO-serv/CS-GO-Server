@@ -5,5 +5,5 @@
 
 void Health_RunFullCheck()
 {
-    ModeDebug("health check: modes=%d state=%d", MAX_MODES, g_Session.currentState);
+    ModeDebug("health check: modes=%d state=%d", Scenario_GetCount(), g_Session.currentState);
 }

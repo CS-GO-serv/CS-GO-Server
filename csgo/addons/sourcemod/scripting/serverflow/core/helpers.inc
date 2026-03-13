@@ -24,9 +24,9 @@ int CountHumanPlayers()
 
 int FindModeById(const char[] modeId)
 {
-    for (int i = 0; i < MAX_MODES; i++)
+    for (int i = 0; i < g_ScenarioCount; i++)
     {
-        if (StrEqual(g_Modes[i].id, modeId, false))
+        if (StrEqual(g_Scenarios[i].id, modeId, false))
         {
             return i;
         }

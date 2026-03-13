@@ -15,6 +15,7 @@ enum struct ModeInfo
     char cfgFile[64];
     char mapListFile[96];
     char fallbackMap[64];
+    RotationMode rotationMode;
 }
 
 enum struct PendingChange

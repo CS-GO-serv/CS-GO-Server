@@ -3,16 +3,51 @@
 #endif
 #define _SERVERFLOW_CONFIG_PLAYLISTS_INC_
 
+bool Playlists_ValidateEntry(int scenarioIndex, const char[] mapName)
+{
+    if (!Scenario_IsValidIndex(scenarioIndex) || mapName[0] == '\0')
+    {
+        return false;
+    }
+
+    if (!IsMapValid(mapName))
+    {
+        LogMessage("[serverflow] skipping invalid map '%s' for scenario '%s'", mapName, g_Scenarios[scenarioIndex].id);
+        return false;
+    }
+
+    return true;
+}
+
+int Playlists_FindById(const char[] scenarioId)
+{
+    return FindModeById(scenarioId);
+}
+
+bool Playlists_FindMap(int scenarioIndex, const char[] mapName)
+{
+    return Playlist_IsMapAllowed(scenarioIndex, mapName);
+}
+
 bool ConfigPlaylists_Reload()
 {
     Playlists_LoadFromConfig();
 
-    for (int modeIndex = 0; modeIndex < MAX_MODES; modeIndex++)
+    for (int scenarioIndex = 0; scenarioIndex < g_ScenarioCount; scenarioIndex++)
     {
-        File file = OpenFile(g_Modes[modeIndex].mapListFile, "r");
+        char mapListPath[PLATFORM_MAX_PATH];
+        BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Scenarios[scenarioIndex].mapListFile);
+
+        if (!FileExists(mapListPath))
+        {
+            Format(g_ModeMapCacheError[scenarioIndex], sizeof(g_ModeMapCacheError[]), "maplist not found: %s", mapListPath);
+            continue;
+        }
+
+        File file = OpenFile(mapListPath, "r");
         if (file == null)
         {
-            Format(g_ModeMapCacheError[modeIndex], sizeof(g_ModeMapCacheError[]), "cannot open %s", g_Modes[modeIndex].mapListFile);
+            Format(g_ModeMapCacheError[scenarioIndex], sizeof(g_ModeMapCacheError[]), "cannot open %s", mapListPath);
             continue;
         }
 
@@ -25,11 +60,24 @@ bool ConfigPlaylists_Reload()
                 continue;
             }
 
-            g_ModeMapCache[modeIndex].PushString(line);
+            if (!Playlists_ValidateEntry(scenarioIndex, line))
+            {
+                continue;
+            }
+
+            g_ModeMapCache[scenarioIndex].PushString(line);
         }
 
-        g_ModeMapCacheLoaded[modeIndex] = true;
         delete file;
+
+        if (g_ModeMapCache[scenarioIndex].Length <= 0)
+        {
+            Format(g_ModeMapCacheError[scenarioIndex], sizeof(g_ModeMapCacheError[]), "no valid maps in %s", mapListPath);
+            continue;
+        }
+
+        g_ModeMapCacheLoaded[scenarioIndex] = true;
+        strcopy(g_ModeMapCacheError[scenarioIndex], sizeof(g_ModeMapCacheError[]), "ok");
     }
 
     return true;

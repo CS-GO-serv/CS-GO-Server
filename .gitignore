@@ -19,6 +19,8 @@
 !/csgo/addons/
 !/csgo/addons/sourcemod/
 !/csgo/addons/sourcemod/configs/
+!/csgo/addons/sourcemod/configs/serverflow/
+!/csgo/addons/sourcemod/configs/serverflow/**
 !/csgo/addons/sourcemod/plugins/
 !/csgo/addons/sourcemod/scripting/
 !/csgo/addons/sourcemod/translations/

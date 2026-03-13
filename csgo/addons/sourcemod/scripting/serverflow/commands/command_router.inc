@@ -118,7 +118,7 @@ bool CommandRouter_RequestConfirmPending(int client)
     return Transition_ConfirmAndApplyPending(client, "admin_confirm");
 }
 
-bool CommandRouter_RequestCancelPending(int client)
+bool CommandRouter_RequestCancelPending(int client, const char[] why = "")
 {
     char reason[48];
     if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
@@ -127,7 +127,7 @@ bool CommandRouter_RequestCancelPending(int client)
         return false;
     }
 
-    Transition_CancelPending("admin_cancel");
+    Transition_CancelPending("admin_cancel", why);
     return true;
 }
 

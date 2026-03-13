@@ -63,6 +63,14 @@ static bool Transition_ValidateAndApply(PendingChange &pending, const char[] con
     {
         strcopy(reasonCode, sizeof(reasonCode), "deny_lock_phase_active");
     }
+    else if (pending.expiresAt > 0 && GetTime() > pending.expiresAt)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_deadline_expired");
+    }
+    else if (pending.allowedApplyState != state)
+    {
+        strcopy(reasonCode, sizeof(reasonCode), "deny_apply_state_mismatch");
+    }
     else if (pending.scenarioId[0] != '\0' && FindModeById(pending.scenarioId) == -1)
     {
         strcopy(reasonCode, sizeof(reasonCode), "deny_invalid_scenario");
@@ -148,19 +156,19 @@ static bool Transition_ValidateAndApply(PendingChange &pending, const char[] con
 void Transition_QueueScenario(const char[] scenarioId, int actor, const char[] source = "scenario_queue")
 {
     Session_SetQueuedScenario(scenarioId);
-    Pending_Create(scenarioId, "", source, actor);
+    Pending_Create(scenarioId, "", source, actor, source, Session_GetState(), PendingConfirm_Manual);
 }
 
 void Transition_QueueMap(const char[] mapName, int actor, const char[] source = "map_queue")
 {
     char currentScenario[16];
     Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
-    Pending_Create(currentScenario, mapName, source, actor);
+    Pending_Create(currentScenario, mapName, source, actor, source, Session_GetState(), PendingConfirm_Manual);
 }
 
-void Transition_CancelPending(const char[] reason = "cancel")
+void Transition_CancelPending(const char[] reason = "cancel", const char[] why = "")
 {
-    Pending_Cancel(reason);
+    Pending_Cancel(reason, why);
 }
 
 bool Transition_ApplyPending(const char[] source = "")

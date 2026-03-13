@@ -103,7 +103,7 @@ public Action Timer_FinishVote(Handle timer)
     Session_FinishVote();
 
     int winner = 0;
-    for (int i = 1; i < MAX_MODES; i++)
+    for (int i = 1; i < Scenario_GetCount(); i++)
     {
         if (Session_GetVoteCount(i) > Session_GetVoteCount(winner))
         {

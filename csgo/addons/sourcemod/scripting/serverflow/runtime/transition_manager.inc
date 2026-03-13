@@ -23,8 +23,8 @@ void Transition_CancelPending(const char[] reason = "cancel")
 
 static void Transition_ApplyScenario(const char[] scenarioId)
 {
-    int modeIndex = FindModeById(scenarioId);
-    if (modeIndex == -1)
+    int scenarioIndex = FindModeById(scenarioId);
+    if (scenarioIndex == -1)
     {
         ModeDebug("transition apply rejected: unknown scenario %s", scenarioId);
         return;
@@ -33,14 +33,14 @@ static void Transition_ApplyScenario(const char[] scenarioId)
     Session_SetCurrentScenario(scenarioId);
     Session_SetQueuedScenario(scenarioId);
 
-    if (g_Modes[modeIndex].cfgFile[0] != '\0')
+    if (g_Scenarios[scenarioIndex].cfgFile[0] != '\0')
     {
-        ServerCommand("exec %s", g_Modes[modeIndex].cfgFile);
+        ServerCommand("exec %s", g_Scenarios[scenarioIndex].cfgFile);
     }
 
-    if (g_Modes[modeIndex].mapgroup[0] != '\0')
+    if (g_Scenarios[scenarioIndex].mapgroup[0] != '\0')
     {
-        ServerCommand("mapgroup %s", g_Modes[modeIndex].mapgroup);
+        ServerCommand("mapgroup %s", g_Scenarios[scenarioIndex].mapgroup);
     }
 }
 
@@ -62,10 +62,12 @@ bool Transition_ApplyPending(const char[] source = "")
         Transition_ApplyScenario(pending.scenarioId);
     }
 
-    if (pending.mapName[0] != '\0')
+    if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
     {
-        Session_SetQueuedMap(pending.mapName);
-        ServerCommand("changelevel %s", pending.mapName);
+        char resolvedMap[64];
+        Playlist_ResolveNextMap(pending.scenarioId, pending.mapName, resolvedMap, sizeof(resolvedMap));
+        Session_SetQueuedMap(resolvedMap);
+        ServerCommand("changelevel %s", resolvedMap);
     }
 
     ModeDebug("pending applied: scenario=%s map=%s source=%s requested_source=%s", pending.scenarioId, pending.mapName, source, pending.source);

@@ -3,45 +3,82 @@
 #endif
 #define _SERVERFLOW_SCENARIO_REGISTRY_INC_
 
+bool Scenario_Register(const ModeInfo scenario)
+{
+    return Scenarios_Register(scenario);
+}
+
 bool Scenario_Exists(const char[] id)
 {
-    return (FindModeById(id) != -1);
+    return (Scenarios_FindById(id) != -1);
+}
+
+bool Scenario_Get(int scenarioIndex, ModeInfo &scenario)
+{
+    if (!Scenario_IsValidIndex(scenarioIndex))
+    {
+        return false;
+    }
+
+    scenario = g_Scenarios[scenarioIndex];
+    return true;
+}
+
+int Scenario_GetAllVisible(int client, int indexes[MAX_RUNTIME_MODES])
+{
+    int count = 0;
+    for (int i = 0; i < g_ScenarioCount; i++)
+    {
+        indexes[count++] = i;
+    }
+
+    return count;
 }
 
 int Scenario_GetCount()
 {
-    return MAX_MODES;
+    return g_ScenarioCount;
 }
 
-bool Scenario_IsValidIndex(int modeIndex)
+bool Scenario_IsValidIndex(int scenarioIndex)
 {
-    return (modeIndex >= 0 && modeIndex < MAX_MODES);
+    return (scenarioIndex >= 0 && scenarioIndex < g_ScenarioCount);
 }
 
-void Scenario_GetNameByIndex(int modeIndex, int client, char[] buffer, int maxlen)
+void Scenario_GetNameByIndex(int scenarioIndex, int client, char[] buffer, int maxlen)
 {
-    if (!Scenario_IsValidIndex(modeIndex))
+    if (!Scenario_IsValidIndex(scenarioIndex))
     {
         buffer[0] = '\0';
         return;
     }
 
-    Format(buffer, maxlen, "%T", g_Modes[modeIndex].namePhrase, client);
+    Format(buffer, maxlen, "%T", g_Scenarios[scenarioIndex].namePhrase, client);
 }
 
-bool Scenario_GetIdByIndex(int modeIndex, char[] buffer, int maxlen)
+bool Scenario_GetIdByIndex(int scenarioIndex, char[] buffer, int maxlen)
 {
-    if (!Scenario_IsValidIndex(modeIndex))
+    if (!Scenario_IsValidIndex(scenarioIndex))
     {
         buffer[0] = '\0';
         return false;
     }
 
-    strcopy(buffer, maxlen, g_Modes[modeIndex].id);
+    strcopy(buffer, maxlen, g_Scenarios[scenarioIndex].id);
     return true;
 }
 
-bool Scenario_CanPlayerSelect(int client, int modeIndex, char[] reason, int reasonLen)
+bool Scenario_IsPlayableForClients(int scenarioIndex, int players)
+{
+    return Scenario_IsValidIndex(scenarioIndex);
+}
+
+bool Scenario_IsAdminOnly(int scenarioIndex)
+{
+    return false;
+}
+
+bool Scenario_CanPlayerSelect(int client, int scenarioIndex, char[] reason, int reasonLen)
 {
     if (!IsValidClient(client))
     {
@@ -49,7 +86,7 @@ bool Scenario_CanPlayerSelect(int client, int modeIndex, char[] reason, int reas
         return false;
     }
 
-    if (!Scenario_IsValidIndex(modeIndex))
+    if (!Scenario_IsValidIndex(scenarioIndex))
     {
         strcopy(reason, reasonLen, "invalid_scenario");
         return false;

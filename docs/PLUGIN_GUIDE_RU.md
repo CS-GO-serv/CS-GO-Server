@@ -109,8 +109,8 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 
 ### Важно: как правильно вводить команды (частая ошибка)
-- В **консоли**: `sm_mode`, `sm_status`, `sm_ready` ...
-- В **чате**: `!mode`, `!status`, `!ready` ...
+- В **консоли**: `sm_mode`, `sm_status`, `sm_status_verbose`, `sm_ready` ...
+- В **чате**: `!mode`, `!status`, `!status_verbose`, `!ready` ...
 
 Не пишите в чат `!sm_mode`/`!sm_ready` — это неверный формат для SourceMod chat triggers.
 
@@ -119,12 +119,34 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 ### 4.1 Игрок
 - `sm_mode` — открыть меню выбора сценария. **Работает**.
 - `sm_votemode` — старт голосования сценария (при соблюдении условий). **Работает**.
-- `sm_status` — вывести текущий статус. **Работает**.
+- `sm_status` — компактный статус (для игрока, одна строка). **Работает**.
+- `sm_status_verbose` — расширенный статус (диагностика: prematch/pending/таймеры). **Работает**.
 - `sm_ready` — отметить ready. **Работает**.
 - `sm_unready` — снять ready. **Работает**.
 - `sm_team` — открывает Team/Ready-меню (`READY`, `UNREADY`, `Что сейчас происходит`). Доступно вне `Transition` и вне активного `Match`; при блокировке команда объясняет причину и рекомендует `sm_status`. **Работает**.
 - `sm_lobby` — попытка перейти в сценарий `lobby` (если настроен). **Работает при наличии lobby в scenarios.cfg**.
 - `sm_help_serverflow` — краткая in-game справка по командам. **Работает**.
+
+
+### 4.1.1 Примеры вывода статуса и как их читать
+
+**Компактный (`sm_status`)**
+```
+[ServerFlow] current=comp next=dz state=PreMatch next_action=wait for players ready and countdown
+```
+Интерпретация для тестера:
+- `state=PreMatch` — матч ещё не начался, сервер в предматчевой фазе.
+- `next_action=wait for players ready and countdown` — следующий ожидаемый шаг: игроки ставят ready, затем пойдёт countdown/lock.
+
+**Расширенный (`sm_status_verbose`)**
+```
+[ServerFlow] current=comp next=dz state=PreMatch prematch=Ready ready=8/10 cd=0 pending=proposed apply_state=PostMatch apply_in=42 confirm=manual next_action=await admin confirm (sm_confirmpending) or cancel
+```
+Интерпретация для тестера:
+- `ready=8/10` — ещё 2 игрока не готовы.
+- `pending=proposed` + `confirm=manual` — изменение подготовлено, но не подтверждено.
+- `apply_state=PostMatch` + `apply_in=42` — применить можно в PostMatch, окно подтверждения осталось ~42 сек.
+- `next_action=...` — что конкретно оператору делать дальше (подтвердить или отменить pending).
 
 ### 4.2 Админ/оператор
 - `sm_queuescenario <id>` — поставить сценарий в pending. **Работает**.

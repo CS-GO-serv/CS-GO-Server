@@ -10,6 +10,9 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_status", Command_Status);
     RegConsoleCmd("sm_ready", Command_Ready);
     RegConsoleCmd("sm_unready", Command_Unready);
+    RegConsoleCmd("sm_team", Command_Team);
+    RegConsoleCmd("sm_lobby", Command_Lobby);
+    RegConsoleCmd("sm_help_serverflow", Command_HelpServerFlow);
 
     RegConsoleCmd("sm_queuescenario", Command_QueueScenario);
     RegConsoleCmd("sm_queuemap", Command_QueueMap);

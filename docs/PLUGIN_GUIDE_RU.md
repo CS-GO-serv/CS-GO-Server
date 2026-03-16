@@ -24,7 +24,7 @@
 - **Базовый state flow и команды**: рабочие.
 - **Production-polish по ТЗ** (UX depth, расширенная диагностика, часть сценарных правил): частично.
 
-это проблема SQL-админки SourceMod, а не `serverflow.smx`.
+---
 
 ## 2) Как собрать и запустить
 
@@ -107,6 +107,13 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 ## 4) Команды: что работает сейчас
 
+
+### Важно: как правильно вводить команды (частая ошибка)
+- В **консоли**: `sm_mode`, `sm_status`, `sm_ready` ...
+- В **чате**: `!mode`, `!status`, `!ready` ...
+
+Не пишите в чат `!sm_mode`/`!sm_ready` — это неверный формат для SourceMod chat triggers.
+
 Ниже — текущее фактическое состояние команд.
 
 ### 4.1 Игрок
@@ -115,6 +122,9 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `sm_status` — вывести текущий статус. **Работает**.
 - `sm_ready` — отметить ready. **Работает**.
 - `sm_unready` — снять ready. **Работает**.
+- `sm_team` — подсказка по team-функции (пока menu не реализовано). **Работает как helper**.
+- `sm_lobby` — попытка перейти в сценарий `lobby` (если настроен). **Работает при наличии lobby в scenarios.cfg**.
+- `sm_help_serverflow` — краткая in-game справка по командам. **Работает**.
 
 ### 4.2 Админ/оператор
 - `sm_queuescenario <id>` — поставить сценарий в pending. **Работает**.
@@ -147,7 +157,12 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 3. Прямого «хаотичного» apply без transition/pending нет.
 4. В PreMatch ready/countdown/lock фазы не ломают состояние.
 
----
+Состояния:
+- `Lobby`
+- `PreMatch`
+- `Match`
+- `PostMatch`
+- `Transition`
 
 ## 6) Подробный тест-план (для тестеров)
 

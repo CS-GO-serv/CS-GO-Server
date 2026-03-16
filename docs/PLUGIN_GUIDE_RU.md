@@ -157,6 +157,18 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 3. Прямого «хаотичного» apply без transition/pending нет.
 4. В PreMatch ready/countdown/lock фазы не ломают состояние.
 
+### 5.1 Как из pre-match запускается match (пошагово)
+1. **Условие входа:** сервер находится в `PreMatch`, активен `lock phase`, и `ReadyManager` подтверждает, что все игроки из пула готовы.
+2. **Кто инициирует:** `CountdownManager_ForceLock` завершает countdown и вызывает отдельный orchestrator-хук `Countdown_OrchestrateAfterLock`, который делегирует переход в `Transition_TryEnterMatchFromLock`.
+3. **Как подтверждается переход:** runtime-пайплайн проверяет guard-условия и вызывает `State_EnterMatch` только через `runtime/transition_manager.inc` + `runtime/state_manager.inc`; если guard не проходит — в аудит пишется `flow lock->match guard_denied`.
+4. **Что увидит игрок:** чат-нотификации lock/match и детерминированный audit-маршрут (`lock->match applied` или `guard_denied`) для тестера в `mode_actions.log`.
+
+### 5.2 Как match завершается в postmatch
+1. **Условие входа:** сервер в `Match`.
+2. **Кто инициирует:** `integrations/game_events.inc` по игровым событиям `round_end`, `cs_win_panel_match`, `game_end` вызывает orchestrator `Transition_TryEnterPostMatchFromMatch`.
+3. **Как подтверждается переход:** guard проверяет текущее состояние и только затем вызывает `State_EnterPostMatch` через runtime-менеджеры; при отказе фиксируется `flow match->postmatch guard_denied`.
+4. **Что увидит игрок:** смену state-уведомления и аудируемую причину маршрута в логах.
+
 Состояния:
 - `Lobby`
 - `PreMatch`

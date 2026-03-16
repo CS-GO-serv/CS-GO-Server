@@ -22,3 +22,8 @@ void Audit_Log(const char[] message)
 {
     Audit_LogEvent("legacy", "raw", 0, "ok", message);
 }
+
+void Audit_LogFlowRoute(const char[] route, const char[] result, const char[] reason = "")
+{
+    Audit_LogEvent("flow", route, 0, result, reason);
+}

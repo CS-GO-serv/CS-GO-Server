@@ -193,3 +193,54 @@ bool Transition_ConfirmAndApplyPending(int actor, const char[] source = "")
 
     return true;
 }
+
+
+bool Transition_TryEnterMatchFromLock(const char[] source = "lock_orchestrator")
+{
+    if (Session_GetState() != ServerState_PreMatch)
+    {
+        Audit_LogFlowRoute("lock->match", "guard_denied", "state_not_prematch");
+        return false;
+    }
+
+    if (!Session_IsLockPhase())
+    {
+        Audit_LogFlowRoute("lock->match", "guard_denied", "lock_not_active");
+        return false;
+    }
+
+    if (!ReadyManager_IsReadySatisfied())
+    {
+        Audit_LogFlowRoute("lock->match", "guard_denied", "ready_not_satisfied");
+        return false;
+    }
+
+    Session_SetLockPhase(false);
+    if (!State_EnterMatch(source))
+    {
+        Session_SetLockPhase(true);
+        Audit_LogFlowRoute("lock->match", "guard_denied", "state_transition_denied");
+        return false;
+    }
+
+    Audit_LogFlowRoute("lock->match", "applied", source);
+    return true;
+}
+
+bool Transition_TryEnterPostMatchFromMatch(const char[] source = "match_orchestrator")
+{
+    if (Session_GetState() != ServerState_Match)
+    {
+        Audit_LogFlowRoute("match->postmatch", "guard_denied", "state_not_match");
+        return false;
+    }
+
+    if (!State_EnterPostMatch(source))
+    {
+        Audit_LogFlowRoute("match->postmatch", "guard_denied", "state_transition_denied");
+        return false;
+    }
+
+    Audit_LogFlowRoute("match->postmatch", "applied", source);
+    return true;
+}

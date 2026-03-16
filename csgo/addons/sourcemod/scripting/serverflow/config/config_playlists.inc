@@ -36,7 +36,7 @@ bool ConfigPlaylists_Reload()
     for (int scenarioIndex = 0; scenarioIndex < g_ScenarioCount; scenarioIndex++)
     {
         char mapListPath[PLATFORM_MAX_PATH];
-        BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Scenarios[scenarioIndex].mapListFile);
+        strcopy(mapListPath, sizeof(mapListPath), g_Scenarios[scenarioIndex].mapListFile);
 
         if (!FileExists(mapListPath))
         {

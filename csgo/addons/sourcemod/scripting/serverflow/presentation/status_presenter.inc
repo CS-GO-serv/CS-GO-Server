@@ -28,18 +28,26 @@ void Status_GetCompactText(char[] buffer, int maxlen)
         countdownLeft = 0;
     }
 
+    int pendingLeft = pending.expiresAt > 0 ? pending.expiresAt - GetTime() : 0;
+    if (pendingLeft < 0)
+    {
+        pendingLeft = 0;
+    }
+
     Format(
         buffer,
         maxlen,
-        "[ServerFlow] state=%d prematch=%d lock=%d ready=%d/%d countdown=%d pending=%d scenario=%s queued=%s",
+        "[ServerFlow] current=%s next=%s state=%d prematch=%d ready=%d/%d cd=%d pending=%d apply_state=%d apply_in=%d confirm=%d",
+        currentScenario,
+        queuedScenario,
         Session_GetState(),
         Session_GetPreMatchPhase(),
-        Session_IsLockPhase(),
         readyCount,
         readyPool,
         countdownLeft,
         pending.state,
-        currentScenario,
-        queuedScenario
+        pending.allowedApplyState,
+        pendingLeft,
+        pending.confirmPolicy
     );
 }

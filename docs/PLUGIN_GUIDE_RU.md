@@ -22,6 +22,14 @@ build_serverflow.bat
 - `csgo/addons/sourcemod/plugins/serverflow.smx` (рабочий путь загрузки плагина)
 - `csgo/addons/sourcemod/scripting/compiled/serverflow.smx` (зеркальный артефакт для удобства)
 
+Если запускаете `.bat` двойным кликом и окно быстро закрывается, откройте лог:
+- `build_serverflow.log` в корне репозитория.
+
+Рекомендуемый запуск для диагностики:
+```bat
+cmd /k build_serverflow.bat
+```
+
 ### 2.2 Legacy shim (только совместимость)
 ```bat
 build_mode_vote.bat

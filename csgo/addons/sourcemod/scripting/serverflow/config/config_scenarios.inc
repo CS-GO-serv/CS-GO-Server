@@ -59,7 +59,7 @@ bool Scenarios_LoadFromConfig()
     g_ScenarioCount = 0;
 
     char path[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, path, sizeof(path), "%s", SERVERFLOW_SCENARIOS_CONFIG);
+    strcopy(path, sizeof(path), SERVERFLOW_SCENARIOS_CONFIG);
 
     KeyValues kv = new KeyValues("ServerFlowScenarios");
     if (!kv.ImportFromFile(path))

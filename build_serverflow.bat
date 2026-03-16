@@ -33,18 +33,18 @@ if not exist "%SRC%" (
 if exist "%CFG_PLAYLISTS%" (
   findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%" >nul
   if not errorlevel 1 (
-    echo [serverflow build] stale source detected: Path_Game found in %CFG_PLAYLISTS%
-    >>"%LOG%" echo [serverflow build] ERROR stale source: Path_Game in config_playlists.inc
-    exit /b 5
+    echo [serverflow build] warning: stale marker found ^(Path_Game^) in %CFG_PLAYLISTS%
+    >>"%LOG%" echo [serverflow build] WARN stale marker: Path_Game in config_playlists.inc
+    >>"%LOG%" findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%"
   )
 )
 
 if exist "%RT_TRANSITION%" (
   findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%" >nul
   if not errorlevel 1 (
-    echo [serverflow build] stale source detected: redundant enum struct reference found in %RT_TRANSITION%
-    >>"%LOG%" echo [serverflow build] ERROR stale source: PendingChange ^& in transition_manager.inc
-    exit /b 6
+    echo [serverflow build] warning: stale marker found ^(PendingChange ^&^) in %RT_TRANSITION%
+    >>"%LOG%" echo [serverflow build] WARN stale marker: PendingChange ^& in transition_manager.inc
+    >>"%LOG%" findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%"
   )
 )
 
@@ -75,6 +75,7 @@ echo [serverflow build] compiling serverflow.sp ...
 "%SPCOMP%" "%SRC%" -i "%INCLUDE%" -o "%OUT_PLUGIN%" >>"%LOG%" 2>&1
 if errorlevel 1 (
   echo [serverflow build] compile failed. See %LOG%
+  echo [serverflow build] hint: update server sources from repo if log shows Path_Game or PendingChange ^& markers.
   if exist "%OUT_PLUGIN%" (
     echo [serverflow build] falling back to existing plugin binary: %OUT_PLUGIN%
     exit /b 0

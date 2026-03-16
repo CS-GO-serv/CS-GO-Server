@@ -1,0 +1,188 @@
+"Phrases"
+{
+    "state.changed"
+    {
+        "en"    "[ServerFlow] state %d -> %d (%s)"
+        "ru"    "[ServerFlow] состояние %d -> %d (%s)"
+    }
+
+    "state.vote.started"
+    {
+        "en"    "[ServerFlow] Vote started by %N."
+        "ru"    "[ServerFlow] Голосование запущено игроком %N."
+    }
+
+    "state.vote.finished"
+    {
+        "en"    "[ServerFlow] Vote complete: selected mode %s."
+        "ru"    "[ServerFlow] Голосование завершено: выбран режим %s."
+    }
+
+    "state.ready.changed"
+    {
+        "en"    "[ServerFlow] %N is now %s (%d/%d)."
+        "ru"    "[ServerFlow] %N теперь %s (%d/%d)."
+    }
+
+    "state.countdown.started"
+    {
+        "en"    "[ServerFlow] Countdown started: %d sec (%s)."
+        "ru"    "[ServerFlow] Обратный отсчёт запущен: %d сек (%s)."
+    }
+
+    "state.countdown.canceled"
+    {
+        "en"    "[ServerFlow] Countdown canceled (%s)."
+        "ru"    "[ServerFlow] Обратный отсчёт отменён (%s)."
+    }
+
+    "state.lock.entered"
+    {
+        "en"    "[ServerFlow] Lock phase entered (%s). Ready is locked."
+        "ru"    "[ServerFlow] Вход в lock-фазу (%s). Готовность заблокирована."
+    }
+
+    "state.team.started"
+    {
+        "en"    "[ServerFlow] Team phase started (%s)."
+        "ru"    "[ServerFlow] Фаза команд началась (%s)."
+    }
+
+    "state.denied.not_enough_players"
+    {
+        "en"    "[ServerFlow] Not enough players for vote."
+        "ru"    "[ServerFlow] Недостаточно игроков для голосования."
+    }
+
+    "state.denied.cooldown"
+    {
+        "en"    "[ServerFlow] Vote is on cooldown."
+        "ru"    "[ServerFlow] Голосование на перезарядке."
+    }
+
+    "state.denied.blocked_by_state"
+    {
+        "en"    "[ServerFlow] Action is blocked in current state."
+        "ru"    "[ServerFlow] Действие заблокировано в текущем состоянии."
+    }
+
+    "state.denied.already_voted"
+    {
+        "en"    "[ServerFlow] You already voted."
+        "ru"    "[ServerFlow] Вы уже проголосовали."
+    }
+
+    "state.denied.invalid_scenario"
+    {
+        "en"    "[ServerFlow] Invalid scenario selected."
+        "ru"    "[ServerFlow] Выбран некорректный сценарий."
+    }
+
+    "state.denied.vote_not_running"
+    {
+        "en"    "[ServerFlow] No active vote."
+        "ru"    "[ServerFlow] Нет активного голосования."
+    }
+
+    "state.denied.vote_in_progress"
+    {
+        "en"    "[ServerFlow] Vote is already in progress."
+        "ru"    "[ServerFlow] Голосование уже идёт."
+    }
+
+    "state.denied.generic"
+    {
+        "en"    "[ServerFlow] Action denied: %s"
+        "ru"    "[ServerFlow] Действие отклонено: %s"
+    }
+
+    "pending.created.selection"
+    {
+        "en"    "[ServerFlow] Selected next mode: %s (map: %s)."
+        "ru"    "[ServerFlow] Выбран следующий режим: %s (карта: %s)."
+    }
+
+    "pending.created.reason"
+    {
+        "en"    "[ServerFlow] Reason: %s"
+        "ru"    "[ServerFlow] Причина: %s"
+    }
+
+    "pending.created.confirm_required"
+    {
+        "en"    "[ServerFlow] Needs admin confirmation in %d sec (sm_confirmpending)."
+        "ru"    "[ServerFlow] Требуется подтверждение админа в течение %d сек (sm_confirmpending)."
+    }
+
+    "pending.created.auto_wait"
+    {
+        "en"    "[ServerFlow] Waiting to apply automatically when state=%d is reached."
+        "ru"    "[ServerFlow] Ожидание авто-применения при достижении state=%d."
+    }
+
+    "pending.canceled.selection"
+    {
+        "en"    "[ServerFlow] Transition canceled for %s (map: %s)."
+        "ru"    "[ServerFlow] Переход отменён для %s (карта: %s)."
+    }
+
+    "pending.canceled.reason"
+    {
+        "en"    "[ServerFlow] Cancel reason: %s%s%s."
+        "ru"    "[ServerFlow] Причина отмены: %s%s%s."
+    }
+
+    "pending.override.console"
+    {
+        "en"    "[ServerFlow] Console queued admin override: %s"
+        "ru"    "[ServerFlow] Консоль поставила override админа в очередь: %s"
+    }
+
+    "pending.override.admin"
+    {
+        "en"    "[ServerFlow] %N queued admin override: %s"
+        "ru"    "[ServerFlow] %N поставил(а) override админа в очередь: %s"
+    }
+
+    "confirm.selection"
+    {
+        "en"    "[ServerFlow] Selected: %s (map: %s)."
+        "ru"    "[ServerFlow] Выбрано: %s (карта: %s)."
+    }
+
+    "confirm.prompt"
+    {
+        "en"    "[ServerFlow] Confirm to continue. Reason: %s. Deadline: %d sec."
+        "ru"    "[ServerFlow] Подтвердите для продолжения. Причина: %s. Дедлайн: %d сек."
+    }
+
+    "confirm.accepted"
+    {
+        "en"    "[ServerFlow] %N confirmed transition to %s (map: %s)."
+        "ru"    "[ServerFlow] %N подтвердил(а) переход к %s (карта: %s)."
+    }
+
+    "mode.name.default"
+    {
+        "en"    "Default"
+        "ru"    "По умолчанию"
+    }
+
+    "mode.name.dz"
+    {
+        "en"    "Danger Zone"
+        "ru"    "Danger Zone"
+    }
+
+    "mode.name.comp"
+    {
+        "en"    "Competitive"
+        "ru"    "Соревновательный"
+    }
+
+    "mode.name.casual"
+    {
+        "en"    "Casual"
+        "ru"    "Обычный"
+    }
+}

@@ -22,6 +22,19 @@ build_serverflow.bat
 - `csgo/addons/sourcemod/plugins/serverflow.smx` (рабочий путь загрузки плагина)
 - `csgo/addons/sourcemod/scripting/compiled/serverflow.smx` (зеркальный артефакт для удобства)
 
+### Восстановление бинарника из текстового артефакта (.b64.txt)
+Если хостинг/платформа не принимает бинарные `.smx`, используйте файлы:
+- `csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt`
+- `csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt`
+
+На Windows восстановить можно так:
+```bat
+certutil -decode csgo\addons\sourcemod\plugins\serverflow.smx.b64.txt csgo\addons\sourcemod\plugins\serverflow.smx
+certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt csgo\addons\sourcemod\scripting\compiled\serverflow.smx
+```
+
+После декодирования проверьте наличие `.smx` и запускайте сервер.
+
 Если запускаете `.bat` двойным кликом и окно быстро закрывается, откройте лог:
 - `build_serverflow.log` в корне репозитория.
 

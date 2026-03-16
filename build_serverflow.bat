@@ -40,7 +40,6 @@ if exist "%CFG_PLAYLISTS%" (
     >>"%LOG%" findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%"
   )
 )
-
 if exist "%RT_TRANSITION%" (
   findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%" >nul
   if not errorlevel 1 (
@@ -58,9 +57,9 @@ if "%NEED_FIX%"=="1" (
   if exist "%CFG_PLAYLISTS%" copy /Y "%CFG_PLAYLISTS%" "%CFG_PLAYLISTS%.bak" >nul
   if exist "%RT_TRANSITION%" copy /Y "%RT_TRANSITION%" "%RT_TRANSITION%.bak" >nul
 
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%CFG_PLAYLISTS%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'BuildPath\\(Path_Game,\\s*path,\\s*sizeof\\(path\\),\\s*"%%s",\\s*SERVERFLOW_PLAYLISTS_CONFIG\\);','strcopy(path, sizeof(path), SERVERFLOW_PLAYLISTS_CONFIG);'; $c=$c -replace 'BuildPath\\(Path_Game,\\s*mapListPath,\\s*sizeof\\(mapListPath\\),\\s*"%%s",\\s*g_Playlists\\[playlistIndex\\]\\.mapListFile\\);','strcopy(mapListPath, sizeof(mapListPath), g_Playlists[playlistIndex].mapListFile);'; Set-Content -NoNewline -Path $p -Value $c } }" >>"%LOG%" 2>&1
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%CFG_PLAYLISTS%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'BuildPath\\(Path_Game,[^\\r\\n]*SERVERFLOW_PLAYLISTS_CONFIG\\);','strcopy(path, sizeof(path), SERVERFLOW_PLAYLISTS_CONFIG);'; $c=$c -replace 'BuildPath\\(Path_Game,[^\\r\\n]*mapListPath[^\\r\\n]*\\);','strcopy(mapListPath, sizeof(mapListPath), g_Playlists[playlistIndex].mapListFile);'; Set-Content -Path $p -Value $c } }" >>"%LOG%" 2>&1
 
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%RT_TRANSITION%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'PendingChange\\s*&','PendingChange '; Set-Content -NoNewline -Path $p -Value $c } }" >>"%LOG%" 2>&1
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%RT_TRANSITION%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'PendingChange\\s*&','PendingChange '; Set-Content -Path $p -Value $c } }" >>"%LOG%" 2>&1
 
   set "FIX_LEFT=0"
   findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%" >nul 2>&1 && set "FIX_LEFT=1"
@@ -68,6 +67,7 @@ if "%NEED_FIX%"=="1" (
 
   if "%FIX_LEFT%"=="1" (
     echo [serverflow build] warning: automatic fix incomplete. See %LOG%
+    echo [serverflow build] tip: run git pull or replace stale files from repo
     >>"%LOG%" echo [serverflow build] WARN automatic stale-source fix incomplete
   ) else (
     echo [serverflow build] automatic stale-source fix applied.

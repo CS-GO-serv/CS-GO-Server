@@ -10,12 +10,22 @@ void Config_LoadAll()
     ServerCommand("exec sourcemod/serverflow.cfg");
     ConfigCore_RefreshRuntime();
 
-    Scenarios_LoadFromConfig();
+    bool scenariosOk = Scenarios_LoadFromConfig();
     ConfigPlaylists_Reload();
 
     if (!Config_ValidateAll())
     {
-        SetFailState("[serverflow] config validation failed");
+        LogError("[serverflow] config validation failed on primary config load; trying fallback scenarios");
+        if (!scenariosOk || g_ScenarioCount <= 0)
+        {
+            Scenarios_LoadFallbackDefaults();
+            ConfigPlaylists_Reload();
+        }
+
+        if (!Config_ValidateAll())
+        {
+            SetFailState("[serverflow] config validation failed");
+        }
     }
 }
 

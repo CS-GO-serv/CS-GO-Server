@@ -35,6 +35,21 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 После декодирования проверьте наличие `.smx` и запускайте сервер.
 
+### Важно: ошибки `admin-sql-*` не относятся к ServerFlow
+Если в `errors_*.log` видите:
+- `no such table: sm_overrides`
+- `no such table: sm_groups`
+- `no such table: sm_admins`
+
+это проблема SQL-админки SourceMod, а не `serverflow.smx`.
+
+Для тестов ServerFlow рекомендуется:
+1. Временно отключить SQL-плагины админки (например, `admin-sql-prefetch.smx`, `admin-sql-threaded.smx`)
+   или
+2. Настроить/инициализировать БД с таблицами `sm_*` для SQL admin plugins.
+
+Иначе сервер может ловить таймауты и шум в логах, что мешает тестам ServerFlow.
+
 Если запускаете `.bat` двойным кликом и окно быстро закрывается, откройте лог:
 - `build_serverflow.log` в корне репозитория.
 

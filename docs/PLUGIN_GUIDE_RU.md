@@ -3,7 +3,7 @@
 > Этот документ — практический runbook для админов и тестеров.  
 > Цель: чтобы можно было без путаницы собрать, запустить, проверить и диагностировать текущий ServerFlow.
 
----
+Актуальный плагин: **ServerFlow**.
 
 ## 1) Что это за плагин и текущий статус
 
@@ -157,7 +157,12 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 3. Прямого «хаотичного» apply без transition/pending нет.
 4. В PreMatch ready/countdown/lock фазы не ломают состояние.
 
----
+Состояния:
+- `Lobby`
+- `PreMatch`
+- `Match`
+- `PostMatch`
+- `Transition`
 
 ## 6) Подробный тест-план (для тестеров)
 

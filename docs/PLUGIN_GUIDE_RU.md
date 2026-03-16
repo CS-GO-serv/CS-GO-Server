@@ -216,6 +216,15 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 ## 7) Диагностика ошибок: быстрый разбор
 
+### 7.0 Быстрая матрица: симптом -> причина -> fallback поведение -> действие админа
+
+| Симптом | Причина | Fallback поведение плагина | Действие админа |
+|---|---|---|---|
+| В логах `validation failed: no scenarios loaded` | `scenarios.cfg` не читается/пустой | Критичная ошибка, плагин не может продолжать работу | Проверить путь `addons/sourcemod/configs/serverflow/scenarios.cfg`, синтаксис KV, права доступа |
+| В логах `validation degraded: scenario ... has empty playlist` | Для части сценариев недоступен `maplist_file`/в файле нет валидных карт | Плагин остаётся жив, включает **degraded mode**, ограничивая ротацию безопасным пулом | Восстановить maplist-файл, проверить имена карт и `IsMapValid` |
+| Для `dz/comp/casual` карта не подхватывается из файла | maplist-файл отсутствует или не открылся | Используется предсказуемый fallback pool (`dz_blacksite` / `de_dust2` / `de_mirage`) | Починить файл maplist и сверить с `scenarios.cfg`/`playlists.cfg` |
+| В health-логе статус `status=2` (degraded) | Конфиг валиден частично, активирован безопасный режим | Плагин работает в ограниченном режиме без падения | Проверить `g_ModeMapCacheError` по сценариям и устранить деградационные причины |
+
 ## 7.1 Ошибка загрузки `serverflow.smx` на старте
 Смотрите:
 - `csgo/addons/sourcemod/logs/errors_YYYYMMDD.log`

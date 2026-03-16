@@ -65,8 +65,6 @@ HealthStatus Health_CheckScenarioPlaylistLinks()
     return hasWarnings ? HealthStatus_Warn : HealthStatus_Ok;
 }
 
-
-
 static bool Health_IsKnownServerState(ServerState state)
 {
     return (state >= ServerState_Lobby && state <= ServerState_Transition);
@@ -149,24 +147,30 @@ HealthStatus Health_CheckRuntimeInvariants()
 
 HealthStatus Health_CheckPlaylists()
 {
-    bool hasWarnings = false;
+    bool degraded = false;
 
     for (int i = 0; i < Scenario_GetCount(); i++)
     {
         if (g_ModeMapCache[i] == null || g_ModeMapCache[i].Length <= 0)
         {
-            ModeDebug("health fail: scenario '%s' playlist unavailable (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
-            return HealthStatus_Fail;
+            ModeDebug("health degraded: scenario '%s' playlist unavailable (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
+            degraded = true;
+            continue;
         }
 
         if (!g_ModeMapCacheLoaded[i])
         {
-            hasWarnings = true;
-            ModeDebug("health warn: scenario '%s' playlist marked as not loaded (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
+            degraded = true;
+            ModeDebug("health degraded: scenario '%s' playlist marked as not loaded (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
         }
     }
 
-    return hasWarnings ? HealthStatus_Warn : HealthStatus_Ok;
+    if (degraded || g_ConfigValidationDegraded)
+    {
+        return HealthStatus_Degraded;
+    }
+
+    return HealthStatus_Ok;
 }
 
 void Health_RunFullCheck(const char[] source = "runtime")
@@ -180,6 +184,10 @@ void Health_RunFullCheck(const char[] source = "runtime")
     if (scenarios == HealthStatus_Fail || links == HealthStatus_Fail || playlists == HealthStatus_Fail || runtime == HealthStatus_Fail)
     {
         finalStatus = HealthStatus_Fail;
+    }
+    else if (scenarios == HealthStatus_Degraded || links == HealthStatus_Degraded || playlists == HealthStatus_Degraded || runtime == HealthStatus_Degraded)
+    {
+        finalStatus = HealthStatus_Degraded;
     }
     else if (scenarios == HealthStatus_Warn || links == HealthStatus_Warn || playlists == HealthStatus_Warn || runtime == HealthStatus_Warn)
     {
@@ -196,4 +204,9 @@ void Health_RunFullCheck(const char[] source = "runtime")
         runtime,
         Session_GetState()
     );
+
+    if (finalStatus == HealthStatus_Degraded)
+    {
+        LogMessage("[serverflow] health degraded: plugin is running in limited mode");
+    }
 }

@@ -26,6 +26,7 @@ int g_PendingConfirmWindow = MODE_PENDING_CONFIRM_WINDOW_DEFAULT;
 ArrayList g_ModeMapCache[MAX_RUNTIME_MODES];
 bool g_ModeMapCacheLoaded[MAX_RUNTIME_MODES];
 char g_ModeMapCacheError[MAX_RUNTIME_MODES][192];
+bool g_ConfigValidationDegraded;
 
 int g_PlaylistCursor[MAX_RUNTIME_MODES];
 RotationMode g_PlaylistRotationMode = RotationMode_Sequential;

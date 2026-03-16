@@ -16,6 +16,38 @@ static int PlaylistManager_FindPlaylistById(const char[] playlistId)
     return -1;
 }
 
+static int PlaylistManager_BuildCriticalFallbackPool(const char[] scenarioId, char maps[][64], int maxMaps)
+{
+    if (maxMaps <= 0)
+    {
+        return 0;
+    }
+
+    if (StrEqual(scenarioId, "dz", false))
+    {
+        strcopy(maps[0], 64, "dz_blacksite");
+    }
+    else if (StrEqual(scenarioId, "comp", false))
+    {
+        strcopy(maps[0], 64, "de_dust2");
+    }
+    else if (StrEqual(scenarioId, "casual", false))
+    {
+        strcopy(maps[0], 64, "de_mirage");
+    }
+    else
+    {
+        return 0;
+    }
+
+    if (!IsMapValid(maps[0]))
+    {
+        strcopy(maps[0], 64, SAFE_HUB_MAP);
+    }
+
+    return 1;
+}
+
 static int PlaylistManager_GetScenarioPlaylistIndex(int scenarioIndex)
 {
     if (scenarioIndex < 0 || scenarioIndex >= g_ScenarioCount)
@@ -129,10 +161,15 @@ int Playlist_GetVotePool(const char[] scenarioId, char maps[][64], int maxMaps)
     int scenarioIndex = FindModeById(scenarioId);
     if (scenarioIndex == -1 || g_ModeMapCache[scenarioIndex] == null)
     {
-        return 0;
+        return PlaylistManager_BuildCriticalFallbackPool(scenarioId, maps, maxMaps);
     }
 
     int count = g_ModeMapCache[scenarioIndex].Length;
+    if (count <= 0)
+    {
+        return PlaylistManager_BuildCriticalFallbackPool(scenarioId, maps, maxMaps);
+    }
+
     if (count > maxMaps)
     {
         count = maxMaps;

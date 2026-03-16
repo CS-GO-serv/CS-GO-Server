@@ -16,19 +16,74 @@ static int Validation_FindPlaylistById(const char[] playlistId)
     return -1;
 }
 
+bool Config_ValidationIsCriticalFailure()
+{
+    if (g_ScenarioCount <= 0)
+    {
+        return true;
+    }
+
+    if (g_PlaylistCount <= 0)
+    {
+        return true;
+    }
+
+    for (int i = 0; i < g_ScenarioCount; i++)
+    {
+        for (int j = i + 1; j < g_ScenarioCount; j++)
+        {
+            if (StrEqual(g_Scenarios[i].id, g_Scenarios[j].id, false))
+            {
+                return true;
+            }
+
+            if (StrEqual(g_Scenarios[i].routerAlias, g_Scenarios[j].routerAlias, false))
+            {
+                return true;
+            }
+        }
+
+        int playlistIndex = -1;
+        if (g_Scenarios[i].maplistPolicy == MaplistPolicy_Scenario)
+        {
+            playlistIndex = Validation_FindPlaylistById(g_Scenarios[i].id);
+        }
+        else
+        {
+            playlistIndex = Validation_FindPlaylistById(g_Scenarios[i].playlistId);
+        }
+
+        if (playlistIndex == -1)
+        {
+            return true;
+        }
+
+        if (g_Scenarios[i].startMap[0] != '\0' && !Playlist_IsMapAllowed(i, g_Scenarios[i].startMap) && !IsMapValid(g_Scenarios[i].startMap))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool Config_ValidateAll()
 {
     bool ok = true;
+    bool degraded = false;
+    g_ConfigValidationDegraded = false;
 
     if (g_ScenarioCount <= 0)
     {
         LogError("[serverflow] validation failed: no scenarios loaded");
+        g_ConfigValidationDegraded = false;
         return false;
     }
 
     if (g_PlaylistCount <= 0)
     {
         LogError("[serverflow] validation failed: no playlists loaded");
+        g_ConfigValidationDegraded = false;
         return false;
     }
 
@@ -67,8 +122,8 @@ bool Config_ValidateAll()
 
         if (g_ModeMapCache[i] == null || g_ModeMapCache[i].Length <= 0)
         {
-            ok = false;
-            LogError("[serverflow] scenario '%s' has empty playlist (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
+            degraded = true;
+            LogMessage("[serverflow] validation degraded: scenario '%s' has empty playlist (%s)", g_Scenarios[i].id, g_ModeMapCacheError[i]);
         }
 
         if (g_Scenarios[i].startMap[0] != '\0' && !Playlist_IsMapAllowed(i, g_Scenarios[i].startMap) && !IsMapValid(g_Scenarios[i].startMap))
@@ -78,5 +133,6 @@ bool Config_ValidateAll()
         }
     }
 
+    g_ConfigValidationDegraded = (ok && degraded);
     return ok;
 }

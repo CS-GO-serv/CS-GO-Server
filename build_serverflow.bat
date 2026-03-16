@@ -9,6 +9,9 @@ set "OUT_PLUGIN=%ROOT%csgo\addons\sourcemod\plugins\serverflow.smx"
 set "OUT_COMPILED=%SCRIPTING%\compiled\serverflow.smx"
 set "LOG=%ROOT%build_serverflow.log"
 
+set "CFG_PLAYLISTS=%ROOT%csgo\addons\sourcemod\scripting\serverflow\config\config_playlists.inc"
+set "RT_TRANSITION=%ROOT%csgo\addons\sourcemod\scripting\serverflow\runtime\transition_manager.inc"
+
 set "SPCOMP="
 if exist "%SCRIPTING%\spcomp.exe" set "SPCOMP=%SCRIPTING%\spcomp.exe"
 if not defined SPCOMP if exist "%SCRIPTING%\spcomp64.exe" set "SPCOMP=%SCRIPTING%\spcomp64.exe"
@@ -25,6 +28,24 @@ if not exist "%SRC%" (
   echo [serverflow build] source not found: %SRC%
   >>"%LOG%" echo [serverflow build] ERROR source not found
   exit /b 1
+)
+
+if exist "%CFG_PLAYLISTS%" (
+  findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%" >nul
+  if not errorlevel 1 (
+    echo [serverflow build] stale source detected: Path_Game found in %CFG_PLAYLISTS%
+    >>"%LOG%" echo [serverflow build] ERROR stale source: Path_Game in config_playlists.inc
+    exit /b 5
+  )
+)
+
+if exist "%RT_TRANSITION%" (
+  findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%" >nul
+  if not errorlevel 1 (
+    echo [serverflow build] stale source detected: redundant enum struct reference found in %RT_TRANSITION%
+    >>"%LOG%" echo [serverflow build] ERROR stale source: PendingChange ^& in transition_manager.inc
+    exit /b 6
+  )
 )
 
 if not defined SPCOMP (

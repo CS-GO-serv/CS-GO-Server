@@ -30,6 +30,12 @@ build_serverflow.bat
 cmd /k build_serverflow.bat
 ```
 
+Если в `build_serverflow.log` видите ошибки вида:
+- `undefined symbol "Path_Game"` в `config_playlists.inc`
+- `reference is redundant` для `PendingChange &...` в `transition_manager.inc`
+
+значит на сервере лежит **устаревшая копия исходников**. Нужно обновить файлы из актуального репозитория (или сделать `git pull`) и собрать снова.
+
 ### 2.2 Legacy shim (только совместимость)
 ```bat
 build_mode_vote.bat

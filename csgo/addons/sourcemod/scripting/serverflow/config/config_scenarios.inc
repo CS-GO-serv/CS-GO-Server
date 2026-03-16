@@ -17,6 +17,50 @@ static bool Scenarios_ParseRotationMode(const char[] value, RotationMode &mode)
     return StrEqual(value, "sequential", false) || StrEqual(value, "", false);
 }
 
+static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
+{
+    if (scenario.routerAlias[0] == '\0')
+    {
+        kv.GetString("router", scenario.routerAlias, sizeof(scenario.routerAlias), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        kv.GetString("map_list_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        kv.GetString("maplist", scenario.mapListFile, sizeof(scenario.mapListFile), "");
+    }
+
+    if (scenario.fallbackMap[0] == '\0')
+    {
+        kv.GetString("fallback", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        if (StrEqual(scenario.id, "dz", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_dz.txt");
+        }
+        else if (StrEqual(scenario.id, "comp", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_comp.txt");
+        }
+        else if (StrEqual(scenario.id, "casual", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_casual.txt");
+        }
+
+        if (scenario.mapListFile[0] != '\0')
+        {
+            LogError("[serverflow] scenario '%s' had empty maplist_file; fallback applied: %s", scenario.id, scenario.mapListFile);
+        }
+    }
+}
+
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
     bool valid = true;
@@ -54,12 +98,61 @@ int Scenarios_FindById(const char[] id)
     return FindModeById(id);
 }
 
+void Scenarios_LoadFallbackDefaults()
+{
+    g_ScenarioCount = 0;
+
+    ModeInfo dz;
+    strcopy(dz.id, sizeof(dz.id), "dz");
+    strcopy(dz.routerAlias, sizeof(dz.routerAlias), "mode_dz");
+    strcopy(dz.namePhrase, sizeof(dz.namePhrase), "Mode Name DZ");
+    dz.gameType = 6;
+    dz.gameMode = 0;
+    strcopy(dz.mapgroup, sizeof(dz.mapgroup), "mg_dz_blacksite");
+    strcopy(dz.startMap, sizeof(dz.startMap), "dz_blacksite");
+    strcopy(dz.cfgFile, sizeof(dz.cfgFile), "mode_dz.cfg");
+    strcopy(dz.mapListFile, sizeof(dz.mapListFile), "cfg/maplist_dz.txt");
+    strcopy(dz.fallbackMap, sizeof(dz.fallbackMap), "dz_sirocco");
+    dz.rotationMode = RotationMode_Sequential;
+    Scenarios_Register(dz);
+
+    ModeInfo comp;
+    strcopy(comp.id, sizeof(comp.id), "comp");
+    strcopy(comp.routerAlias, sizeof(comp.routerAlias), "mode_comp");
+    strcopy(comp.namePhrase, sizeof(comp.namePhrase), "Mode Name Comp");
+    comp.gameType = 0;
+    comp.gameMode = 1;
+    strcopy(comp.mapgroup, sizeof(comp.mapgroup), "mg_active");
+    strcopy(comp.startMap, sizeof(comp.startMap), "de_mirage");
+    strcopy(comp.cfgFile, sizeof(comp.cfgFile), "mode_comp.cfg");
+    strcopy(comp.mapListFile, sizeof(comp.mapListFile), "cfg/maplist_comp.txt");
+    strcopy(comp.fallbackMap, sizeof(comp.fallbackMap), "de_dust2");
+    comp.rotationMode = RotationMode_Sequential;
+    Scenarios_Register(comp);
+
+    ModeInfo casual;
+    strcopy(casual.id, sizeof(casual.id), "casual");
+    strcopy(casual.routerAlias, sizeof(casual.routerAlias), "mode_casual");
+    strcopy(casual.namePhrase, sizeof(casual.namePhrase), "Mode Name Casual");
+    casual.gameType = 0;
+    casual.gameMode = 0;
+    strcopy(casual.mapgroup, sizeof(casual.mapgroup), "mg_casualdelta");
+    strcopy(casual.startMap, sizeof(casual.startMap), "de_mirage");
+    strcopy(casual.cfgFile, sizeof(casual.cfgFile), "mode_casual.cfg");
+    strcopy(casual.mapListFile, sizeof(casual.mapListFile), "cfg/maplist_casual.txt");
+    strcopy(casual.fallbackMap, sizeof(casual.fallbackMap), "de_anubis");
+    casual.rotationMode = RotationMode_Sequential;
+    Scenarios_Register(casual);
+
+    LogError("[serverflow] loaded fallback in-memory scenarios: %d", g_ScenarioCount);
+}
+
 bool Scenarios_LoadFromConfig()
 {
     g_ScenarioCount = 0;
 
     char path[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, path, sizeof(path), "%s", SERVERFLOW_SCENARIOS_CONFIG);
+    strcopy(path, sizeof(path), SERVERFLOW_SCENARIOS_CONFIG);
 
     KeyValues kv = new KeyValues("ServerFlowScenarios");
     if (!kv.ImportFromFile(path))
@@ -90,6 +183,8 @@ bool Scenarios_LoadFromConfig()
         kv.GetString("maplist_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
         kv.GetString("fallback_map", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
 
+        Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
+
         char rotationModeRaw[24];
         kv.GetString("rotation_mode", rotationModeRaw, sizeof(rotationModeRaw), "sequential");
         if (!Scenarios_ParseRotationMode(rotationModeRaw, scenario.rotationMode))
@@ -109,6 +204,7 @@ bool Scenarios_LoadFromConfig()
             continue;
         }
 
+        LogMessage("[serverflow] scenario loaded: id=%s maplist=%s mapgroup=%s", scenario.id, scenario.mapListFile, scenario.mapgroup);
         Scenarios_Register(scenario);
     }
     while (kv.GotoNextKey(false));

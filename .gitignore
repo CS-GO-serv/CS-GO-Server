@@ -19,6 +19,8 @@
 !/csgo/addons/
 !/csgo/addons/sourcemod/
 !/csgo/addons/sourcemod/configs/
+!/csgo/addons/sourcemod/configs/serverflow/
+!/csgo/addons/sourcemod/configs/serverflow/**
 !/csgo/addons/sourcemod/plugins/
 !/csgo/addons/sourcemod/scripting/
 !/csgo/addons/sourcemod/translations/
@@ -62,3 +64,9 @@ start_classic.local.bat
 # ServerFlow modular includes
 !/csgo/addons/sourcemod/scripting/serverflow/
 !/csgo/addons/sourcemod/scripting/serverflow/**
+
+# Allow committed compiled ServerFlow artifact for quick server pull/run
+!/csgo/addons/sourcemod/scripting/compiled/
+
+!/csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt
+!/csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt

@@ -54,3 +54,44 @@ public Action Command_Unready(int client, int args)
 
     return Plugin_Handled;
 }
+
+
+public Action Command_Team(int client, int args)
+{
+    if (IsValidClient(client))
+    {
+        PrintToChat(client, "[ServerFlow] Team menu пока не реализовано. Используйте sm_ready/sm_unready и статус sm_status.");
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_Lobby(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    int lobbyIndex = FindModeById("lobby");
+    if (lobbyIndex == -1)
+    {
+        PrintToChat(client, "[ServerFlow] Сценарий 'lobby' не настроен в scenarios.cfg.");
+        return Plugin_Handled;
+    }
+
+    CommandRouter_RequestScenarioSelect(client, lobbyIndex, "player_lobby_alias");
+    return Plugin_Handled;
+}
+
+public Action Command_HelpServerFlow(int client, int args)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Handled;
+    }
+
+    PrintToChat(client, "[ServerFlow] Команды: sm_mode, sm_status, sm_votemode, sm_ready, sm_unready, sm_lobby, sm_team");
+    PrintToChat(client, "[ServerFlow] В чат пишите !mode, !status, !votemode, !ready, !unready, !lobby (без префикса sm_). ");
+    return Plugin_Handled;
+}

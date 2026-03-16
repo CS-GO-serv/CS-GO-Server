@@ -147,7 +147,7 @@ bool ConfigPlaylists_Reload()
         }
 
         char mapListPath[PLATFORM_MAX_PATH];
-        BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", g_Playlists[playlistIndex].mapListFile);
+        strcopy(mapListPath, sizeof(mapListPath), g_Scenarios[scenarioIndex].mapListFile);
 
         if (!FileExists(mapListPath))
         {

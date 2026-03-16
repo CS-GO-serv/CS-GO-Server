@@ -58,10 +58,25 @@ public Action Command_Unready(int client, int args)
 
 public Action Command_Team(int client, int args)
 {
-    if (IsValidClient(client))
+    if (!IsValidClient(client))
     {
-        PrintToChat(client, "[ServerFlow] Team menu пока не реализовано. Используйте sm_ready/sm_unready и статус sm_status.");
+        return Plugin_Handled;
     }
+
+    ServerState state = Session_GetState();
+    if (state == ServerState_Transition)
+    {
+        PrintToChat(client, "[ServerFlow] sm_team временно недоступна: идёт Transition. Ожидайте завершения Transition и используйте sm_status для проверки статуса.");
+        return Plugin_Handled;
+    }
+
+    if (state == ServerState_Match)
+    {
+        PrintToChat(client, "[ServerFlow] sm_team недоступна во время Match. Следующий шаг: дождитесь PostMatch/PreMatch и используйте sm_status.");
+        return Plugin_Handled;
+    }
+
+    ShowTeamMenu(client);
 
     return Plugin_Handled;
 }

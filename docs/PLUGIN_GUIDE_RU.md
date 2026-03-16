@@ -122,7 +122,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `sm_status` — вывести текущий статус. **Работает**.
 - `sm_ready` — отметить ready. **Работает**.
 - `sm_unready` — снять ready. **Работает**.
-- `sm_team` — подсказка по team-функции (пока menu не реализовано). **Работает как helper**.
+- `sm_team` — открывает Team/Ready-меню (`READY`, `UNREADY`, `Что сейчас происходит`). Доступно вне `Transition` и вне активного `Match`; при блокировке команда объясняет причину и рекомендует `sm_status`. **Работает**.
 - `sm_lobby` — попытка перейти в сценарий `lobby` (если настроен). **Работает при наличии lobby в scenarios.cfg**.
 - `sm_help_serverflow` — краткая in-game справка по командам. **Работает**.
 

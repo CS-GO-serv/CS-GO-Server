@@ -1,227 +1,183 @@
-# 📘 Полное руководство по Mode Vote / режимам сервера (RU)
+# PLUGIN GUIDE (RU): ServerFlow
 
-Это практическая инструкция для трех ролей:
-- **Игроки** — как быстро пользоваться режимами и голосованием.
-- **Админы** — как управлять сервером в лайве.
-- **Настройщики/владельцы сервера** — где что менять и как безопасно кастомизировать.
+## 1. Что сейчас актуально
 
----
+Актуальный плагин: **ServerFlow**.
 
-## 1) Что делает система
+- Точка входа компиляции: `csgo/addons/sourcemod/scripting/serverflow.sp`
+- Корневой orchestration-файл: `csgo/addons/sourcemod/scripting/serverflow/serverflow.sp`
+- Целевой бинарник: `csgo/addons/sourcemod/plugins/serverflow.smx`
 
-Сервер стартует в **лобби-режиме** с бесконечной разминкой, а дальше режим выбирается:
-- через меню/команды,
-- через голосование,
-- либо принудительно админом.
+Legacy ModeVote сохранён только как архив исходников:
+`csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
 
-Поддерживаемые режимы в текущей сборке:
-- `dz` (Danger Zone)
-- `comp` (Соревновательный)
-- `casual` (Обычный)
+## 2. Сборка и запуск
 
----
+### 2.1 Каноническая сборка
+```bat
+build_serverflow.bat
+```
 
-## 2) Быстрый старт для игроков
+После успешной сборки скрипт кладёт бинарник в **два места**:
+- `csgo/addons/sourcemod/plugins/serverflow.smx` (рабочий путь загрузки плагина)
+- `csgo/addons/sourcemod/scripting/compiled/serverflow.smx` (зеркальный артефакт для удобства)
 
-### Основные команды в чате
-- `!mode` — открыть меню режимов.
-- `!dz` — быстрый вход в выбор DZ (solo/duo/trio + авто/ручной сквад) с финальным действием: применить через админа или запустить общее голосование.
-- `!comp` — показать профиль соревновательного режима.
-- `!votemode` — запустить голосование за режим (если нет кулдауна и достаточно игроков).
-- `!help_mode` — короткая справка по командам и диагностике.
+### 2.2 Legacy shim (только совместимость)
+```bat
+build_mode_vote.bat
+```
+(проксирует вызов в `build_serverflow.bat`)
 
-Поведение кнопки/действия `Запустить общее голосование` в `!mode`: запускается **общее голосование по всем режимам**, но инициатор сразу получает первый голос за выбранный им режим.
+### 2.3 Старт
+- `start.bat`
+- `start_classic.bat`
+- `start_dz.bat`
 
-Поведение финального действия в `!dz` (`Запустить общее голосование`): запускается **общее голосование по всем режимам**, но инициатор сразу получает первый голос за DZ.
-
-### Как понять, что всё сработало
-- В чат приходят подтверждения из плагина:
-  - старт голосования,
-  - принятие голоса,
-  - победивший режим,
-  - применение профиля DZ.
-- После применения режима происходит смена карты (`changelevel`).
+Все стартовые скрипты используют `build_serverflow.bat`.
 
 ---
 
-## 3) Быстрый старт для админов
+## 3. Конфиги
 
-### Админ-команды
-- `sm_forcemode <dz|comp|casual>` — принудительно включить режим.
-- `sm_dzsize <solo|duo|trio>` — размер отрядов в DZ.
-- `sm_dzteams <open|auto>` — ручной выбор команд или авто-раскид.
-- `sm_mode_reloadlists` — перезагрузить кэш карт режимов из maplist-файлов.
-- `sm_modeadmin` — открыть отдельное админ-меню ModeVote (не связано со стандартным adminmenu).
-
-### Рекомендуемый лайв-поток
-1. `sm_forcemode dz`
-2. `sm_dzsize duo`
-3. `sm_dzteams auto`
-
-Для “кастомного вечера” с ручными сквадами:
-1. `sm_forcemode dz`
-2. `sm_dzsize trio`
-3. `sm_dzteams open`
+ServerFlow-конфиги находятся в `csgo/addons/sourcemod/configs/serverflow/`:
+- `plugin_core.cfg`
+- `scenarios.cfg`
+- `playlists.cfg`
+- `lang_ru.cfg`
+- `lang_en.cfg`
+- `examples/scenarios.example.cfg`
+- `examples/playlists.example.cfg`
 
 ---
 
-## 4) Где что лежит (карта файлов)
+## 4. Архитектурный источник истины
 
-### Ядро маршрутизации режимов
-- `csgo/cfg/mode_router.cfg` — центральные alias-точки входа режимов.
-
-### Профили режимов
-- `csgo/cfg/mode_lobby.cfg` — бесконечная разминка/хаб.
-- `csgo/cfg/mode_dz.cfg` — базовый DZ-профиль.
-- `csgo/cfg/mode_dz_solo.cfg` — solo (включая spectator policy).
-- `csgo/cfg/mode_dz_duo.cfg` — duo.
-- `csgo/cfg/mode_dz_trio.cfg` — trio.
-- `csgo/cfg/mode_dz_teams_auto.cfg` — авто-раскид по командам.
-- `csgo/cfg/mode_dz_teams_open.cfg` — ручной выбор команд.
-- `csgo/cfg/mode_comp.cfg` — comp.
-- `csgo/cfg/mode_casual.cfg` — casual.
-
-### Пулы карт
-- `csgo/cfg/maplist_dz.txt`
-- `csgo/cfg/maplist_comp.txt`
-- `csgo/cfg/maplist_casual.txt`
-
-### Плагин и UI-тексты
-- `csgo/addons/sourcemod/scripting/mode_vote.sp` — логика плагина.
-- `csgo/addons/sourcemod/translations/mode_vote.phrases.txt` — локализация меню и сообщений.
-
-### Админ-UX
-- `csgo/addons/sourcemod/configs/adminmenu_custom.txt` — стандартное меню SourceMod (ModeVote туда не встраивается).
-- `csgo/addons/sourcemod/configs/admin_overrides.cfg` — права на команды.
-- Отдельное меню ModeVote открывается командой `sm_modeadmin`.
+Проверка требований и приоритетов:
+1. `docs/design_doc_csgo_server_plugin_ru.md`
+2. `docs/technical_spec_codex_csgo_plugin_ru.md`
+3. `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
+4. `docs/agents_md_codex_csgo_plugin_ru.md`
 
 ---
 
-## 5) Где заглушки, что обязательно заменить
+## 5. Текущий статус готовности
 
-Ниже перечислены места, которые нужно заменить под ваш сервер.
+### 5.1 Что уже готово
+- Модульная структура `serverflow/` по слоям (core/runtime/config/domain/presentation/commands/diagnostics/integrations).
+- Единая точка входа для сборки/запуска переключена на ServerFlow.
+- Базовые компоненты runtime (Session/State/Pending/Transition), конфиг-загрузка сценариев/плейлистов, command routing.
+- `serverflow.sp` компилируется на SourceMod 1.12 (ошибок компиляции нет).
 
-### Секреты и приватные данные
-1. `csgo/cfg/server.cfg`
-   - `rcon_password "CHANGE_ME"`
-   - `sv_password "CHANGE_ME"`
-
-2. `start.bat`, `start_dz.bat`, `start_classic.bat`
-   - `+sv_setsteamaccount YOUR_GSLT_TOKEN_HERE`
-
-### Единое правило по секретам (обязательное)
-- `csgo/cfg/server.cfg` содержит только заглушки (`CHANGE_ME`) и `exec server.private.cfg`.
-- `csgo/cfg/server.private.cfg` — **единственный** источник реальных `rcon_password`, `sv_password` и других приватных cvar.
-- Секреты запуска (`GSLT`, токены) хранятся только в локальных `*.local.bat`.
-- `server.private.cfg` и `*.local.bat` не коммитятся и должны оставаться только локальными файлами.
-
-### Как правильно хранить реальные значения
-- Реальные `rcon_password` и `sv_password` допускаются **только** в `csgo/cfg/server.private.cfg`.
-- В `csgo/cfg/server.cfg` должны оставаться только заглушки (`CHANGE_ME`) и строка `exec server.private.cfg`.
-- Эти приватные файлы **не коммитятся** (контролируется `.gitignore`).
+### 5.2 Что ещё в процессе (по 4 документам)
+- Доведение state-machine и transition-policy до полного объёма ТЗ.
+- Полный pending/confirm/apply UX-пайплайн в игровом интерфейсе.
+- Расширение диагностик и health-check до полного покрытия спецификации.
+- Полировка presentation слоя (чтобы игрок видел игровой flow, а не тех. детали).
 
 ---
 
-## 6) Что и как настраивать под себя
+## 6. Инструкция для тестеров (подробно)
 
-### A) Добавить/убрать режим
-1. Правка реестра режимов в `mode_vote.sp` (массив `g_Modes`).
-2. Создать профиль `csgo/cfg/mode_<id>.cfg`.
-3. Добавить alias в `csgo/cfg/mode_router.cfg`.
-4. Добавить название режима в `mode_vote.phrases.txt`.
-5. Обновить `adminmenu_custom.txt` (список `sm_forcemode`).
-6. Добавить maplist-файл режима и проверить валидность карт.
+> Цель тестирования: подтвердить, что ServerFlow работает как state-driven система и не ломает переходы.
 
-### B) Настроить ротацию карт
-- Правьте соответствующий `maplist_*.txt`.
-- После правки выполните `sm_mode_reloadlists`.
+### 6.1 Подготовка окружения
+1. Запустить сервер с SourceMod 1.12+.
+2. Убедиться, что `serverflow.smx` загружается:
+   - в серверной консоли: `sm plugins list`
+3. Проверить, что в `configs/serverflow/scenarios.cfg` есть валидные сценарии и maplist-файлы.
+4. Проверить, что карты из maplist реально существуют на сервере.
 
-### C) Настроить DZ под ваш стиль
-- Размер отрядов: `sm_dzsize solo|duo|trio`
-- Тип назначения: `sm_dzteams auto|open`
-- Для открытых сквадов игроки используют `dz_jointeam`.
+### 6.2 Smoke-test (обязательный минимум)
+1. Открыть статус:
+   - `sm_status`
+2. Открыть выбор сценария:
+   - `sm_mode`
+3. Запустить голосование:
+   - `sm_votemode`
+4. Выдать pending и подтвердить:
+   - `sm_queuescenario <id>`
+   - `sm_confirmpending`
+5. Проверить отмену pending:
+   - `sm_queuescenario <id>`
+   - `sm_cancelpending`
 
-### D) Настроить права
-- В `admin_overrides.cfg` задайте флаг `g` (`ADMFLAG_CHANGEMAP`) на **полный набор admin-команд Mode Vote**.
-- Актуальный список (1:1 с `RegAdminCmd(...)` в `mode_vote.sp`):
-  - `sm_forcemode` → `"g"`
-  - `sm_dzsize` → `"g"`
-  - `sm_dzteams` → `"g"`
-  - `sm_mode_reloadlists` → `"g"`
-  - `sm_modeadmin` → `"g"`
+Ожидаемое поведение:
+- нет runtime-ошибок;
+- действия проходят через pending/confirm;
+- в чате видны понятные уведомления;
+- переходы не ломают сервер.
 
----
+### 6.3 Тест state-machine
+Проверить разрешённость действий в разных состояниях:
+- в `Lobby`: выбор сценария/голосование доступны;
+- в `PreMatch`: ready/unready и countdown работают;
+- в `Transition`: запрещённые действия блокируются с понятной причиной.
 
-## 7) UX-гайд (чтобы было удобно и без лишних действий)
+Команды:
+- `sm_ready`, `sm_unready`, `sm_status`
 
-### Для игроков
-- Основной путь: `!mode` → выбрать режим.
-- Если в меню режима нажать `Запустить общее голосование`, стартует общее голосование, и ваш голос сразу засчитывается за выбранный режим.
-- Для DZ: `!dz` → размер команды → авто/ручной сквад → `Применить админом` или `Запустить общее голосование`.
-- Не перегружайте игроков длинными инструкциями в чате; лучше 1 короткая подсказка в MOTD/описании.
+Ожидаемое:
+- при нарушении правил состояние не повреждается;
+- вместо silent fail есть явный deny reason.
 
-### Для админов
-- Используйте пресеты действий (например, “DZ Duo Auto”, “DZ Trio Open”).
-- Не меняйте сразу много параметров в середине боя — лучше между матчами/в лобби.
+### 6.4 Тест pending/confirm/apply
+1. Создать pending через админ-команду.
+2. Проверить таймаут окна подтверждения.
+3. Подтвердить pending и проверить apply через TransitionManager.
+4. Повторить с отменой pending.
 
----
+Ожидаемое:
+- apply не происходит напрямую из UI/команд без confirm;
+- после timeout pending очищается;
+- при ошибке есть контролируемый fallback и лог.
 
-## 8) Дебаг и сопровождение
+### 6.5 Тест голосования
+1. Запустить голосование при достаточном числе игроков.
+2. Проголосовать разными клиентами.
+3. Проверить winner -> pending (а не мгновенный хаотичный apply).
 
-### Какие логи смотреть
-- SourceMod: `csgo/addons/sourcemod/logs/`
-- Действия режима: `addons/sourcemod/logs/mode_actions.log`
+Ожидаемое:
+- cooldown/min players соблюдаются;
+- повторное голосование одним клиентом блокируется;
+- результат предсказуем и прозрачен.
 
-### Частые причины проблем
+### 6.6 Тест override
+1. Выполнить `sm_forcescenario <id>` под админом.
+2. Проверить, что pending корректно заменяется/отменяется и система остаётся валидной.
 
-### Критичный симптом из логов
+### 6.7 Логи, которые нужно приложить к отчёту
+- `csgo/addons/sourcemod/logs/` (ошибки/предупреждения)
+- `addons/sourcemod/logs/mode_actions.log` (audit trail)
 
-Если видите `Unknown command "sm_votemode"`, `Unknown command "sm_forcemode"`, `Unknown command "sm_dzsize"` — это почти всегда значит:
-- `mode_vote.smx` не скомпилирован/не лежит в `csgo/addons/sourcemod/plugins/`, или
-- SourceMod не может загрузить плагин.
-
-Исправление:
-1. Запустите `build_mode_vote.bat` (или вручную `spcomp` на `mode_vote.sp`).
-2. Проверьте, что появился `csgo/addons/sourcemod/plugins/mode_vote.smx`.
-3. В серверной консоли проверьте `sm plugins list`.
-
-1. Не найден файл профиля режима (`mode_*.cfg`).
-2. Карта невалидна или отсутствует в maplist.
-3. Отсутствуют обязательные ConVar (`game_type`, `game_mode`, `mapcyclefile`).
-4. Несинхронность router/adminmenu и реестра режимов.
-
-### Быстрый чек после изменений
-1. Проверить, что новый режим отображается в `!mode`.
-2. Проверить, что `sm_forcemode <id>` реально меняет карту.
-3. Проверить, что maplist подхватился (`sm_mode_reloadlists`).
-4. Проверить чат-сообщения (локализация не сломана).
-
----
-
-## 9) Примеры готовых сценариев
-
-### Сценарий 1: Вечер DZ на 16 игроков (честный сквад)
-- `sm_forcemode dz`
-- `sm_dzsize duo`
-- `sm_dzteams auto`
-
-### Сценарий 2: Турнирный comp
-- `sm_forcemode comp`
-- Проверить активный пул `maplist_comp.txt`
-
-### Сценарий 3: Лёгкая катка casual
-- `sm_forcemode casual`
-- При необходимости обновить `maplist_casual.txt`
+Формат отчёта тестера:
+- Build/commit
+- Конфиг (какие scenarios/playlists)
+- Шаги воспроизведения
+- Факт/ожидание
+- Логи/скриншоты/демо
 
 ---
 
-## 10) Рекомендации по развитию (вторая итерация)
+## 7. Команды для теста и эксплуатации
 
-- Вынести игровые параметры голосования в отдельный cfg (если ещё не вынесены полностью).
-- Добавить “профили вечера” (one-click админ-предустановки).
-- Добавить команду `!help_mode` с краткой in-game шпаргалкой.
-- Добавить health-check команду для админа: проверка router/maplist/cfg в одном отчёте.
+Игрок:
+- `sm_mode`
+- `sm_votemode`
+- `sm_status`
+- `sm_ready`
+- `sm_unready`
+
+Админ:
+- `sm_queuescenario <id>`
+- `sm_queuemap <map>`
+- `sm_confirmpending`
+- `sm_cancelpending`
+- `sm_forcescenario <id>`
 
 ---
 
-Если хотите, следующий шаг можно сделать так: подготовить **отдельный `docs/ADMIN_RUNBOOK_RU.md`** (чек-лист “перед игрой / во время / после”) и **короткий `docs/PLAYER_QUICKSTART_RU.md`** на 1 страницу для друзей.
+## 8. Важные замечания
+
+1. Официальная точка входа — только `serverflow.sp`.
+2. Legacy `mode_vote` не должен блокировать сборку/тест нового плагина.
+3. Если запускается массовая компиляция всех `.sp`, исключайте legacy-файлы из CI/локального пайплайна.

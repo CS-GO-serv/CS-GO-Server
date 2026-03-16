@@ -13,7 +13,7 @@ bool Scenario_Exists(const char[] id)
     return (Scenarios_FindById(id) != -1);
 }
 
-bool Scenario_Get(int scenarioIndex, ModeInfo &scenario)
+bool Scenario_Get(int scenarioIndex, ModeInfo scenario)
 {
     if (!Scenario_IsValidIndex(scenarioIndex))
     {

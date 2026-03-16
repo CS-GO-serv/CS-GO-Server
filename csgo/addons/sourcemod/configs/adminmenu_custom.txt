@@ -5,8 +5,10 @@
 //
 // Note: This file must be in Valve KeyValues format (no multiline comments)
 //
+// mode_vote plugin intentionally uses its own dedicated admin menu command:
+//   sm_modeadmin
+// so ModeVote actions are not mixed into the standard SourceMod admin menu.
 
 "Commands"
 {
-
 }

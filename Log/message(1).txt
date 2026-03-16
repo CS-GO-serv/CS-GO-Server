@@ -1,0 +1,939 @@
+#
+#Console initialized.
+#Using breakpad minidump system 740/13881.1575.DC
+#Loading VPK file hashes for pure server operation.
+#Loading VPK file hashes for pure server operation.
+#Loading VPK file hashes for pure server operation.
+#Loading VPK file hashes for pure server operation.
+#Loading VPK file hashes for pure server operation.
+#Filesystem successfully switched to safe whitelist mode
+#Game.dll loaded for "Counter-Strike: Global Offensive"
+#CGameEventManager::AddListener: event 'server_pre_shutdown' unknown.
+#CGameEventManager::AddListener: event 'game_newmap' unknown.
+#CGameEventManager::AddListener: event 'finale_start' unknown.
+#CGameEventManager::AddListener: event 'round_start' unknown.
+#CGameEventManager::AddListener: event 'round_end' unknown.
+#CGameEventManager::AddListener: event 'difficulty_changed' unknown.
+#CGameEventManager::AddListener: event 'player_death' unknown.
+#CGameEventManager::AddListener: event 'hltv_replay' unknown.
+#CGameEventManager::AddListener: event 'player_connect' unknown.
+#CGameEventManager::AddListener: event 'player_disconnect' unknown.
+#GameTypes: missing mapgroupsSP entry for game type/mode (custom/custom).
+#GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/cooperative).
+#GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/coopmission).
+Failed to load gamerulescvars.txt, game rules cvars might not be reported to management tools.
+Server is hibernating
+No web api auth key specified - workshop downloads will be disabled.
+Unable to load plugin "addons/metamod/bin/win64/server"
+maxplayers set to 64
+Elapsed time:  0.00 seconds
+ConVarRef cl_embedded_stream_video_playing doesn't point to an existing ConVar
+Unknown command "cl_bobamt_vert"
+Unknown command "cl_bobamt_lat"
+Unknown command "cl_bob_lower_amt"
+Unknown command "cl_viewmodel_shift_left_amt"
+Unknown command "cl_viewmodel_shift_right_amt"
+Unknown command "cl_teamid_min"
+Unknown command "cl_teamid_max"
+Unknown command "cl_teamid_overhead"
+Unknown command "cl_teamid_overhead_maxdist"
+NET_CloseAllSockets
+[META] Loaded 1 plugin.
+---- Host_NewGame ----
+Switching filesystem to allow files loaded from disk (sv_pure_allow_loose_file_loads = 1)
+Host_NewGame on map de_mirage
+CGameEventManager::AddListener: event 'teamplay_win_panel' unknown.
+CGameEventManager::AddListener: event 'teamplay_restart_round' unknown.
+CGameEventManager::AddListener: event 'arena_win_panel' unknown.
+CGameEventManager::AddListener: event 'server_changelevel_failed' unknown.
+L 03/11/2026 - 22:22:49: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:22:53: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:23:01: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+GameTypes: missing mapgroupsSP entry for game type/mode (custom/custom).
+GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/cooperative).
+GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/coopmission).
+ammo_grenade_limit_default - 1
+ammo_grenade_limit_flashbang - 1
+ammo_grenade_limit_total - 3
+ammo_item_limit_healthshot - 4
+bot_allow_grenades - 1
+bot_allow_machine_guns - 1
+bot_allow_pistols - 1
+bot_allow_rifles - 1
+bot_allow_rogues - 1
+bot_allow_shotguns - 1
+bot_allow_snipers - 1
+bot_allow_sub_machine_guns - 1
+bot_autodifficulty_threshold_high - 5.0
+bot_autodifficulty_threshold_low - -2.0
+bot_chatter - normal
+bot_coop_idle_max_vision_distance - 1400
+bot_defer_to_human_goals - 0
+bot_defer_to_human_items - 1
+bot_difficulty - 1
+bot_max_hearing_distance_override - -1
+bot_max_visible_smoke_length - 200
+bot_max_vision_distance_override - -1
+bot_quota - 10
+bot_quota_mode - normal
+bot_coop_idle_max_vision_distance - 1400
+bot_max_vision_distance_override - -1
+bot_max_hearing_distance_override - -1
+bot_coopmission_dz_engagement_limit - missing cvar specified in bspconvar_whitelist.txt
+cash_player_bomb_defused - 300
+cash_player_bomb_planted - 300
+cash_player_damage_hostage - -30
+cash_player_get_killed - 0
+cash_player_interact_with_hostage - 150
+cash_player_killed_enemy_default - 300
+cash_player_killed_enemy_factor - 1
+cash_player_killed_hostage - -1000
+cash_player_killed_teammate - -300
+cash_player_rescued_hostage - 1000
+cash_player_respawn_amount - 0
+cash_team_elimination_bomb_map - 3250
+cash_team_elimination_hostage_map_ct - 2000
+cash_team_elimination_hostage_map_t - 1000
+cash_team_hostage_alive - 0
+cash_team_hostage_interaction - 500
+cash_team_loser_bonus - 1400
+cash_team_bonus_shorthanded - 0
+cash_team_loser_bonus_consecutive_rounds - 500
+cash_team_planted_bomb_but_defused - 800
+cash_team_rescued_hostage - 0
+cash_team_survive_guardian_wave - 1000
+cash_team_terrorist_win_bomb - 3500
+cash_team_win_by_defusing_bomb - 3250
+cash_team_win_by_hostage_rescue - 3500
+cash_team_win_by_time_running_out_bomb - 3250
+cash_team_win_by_time_running_out_hostage - 3250
+contributionscore_assist - 1
+contributionscore_bomb_defuse_major - 3
+contributionscore_bomb_defuse_minor - 1
+contributionscore_bomb_exploded - 1
+contributionscore_bomb_planted - 2
+contributionscore_cash_bundle - 0
+contributionscore_crate_break - 0
+contributionscore_hostage_kill - -2
+contributionscore_hostage_rescue_major - 3
+contributionscore_hostage_rescue_minor - 1
+contributionscore_kill - 2
+contributionscore_kill_factor - 0
+contributionscore_objective_kill - 3
+contributionscore_suicide - -2
+contributionscore_team_kill - -2
+ff_damage_reduction_bullets - 0.1
+ff_damage_reduction_grenade - 0.25
+ff_damage_reduction_grenade_self - 1
+ff_damage_reduction_other - 0.25
+global_chatter_info -
+healthshot_healthboost_damage_multiplier - 1
+healthshot_healthboost_speed_multiplier - 1
+healthshot_healthboost_time - 0
+inferno_child_spawn_max_depth - 4
+inferno_max_flames - 16
+inferno_max_range - 150
+molotov_throw_detonate_time - 2.0
+mp_afterroundmoney - 0
+mp_anyone_can_pickup_c4 - 0
+mp_autokick - 1
+mp_autoteambalance - 1
+mp_bot_ai_bt -
+mp_buy_allow_grenades - 1
+mp_buy_allow_guns - 255
+mp_buy_anywhere - 0
+mp_buy_during_immunity - 0
+mp_buytime - 90
+mp_c4_cannot_be_defused - 0
+mp_c4timer - 40
+mp_consecutive_loss_max - 4
+mp_coop_force_join_ct - 0
+mp_coopmission_bot_difficulty_offset - 0
+mp_coopmission_mission_number - 0
+mp_coopmission_dz - missing cvar specified in bspconvar_whitelist.txt
+mp_ct_default_grenades -
+mp_ct_default_melee - weapon_knife
+mp_ct_default_primary -
+mp_ct_default_secondary - weapon_hkp2000
+mp_fraglimit - 0
+mp_retake_ct_loadout_default_pistol_round - 1|3;#GameUI_Retake_Card_4v3,0,0,secondary0|1;#GameUI_Retake_Card_FlashOut,0,0,secondary0,grenade2;#GameUI_Retake_Card_HideAndPeek,0,0,secondary0,grenade4
+mp_retake_ct_loadout_upgraded_pistol_round - 2|2;#GameUI_Retake_Card_TakeFive,0,0,secondary3|2;#GameUI_Retake_Card_BlindFire,0,0,secondary2,grenade2|2;#GameUI_Retake_Card_OnlyTakesOne,0,0,secondary4|2;#GameUI_Retake_Card_SneakyBeakyLike,0,0,secondary2,grenade4
+mp_retake_ct_loadout_light_buy_round - 3|2;#GameUI_Retake_Card_UmpInSmoke,1,1,smg2,grenade4|2;#GameUI_Retake_Card_FunNGun,1,1,smg0,grenade3|2;#GameUI_Retake_Card_Sharpshooter,1,1,rifle2,grenade2|2;#GameUI_Retake_Card_BurstBullpup,1,1,rifle0
+mp_retake_ct_loadout_full_buy_round - 4|2;#GameUI_Retake_Card_LightEmUp,1,1,rifle1,grenade2|2;#GameUI_Retake_Card_Kobe,1,1,rifle1,grenade3|1;#GameUI_Retake_Card_1g,1,1,rifle1,grenade0|1;#GameUI_Retake_Card_DisappearingAct,1,1,rifle1,grenade4|1;#GameUI_Retake_Card_EyesOnTarget,1,1,rifle3
+mp_retake_ct_loadout_bonus_card_availability - 1,2
+mp_retake_ct_loadout_bonus_card - #GameUI_Retake_Card_TheAWPortunity,1,1,rifle4
+mp_retake_ct_loadout_enemy_card - #GameUI_Retake_Card_BehindEnemyLines,1,1,rifle1,grenade2
+mp_retake_t_loadout_default_pistol_round - 0|3;#GameUI_Retake_Card_4BadGuysLeft,0,0,secondary0|1;#GameUI_Retake_Card_LookAway,0,0,secondary0,grenade2;#GameUI_Retake_Card_WhenThereIsSmoke,0,0,secondary0,grenade4
+mp_retake_t_loadout_upgraded_pistol_round - 0|2;#GameUI_Retake_Card_BlindFire,0,0,secondary2,grenade2|2;#GameUI_Retake_Card_QueOta,0,0,secondary4|1;#GameUI_Retake_Card_SmokeScreen,0,0,secondary2,grenade4|1;#GameUI_Retake_Card_TecTecBoom,0,0,secondary3,grenade3
+mp_retake_t_loadout_light_buy_round - 0|2;#GameUI_Retake_Card_BackInAFlash,1,1,smg2,grenade2|2;#GameUI_Retake_Card_AllIn,1,1,rifle0|1;#GameUI_Retake_Card_BoomBox,1,1,smg0,grenade3,grenade4|1;#GameUI_Retake_Card_SetThemFree,1,1,rifle2,grenade2
+mp_retake_t_loadout_full_buy_round - 0|2;#GameUI_Retake_Card_OlReliable,1,1,rifle1,grenade2|1;#GameUI_Retake_Card_SmokeShow,1,1,rifle1,grenade4|1;#GameUI_Retake_Card_HotShot,1,1,rifle1,grenade0|1;#GameUI_Retake_Card_EyeSpy,1,1,rifle3,grenade3
+mp_retake_t_loadout_bonus_card_availability - 1,1,2
+mp_retake_t_loadout_bonus_card - #GameUI_Retake_Card_TheAWPortunity,1,1,rifle4
+mp_retake_t_loadout_enemy_card - #GameUI_Retake_Card_FindersKeepers,1,1,rifle1,grenade2
+mp_retake_max_consecutive_rounds_same_target_site - 2
+mp_damage_headshot_only - 0
+mp_damage_scale_ct_body - 1.0
+mp_damage_scale_ct_head - 1.0
+mp_damage_scale_t_body - 1.0
+mp_damage_scale_t_head - 1.0
+mp_damage_vampiric_amount - 0
+mp_death_drop_c4 - 1
+mp_death_drop_defuser - 1
+mp_death_drop_grenade - 2
+mp_death_drop_gun - 1
+mp_deathcam_skippable - 1
+mp_default_team_winner_no_objective - -1
+mp_defuser_allocation - 0
+mp_display_kill_assists - 1
+mp_dm_bonus_percent - 50
+mp_dm_bonus_respawn - 0
+mp_dm_bonusweapon_dogtags - 0
+mp_dm_dogtag_score - 0
+mp_dm_kill_base_score - 10
+mp_dm_teammode - 0
+mp_dm_teammode_bonus_score - 1
+mp_dm_teammode_dogtag_score - 0
+mp_dm_teammode_kill_score - 1
+mp_dogtag_despawn_on_killer_death - 1
+mp_dogtag_despawn_time - 120
+mp_dogtag_pickup_rule - 0
+mp_dronegun_stop - 0
+mp_drop_grenade_enable - 1
+mp_drop_knife_enable - 0
+mp_economy_reset_rounds - 0
+mp_equipment_reset_rounds - 0
+mp_force_assign_teams - 0
+mp_force_pick_time - 15
+mp_forcecamera - 1
+mp_free_armor - 0
+mp_freezetime - 6
+mp_friendlyfire - 0
+mp_ggprogressive_round_restart_delay - 15.0
+mp_ggtr_always_upgrade - 0
+mp_ggtr_bomb_defuse_bonus - 1
+mp_ggtr_bomb_detonation_bonus - 1
+mp_ggtr_bomb_pts_for_flash - 4
+mp_ggtr_bomb_pts_for_he - 3
+mp_ggtr_bomb_pts_for_molotov - 5
+mp_ggtr_bomb_pts_for_upgrade - 2.0
+mp_ggtr_bomb_respawn_delay - 0.0
+mp_ggtr_end_round_kill_bonus - 1
+mp_ggtr_halftime_delay - 0.0
+mp_ggtr_last_weapon_kill_ends_half - 0
+mp_give_player_c4 - 1
+mp_global_damage_per_second - 0.0
+mp_guardian_bot_money_per_wave - 800
+mp_guardian_force_collect_hostages_timeout - 50
+mp_guardian_loc_icon - missing cvar specified in bspconvar_whitelist.txt
+mp_guardian_loc_string_desc -
+mp_guardian_loc_string_hud - #guardian_mission_type_kills
+mp_guardian_loc_weapon -
+mp_guardian_player_dist_max - 2000
+mp_guardian_player_dist_min - 1300
+mp_guardian_bomb_plant_custom_x_mark_location -
+mp_guardian_special_kills_needed - 10
+mp_guardian_special_weapon_needed - awp
+mp_guardian_target_site - -1
+mp_guardian_force_collect_hostages_timeout - 50
+mp_guardian_give_random_grenades_to_bots - 1
+mp_guardian_ai_bt_difficulty_adjust_wave_interval - 1
+mp_guardian_ai_bt_difficulty_max_next_level_bots - 3
+mp_guardian_ai_bt_difficulty_cap_beginning_round - 2
+mp_guardian_ai_bt_difficulty_initial_value - 2
+mp_halftime - 0
+mp_halftime_pausetimer - 0
+mp_heavyassaultsuit_aimpunch - 1.0
+mp_heavyassaultsuit_cooldown - 5
+mp_heavyassaultsuit_deploy_timescale - 0.8
+mp_heavyassaultsuit_speed - 130
+mp_heavybot_damage_reduction_scale - 1.0
+mp_hostagepenalty - 10
+mp_hostages_max - 2
+mp_hostages_spawn_force_positions -
+mp_hostages_spawn_force_positions_xyz -
+mp_hostages_spawn_same_every_round - 1
+mp_ignore_round_win_conditions - 0
+mp_items_prohibited -
+mp_limitteams - 2
+mp_match_can_clinch - 1
+mp_match_end_changelevel - 0
+mp_max_armor - 2
+mp_maxmoney - 16000
+mp_maxrounds - 0
+mp_molotovusedelay - 15.0
+mp_only_cts_rescue_hostages - 1
+mp_plant_c4_anywhere - 0
+mp_playercashawards - 1
+mp_radar_showall - 0
+mp_randomspawn - 0
+mp_randomspawn_dist - 0
+mp_randomspawn_los - 1
+mp_respawn_immunitytime - 4.0
+mp_respawn_on_death_ct - 0
+mp_respawn_on_death_t - 0
+mp_respawnwavetime_ct - 10.0
+mp_respawnwavetime_t - 10.0
+mp_round_restart_delay - 7.0
+mp_roundtime - 5
+mp_roundtime_defuse - 0
+mp_roundtime_hostage - 0
+mp_solid_teammates - 1
+mp_starting_losses - 0
+mp_startmoney - 800
+mp_suicide_penalty - 1
+mp_t_default_grenades -
+mp_t_default_melee - weapon_knife
+mp_t_default_primary -
+mp_t_default_secondary - weapon_glock
+mp_tagging_scale - 1.0
+mp_taser_recharge_time - -1
+mp_teamcashawards - 1
+mp_teammates_are_enemies - 0
+mp_technical_timeout_per_team - 0
+mp_technical_timeout_duration_s - 0
+mp_timelimit - 5
+mp_use_respawn_waves - 0
+mp_warmup_pausetimer - 0
+mp_warmuptime - 30
+mp_warmuptime_all_players_connected - 0
+mp_weapon_self_inflict_amount - 0
+mp_weapons_allow_heavy - -1
+mp_weapons_allow_heavyassaultsuit - 0
+mp_weapons_allow_map_placed - 0
+mp_weapons_allow_pistols - -1
+mp_weapons_allow_rifles - -1
+mp_weapons_allow_smgs - -1
+mp_weapons_allow_typecount - 5
+mp_weapons_allow_zeus - 1
+mp_weapons_glow_on_ground - 0
+mp_weapons_max_gun_purchases_per_weapon_per_match - -1
+mp_win_panel_display_time - 3
+occlusion_test_async - 0
+spec_freeze_panel_extended_time - 0.0
+spec_freeze_time - 3.0
+spec_replay_bot - 0
+spec_replay_enable - 0
+spec_replay_leadup_time - 5.3438
+sv_accelerate - 5.5
+sv_air_pushaway_dist - 0
+sv_airaccelerate - 12
+sv_allow_votes - 1
+sv_alltalk - 0
+sv_arms_race_vote_to_restart_disallowed_after - 0
+sv_auto_adjust_bot_difficulty - 1
+sv_auto_full_alltalk_during_warmup_half_end - 1
+sv_autobunnyhopping - 0
+sv_autobuyammo - 0
+sv_bot_buy_decoy_weight - 1
+sv_bot_buy_flash_weight - 1
+sv_bot_buy_grenade_chance - 33
+sv_bot_buy_hegrenade_weight - 6
+sv_bot_buy_molotov_weight - 1
+sv_bot_buy_smoke_weight - 1
+sv_bots_force_rebuy_every_round - 0
+sv_bots_get_easier_each_win - 0
+sv_bots_get_harder_after_each_wave - 0
+sv_bounce - 0
+sv_buy_status_override - -1
+sv_deadtalk - 0
+sv_disable_immunity_alpha - 0
+sv_disable_radar - 0
+sv_disable_show_team_select_menu - missing cvar specified in bspconvar_whitelist.txt
+sv_duplicate_playernames_ok - 0
+sv_enablebunnyhopping - 0
+sv_env_entity_makers_enabled - 1
+sv_extract_ammo_from_dropped_weapons - 0
+sv_falldamage_scale - 1
+sv_falldamage_to_below_player_multiplier - 1
+sv_falldamage_to_below_player_ratio - 0
+sv_force_reflections - 0
+sv_friction - 5.2
+sv_grassburn - 0
+sv_gravity - 800
+sv_guardian_extra_equipment_ct -
+sv_guardian_extra_equipment_t -
+sv_guardian_health_refresh_per_wave - 50
+sv_guardian_heavy_all - 0
+sv_guardian_heavy_count - 0
+sv_guardian_max_wave_for_heavy - 0
+sv_guardian_min_wave_for_heavy - 0
+sv_guardian_refresh_ammo_for_items_on_waves -
+sv_guardian_reset_c4_every_wave - 0
+sv_guardian_respawn_health - 50
+sv_guardian_spawn_health_ct - 100
+sv_guardian_spawn_health_t - 100
+sv_health_approach_enabled - 0
+sv_health_approach_speed - 10
+sv_hegrenade_damage_multiplier - 1
+sv_hegrenade_radius_multiplier - 1
+sv_hide_roundtime_until_seconds - 0
+sv_highlight_distance - 500
+sv_highlight_duration - 3.5
+sv_ignoregrenaderadio - 0
+sv_infinite_ammo - 0
+sv_knife_attack_extend_from_player_aabb - 0
+sv_maxspeed - 320
+sv_maxvelocity - 3500
+sv_occlude_players - 1
+sv_outofammo_indicator - 0
+sv_show_ragdoll_playernames - missing cvar specified in bspconvar_whitelist.txt
+sv_show_team_equipment_force_on - 0
+sv_staminajumpcost - .080
+sv_staminalandcost - .050
+sv_stopspeed - 80
+sv_talk_enemy_dead - 0
+sv_talk_enemy_living - 0
+sv_teamid_overhead_maxdist - 0
+sv_teamid_overhead_maxdist_spec - 0
+sv_versus_screen_scene_id - 0
+sv_vote_to_changelevel_before_match_point - 0
+sv_warmup_to_freezetime_delay - 4
+sv_water_movespeed_multiplier - 0.8
+sv_water_swim_mode - 0
+sv_wateraccelerate - 10
+sv_waterfriction - 1
+sv_weapon_encumbrance_per_item - 0.85
+sv_weapon_encumbrance_scale - 0
+tv_delay - 10
+tv_delay1 - 15
+weapon_accuracy_nospread - 0
+weapon_air_spread_scale - 1.0
+weapon_max_before_cleanup - 0
+weapon_recoil_scale - 2.0
+weapon_reticle_knife_show - 1
+weapon_sound_falloff_multiplier - 1.0
+sv_camera_fly_enabled - missing cvar specified in bspconvar_whitelist.txt
+Executing dedicated server config file
+exec: couldn't exec server.private.cfg
+exec: couldn't exec gamemode_casual_server.cfg
+CHostage::Precache: missing hostage models for map de_mirage. Adding the default models.
+PrecacheScriptSound 'Snowball.Bounce' failed, no such sound script entry
+Error! Variable "$phongboost" is multiply defined in material "models/player/custom_player/econ/body/tm_jungle_raider/tm_jungle_raider_body_varianta"!
+PrecacheScriptSound 'Survival.VO.Taunt4a' failed, no such sound script entry
+PrecacheScriptSound 'balkan_epic_blank' failed, no such sound script entry
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Commentary: Could not find commentary data file 'maps/de_mirage_commentary.txt'.
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Initializing Steam libraries for secure Internet server
+Logging into Steam gameserver account with logon token 'EC46101Bxxxxxxxxxxxxxxxxxxxxxxxx'
+Initialized low level socket/threading support.
+SDR_LISTEN_PORT is set, but not SDR_CERT/SDR_PRIVATE_KEY.
+Set SteamNetworkingSockets P2P_STUN_ServerList to '' as per SteamNetworkingSocketsSerialized
+SteamDatagramServer_Init succeeded
+Connection to Steam servers successful.
+   Public IP is 147.30.102.251.
+Assigned persistent gameserver Steam ID [G:1:15908710].
+Gameserver logged on to Steam, assigned identity steamid:85568392935948134
+Set SteamNetworkingSockets P2P_STUN_ServerList to '162.254.198.104:3478' as per SteamNetworkingSocketsSerialized
+VAC secure mode is activated.
+status
+hostname: Legacy Server [ID: Hemai.server]
+version : 1.38.8.1/13881 1575/8802 secure  [G:1:15908710]
+udp/ip  : 192.168.2.228:27015  (public ip: 147.30.102.251)
+os      :  Windows
+type    :  community dedicated
+players : 0 humans, 0 bots (20/0 max) (hibernating)
+
+# userid name uniqueid connected ping loss state rate adr
+#end
+Client "Hentai.top" connected (147.30.102.251:27006).
+Server waking up from hibernation
+L 03/11/2026 - 22:26:10: [admin-sql-threaded.smx] Failed to connect to database: [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:26:20: [randomcycle.smx] RandomCycle has chosen cs_italy for the nextmap.
+Client "OSO" connected (95.59.21.21:27005).
+PutClientInServer: no info_player_start on level
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+PutClientInServer: no info_player_start on level
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+Attempted to create unknown entity type cs_bot_patrol_route_waypoint!
+Can't init cs_bot_patrol_route_waypoint
+exec mode_router.cfg
+mode_comp
+userid "6" not found
+userid "6" not found
+userid "4" not found
+userid "4" not found
+userid "4" not found
+userid "9" not found
+userid "5" not found
+userid "5" not found
+userid "7" not found
+mode_dz
+Unknown command "sv_show_ragdoll_playernames"
+Going to intermission...
+CHANGELEVEL: Looking for next level in mapgroup ''
+Looking for next map in mapgroup ''...
+CHANGELEVEL: GetNextMap failed for mapgroup '', map group invalid or empty
+CModelLoader::Map_IsValid:  No such map 'maps\de_dust.bsp'
+Invalid map 'de_dust' included in map cycle file. Ignored.
+CModelLoader::Map_IsValid:  No such map 'maps\de_aztec.bsp'
+Invalid map 'de_aztec' included in map cycle file. Ignored.
+mode_dz_solo
+CHANGELEVEL: Looking for next level in mapgroup ''
+Looking for next map in mapgroup ''...
+CHANGELEVEL: GetNextMap failed for mapgroup '', map group invalid or empty
+CHANGELEVEL: Looking for next level in mapgroup ''
+Looking for next map in mapgroup ''...
+CHANGELEVEL: GetNextMap failed for mapgroup '', map group invalid or empty
+CHANGE LEVEL: cs_italy
+L 03/11/2026 - 22:30:42: [SM] Changed map to "cs_italy"
+[META] Loaded 0 plugins (1 already loaded)
+---- Host_Changelevel ----
+[META] Loaded 0 plugins (1 already loaded)
+*** Map Load: cs_italy: Map Group L 03/11/2026 - 22:30:42: -------- Mapchange to cs_italy --------
+L 03/11/2026 - 22:30:42: Error log file session closed.
+L 03/11/2026 - 22:30:47: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:30:55: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:30:59: [admin-sql-prefetch.smx] Could not connect to database "default": [2003]: Can't connect to MySQL server on 'localhost' (10061)
+GameTypes: missing mapgroupsSP entry for game type/mode (custom/custom).
+GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/cooperative).
+GameTypes: missing mapgroupsSP entry for game type/mode (cooperative/coopmission).
+ammo_grenade_limit_default - 1
+ammo_grenade_limit_flashbang - 1
+ammo_grenade_limit_total - 3
+ammo_item_limit_healthshot - 4
+bot_allow_grenades - 1
+bot_allow_machine_guns - 1
+bot_allow_pistols - 1
+bot_allow_rifles - 1
+bot_allow_rogues - 1
+bot_allow_shotguns - 1
+bot_allow_snipers - 1
+bot_allow_sub_machine_guns - 1
+bot_autodifficulty_threshold_high - 5.0
+bot_autodifficulty_threshold_low - -2.0
+bot_chatter - normal
+bot_coop_idle_max_vision_distance - 1400
+bot_defer_to_human_goals - 0
+bot_defer_to_human_items - 1
+bot_difficulty - 1
+bot_max_hearing_distance_override - -1
+bot_max_visible_smoke_length - 200
+bot_max_vision_distance_override - -1
+bot_quota - 10
+bot_quota_mode - normal
+bot_coop_idle_max_vision_distance - 1400
+bot_max_vision_distance_override - -1
+bot_max_hearing_distance_override - -1
+bot_coopmission_dz_engagement_limit - missing cvar specified in bspconvar_whitelist.txt
+cash_player_bomb_defused - 300
+cash_player_bomb_planted - 300
+cash_player_damage_hostage - -30
+cash_player_get_killed - 0
+cash_player_interact_with_hostage - 150
+cash_player_killed_enemy_default - 300
+cash_player_killed_enemy_factor - 1
+cash_player_killed_hostage - -1000
+cash_player_killed_teammate - -300
+cash_player_rescued_hostage - 1000
+cash_player_respawn_amount - 0
+cash_team_elimination_bomb_map - 3250
+cash_team_elimination_hostage_map_ct - 2000
+cash_team_elimination_hostage_map_t - 1000
+cash_team_hostage_alive - 0
+cash_team_hostage_interaction - 500
+cash_team_loser_bonus - 1400
+cash_team_bonus_shorthanded - 0
+cash_team_loser_bonus_consecutive_rounds - 500
+cash_team_planted_bomb_but_defused - 800
+cash_team_rescued_hostage - 0
+cash_team_survive_guardian_wave - 1000
+cash_team_terrorist_win_bomb - 3500
+cash_team_win_by_defusing_bomb - 3250
+cash_team_win_by_hostage_rescue - 3500
+cash_team_win_by_time_running_out_bomb - 3250
+cash_team_win_by_time_running_out_hostage - 3250
+contributionscore_assist - 1
+contributionscore_bomb_defuse_major - 3
+contributionscore_bomb_defuse_minor - 1
+contributionscore_bomb_exploded - 1
+contributionscore_bomb_planted - 2
+contributionscore_cash_bundle - 0
+contributionscore_crate_break - 0
+contributionscore_hostage_kill - -2
+contributionscore_hostage_rescue_major - 3
+contributionscore_hostage_rescue_minor - 1
+contributionscore_kill - 2
+contributionscore_kill_factor - 0
+contributionscore_objective_kill - 3
+contributionscore_suicide - -2
+contributionscore_team_kill - -2
+ff_damage_reduction_bullets - 0.1
+ff_damage_reduction_grenade - 0.25
+ff_damage_reduction_grenade_self - 1
+ff_damage_reduction_other - 0.25
+global_chatter_info -
+healthshot_healthboost_damage_multiplier - 1
+healthshot_healthboost_speed_multiplier - 1
+healthshot_healthboost_time - 0
+inferno_child_spawn_max_depth - 4
+inferno_max_flames - 16
+inferno_max_range - 150
+molotov_throw_detonate_time - 2.0
+mp_afterroundmoney - 0
+mp_anyone_can_pickup_c4 - 0
+mp_autokick - 1
+mp_autoteambalance - 1
+mp_bot_ai_bt -
+mp_buy_allow_grenades - 1
+mp_buy_allow_guns - 255
+mp_buy_anywhere - 0
+mp_buy_during_immunity - 0
+mp_buytime - 90
+mp_c4_cannot_be_defused - 0
+mp_c4timer - 40
+mp_consecutive_loss_max - 4
+mp_coop_force_join_ct - 0
+mp_coopmission_bot_difficulty_offset - 0
+mp_coopmission_mission_number - 0
+mp_coopmission_dz - missing cvar specified in bspconvar_whitelist.txt
+mp_ct_default_grenades -
+mp_ct_default_melee - weapon_knife
+mp_ct_default_primary -
+mp_ct_default_secondary - weapon_hkp2000
+mp_fraglimit - 0
+mp_retake_ct_loadout_default_pistol_round - 1|3;#GameUI_Retake_Card_4v3,0,0,secondary0|1;#GameUI_Retake_Card_FlashOut,0,0,secondary0,grenade2;#GameUI_Retake_Card_HideAndPeek,0,0,secondary0,grenade4
+mp_retake_ct_loadout_upgraded_pistol_round - 2|2;#GameUI_Retake_Card_TakeFive,0,0,secondary3|2;#GameUI_Retake_Card_BlindFire,0,0,secondary2,grenade2|2;#GameUI_Retake_Card_OnlyTakesOne,0,0,secondary4|2;#GameUI_Retake_Card_SneakyBeakyLike,0,0,secondary2,grenade4
+mp_retake_ct_loadout_light_buy_round - 3|2;#GameUI_Retake_Card_UmpInSmoke,1,1,smg2,grenade4|2;#GameUI_Retake_Card_FunNGun,1,1,smg0,grenade3|2;#GameUI_Retake_Card_Sharpshooter,1,1,rifle2,grenade2|2;#GameUI_Retake_Card_BurstBullpup,1,1,rifle0
+mp_retake_ct_loadout_full_buy_round - 4|2;#GameUI_Retake_Card_LightEmUp,1,1,rifle1,grenade2|2;#GameUI_Retake_Card_Kobe,1,1,rifle1,grenade3|1;#GameUI_Retake_Card_1g,1,1,rifle1,grenade0|1;#GameUI_Retake_Card_DisappearingAct,1,1,rifle1,grenade4|1;#GameUI_Retake_Card_EyesOnTarget,1,1,rifle3
+mp_retake_ct_loadout_bonus_card_availability - 1,2
+mp_retake_ct_loadout_bonus_card - #GameUI_Retake_Card_TheAWPortunity,1,1,rifle4
+mp_retake_ct_loadout_enemy_card - #GameUI_Retake_Card_BehindEnemyLines,1,1,rifle1,grenade2
+mp_retake_t_loadout_default_pistol_round - 0|3;#GameUI_Retake_Card_4BadGuysLeft,0,0,secondary0|1;#GameUI_Retake_Card_LookAway,0,0,secondary0,grenade2;#GameUI_Retake_Card_WhenThereIsSmoke,0,0,secondary0,grenade4
+mp_retake_t_loadout_upgraded_pistol_round - 0|2;#GameUI_Retake_Card_BlindFire,0,0,secondary2,grenade2|2;#GameUI_Retake_Card_QueOta,0,0,secondary4|1;#GameUI_Retake_Card_SmokeScreen,0,0,secondary2,grenade4|1;#GameUI_Retake_Card_TecTecBoom,0,0,secondary3,grenade3
+mp_retake_t_loadout_light_buy_round - 0|2;#GameUI_Retake_Card_BackInAFlash,1,1,smg2,grenade2|2;#GameUI_Retake_Card_AllIn,1,1,rifle0|1;#GameUI_Retake_Card_BoomBox,1,1,smg0,grenade3,grenade4|1;#GameUI_Retake_Card_SetThemFree,1,1,rifle2,grenade2
+mp_retake_t_loadout_full_buy_round - 0|2;#GameUI_Retake_Card_OlReliable,1,1,rifle1,grenade2|1;#GameUI_Retake_Card_SmokeShow,1,1,rifle1,grenade4|1;#GameUI_Retake_Card_HotShot,1,1,rifle1,grenade0|1;#GameUI_Retake_Card_EyeSpy,1,1,rifle3,grenade3
+mp_retake_t_loadout_bonus_card_availability - 1,1,2
+mp_retake_t_loadout_bonus_card - #GameUI_Retake_Card_TheAWPortunity,1,1,rifle4
+mp_retake_t_loadout_enemy_card - #GameUI_Retake_Card_FindersKeepers,1,1,rifle1,grenade2
+mp_retake_max_consecutive_rounds_same_target_site - 2
+mp_damage_headshot_only - 0
+mp_damage_scale_ct_body - 1.0
+mp_damage_scale_ct_head - 1.0
+mp_damage_scale_t_body - 1.0
+mp_damage_scale_t_head - 1.0
+mp_damage_vampiric_amount - 0
+mp_death_drop_c4 - 1
+mp_death_drop_defuser - 1
+mp_death_drop_grenade - 2
+mp_death_drop_gun - 1
+mp_deathcam_skippable - 1
+mp_default_team_winner_no_objective - -1
+mp_defuser_allocation - 0
+mp_display_kill_assists - 1
+mp_dm_bonus_percent - 50
+mp_dm_bonus_respawn - 0
+mp_dm_bonusweapon_dogtags - 0
+mp_dm_dogtag_score - 0
+mp_dm_kill_base_score - 10
+mp_dm_teammode - 0
+mp_dm_teammode_bonus_score - 1
+mp_dm_teammode_dogtag_score - 0
+mp_dm_teammode_kill_score - 1
+mp_dogtag_despawn_on_killer_death - 1
+mp_dogtag_despawn_time - 120
+mp_dogtag_pickup_rule - 0
+mp_dronegun_stop - 0
+mp_drop_grenade_enable - 1
+mp_drop_knife_enable - 0
+mp_economy_reset_rounds - 0
+mp_equipment_reset_rounds - 0
+mp_force_assign_teams - 0
+mp_force_pick_time - 15
+mp_forcecamera - 1
+mp_free_armor - 0
+mp_freezetime - 6
+mp_friendlyfire - 0
+mp_ggprogressive_round_restart_delay - 15.0
+mp_ggtr_always_upgrade - 0
+mp_ggtr_bomb_defuse_bonus - 1
+mp_ggtr_bomb_detonation_bonus - 1
+mp_ggtr_bomb_pts_for_flash - 4
+mp_ggtr_bomb_pts_for_he - 3
+mp_ggtr_bomb_pts_for_molotov - 5
+mp_ggtr_bomb_pts_for_upgrade - 2.0
+mp_ggtr_bomb_respawn_delay - 0.0
+mp_ggtr_end_round_kill_bonus - 1
+mp_ggtr_halftime_delay - 0.0
+mp_ggtr_last_weapon_kill_ends_half - 0
+mp_give_player_c4 - 1
+mp_global_damage_per_second - 0.0
+mp_guardian_bot_money_per_wave - 800
+mp_guardian_force_collect_hostages_timeout - 50
+mp_guardian_loc_icon - missing cvar specified in bspconvar_whitelist.txt
+mp_guardian_loc_string_desc -
+mp_guardian_loc_string_hud - #guardian_mission_type_kills
+mp_guardian_loc_weapon -
+mp_guardian_player_dist_max - 2000
+mp_guardian_player_dist_min - 1300
+mp_guardian_bomb_plant_custom_x_mark_location -
+mp_guardian_special_kills_needed - 10
+mp_guardian_special_weapon_needed - awp
+mp_guardian_target_site - -1
+mp_guardian_force_collect_hostages_timeout - 50
+mp_guardian_give_random_grenades_to_bots - 1
+mp_guardian_ai_bt_difficulty_adjust_wave_interval - 1
+mp_guardian_ai_bt_difficulty_max_next_level_bots - 3
+mp_guardian_ai_bt_difficulty_cap_beginning_round - 2
+mp_guardian_ai_bt_difficulty_initial_value - 2
+mp_halftime - 0
+mp_halftime_pausetimer - 0
+mp_heavyassaultsuit_aimpunch - 1.0
+mp_heavyassaultsuit_cooldown - 5
+mp_heavyassaultsuit_deploy_timescale - 0.8
+mp_heavyassaultsuit_speed - 130
+mp_heavybot_damage_reduction_scale - 1.0
+mp_hostagepenalty - 10
+mp_hostages_max - 2
+mp_hostages_spawn_force_positions -
+mp_hostages_spawn_force_positions_xyz -
+mp_hostages_spawn_same_every_round - 1
+mp_ignore_round_win_conditions - 0
+mp_items_prohibited -
+mp_limitteams - 2
+mp_match_can_clinch - 1
+mp_match_end_changelevel - 0
+mp_max_armor - 2
+mp_maxmoney - 16000
+mp_maxrounds - 0
+mp_molotovusedelay - 15.0
+mp_only_cts_rescue_hostages - 1
+mp_plant_c4_anywhere - 0
+mp_playercashawards - 1
+mp_radar_showall - 0
+mp_randomspawn - 0
+mp_randomspawn_dist - 0
+mp_randomspawn_los - 1
+mp_respawn_immunitytime - 4.0
+mp_respawn_on_death_ct - 0
+mp_respawn_on_death_t - 0
+mp_respawnwavetime_ct - 10.0
+mp_respawnwavetime_t - 10.0
+mp_round_restart_delay - 7.0
+mp_roundtime - 5
+mp_roundtime_defuse - 0
+mp_roundtime_hostage - 0
+mp_solid_teammates - 1
+mp_starting_losses - 0
+mp_startmoney - 800
+mp_suicide_penalty - 1
+mp_t_default_grenades -
+mp_t_default_melee - weapon_knife
+mp_t_default_primary -
+mp_t_default_secondary - weapon_glock
+mp_tagging_scale - 1.0
+mp_taser_recharge_time - -1
+mp_teamcashawards - 1
+mp_teammates_are_enemies - 0
+mp_technical_timeout_per_team - 0
+mp_technical_timeout_duration_s - 0
+mp_timelimit - 5
+mp_use_respawn_waves - 0
+mp_warmup_pausetimer - 0
+mp_warmuptime - 30
+mp_warmuptime_all_players_connected - 0
+mp_weapon_self_inflict_amount - 0
+mp_weapons_allow_heavy - -1
+mp_weapons_allow_heavyassaultsuit - 0
+mp_weapons_allow_map_placed - 0
+mp_weapons_allow_pistols - -1
+mp_weapons_allow_rifles - -1
+mp_weapons_allow_smgs - -1
+mp_weapons_allow_typecount - 5
+mp_weapons_allow_zeus - 1
+mp_weapons_glow_on_ground - 0
+mp_weapons_max_gun_purchases_per_weapon_per_match - -1
+mp_win_panel_display_time - 3
+occlusion_test_async - 0
+spec_freeze_panel_extended_time - 0.0
+spec_freeze_time - 3.0
+spec_replay_bot - 0
+spec_replay_enable - 0
+spec_replay_leadup_time - 5.3438
+sv_accelerate - 5.5
+sv_air_pushaway_dist - 0
+sv_airaccelerate - 12
+sv_allow_votes - 1
+sv_alltalk - 0
+sv_arms_race_vote_to_restart_disallowed_after - 0
+sv_auto_adjust_bot_difficulty - 1
+sv_auto_full_alltalk_during_warmup_half_end - 1
+sv_autobunnyhopping - 0
+sv_autobuyammo - 0
+sv_bot_buy_decoy_weight - 1
+sv_bot_buy_flash_weight - 1
+sv_bot_buy_grenade_chance - 33
+sv_bot_buy_hegrenade_weight - 6
+sv_bot_buy_molotov_weight - 1
+sv_bot_buy_smoke_weight - 1
+sv_bots_force_rebuy_every_round - 0
+sv_bots_get_easier_each_win - 0
+sv_bots_get_harder_after_each_wave - 0
+sv_bounce - 0
+sv_buy_status_override - -1
+sv_deadtalk - 0
+sv_disable_immunity_alpha - 0
+sv_disable_radar - 0
+sv_disable_show_team_select_menu - missing cvar specified in bspconvar_whitelist.txt
+sv_duplicate_playernames_ok - 0
+sv_enablebunnyhopping - 0
+sv_env_entity_makers_enabled - 1
+sv_extract_ammo_from_dropped_weapons - 0
+sv_falldamage_scale - 1
+sv_falldamage_to_below_player_multiplier - 1
+sv_falldamage_to_below_player_ratio - 0
+sv_force_reflections - 0
+sv_friction - 5.2
+sv_grassburn - 0
+sv_gravity - 800
+sv_guardian_extra_equipment_ct -
+sv_guardian_extra_equipment_t -
+sv_guardian_health_refresh_per_wave - 50
+sv_guardian_heavy_all - 0
+sv_guardian_heavy_count - 0
+sv_guardian_max_wave_for_heavy - 0
+sv_guardian_min_wave_for_heavy - 0
+sv_guardian_refresh_ammo_for_items_on_waves -
+sv_guardian_reset_c4_every_wave - 0
+sv_guardian_respawn_health - 50
+sv_guardian_spawn_health_ct - 100
+sv_guardian_spawn_health_t - 100
+sv_health_approach_enabled - 0
+sv_health_approach_speed - 10
+sv_hegrenade_damage_multiplier - 1
+sv_hegrenade_radius_multiplier - 1
+sv_hide_roundtime_until_seconds - 0
+sv_highlight_distance - 500
+sv_highlight_duration - 3.5
+sv_ignoregrenaderadio - 0
+sv_infinite_ammo - 0
+sv_knife_attack_extend_from_player_aabb - 0
+sv_maxspeed - 320
+sv_maxvelocity - 3500
+sv_occlude_players - 1
+sv_outofammo_indicator - 0
+sv_show_ragdoll_playernames - missing cvar specified in bspconvar_whitelist.txt
+sv_show_team_equipment_force_on - 0
+sv_staminajumpcost - .080
+sv_staminalandcost - .050
+sv_stopspeed - 80
+sv_talk_enemy_dead - 0
+sv_talk_enemy_living - 0
+sv_teamid_overhead_maxdist - 0
+sv_teamid_overhead_maxdist_spec - 0
+sv_versus_screen_scene_id - 0
+sv_vote_to_changelevel_before_match_point - 0
+sv_warmup_to_freezetime_delay - 4
+sv_water_movespeed_multiplier - 0.8
+sv_water_swim_mode - 0
+sv_wateraccelerate - 10
+sv_waterfriction - 1
+sv_weapon_encumbrance_per_item - 0.85
+sv_weapon_encumbrance_scale - 0
+tv_delay - 10
+tv_delay1 - 15
+weapon_accuracy_nospread - 0
+weapon_air_spread_scale - 1.0
+weapon_max_before_cleanup - 0
+weapon_recoil_scale - 2.0
+weapon_reticle_knife_show - 1
+weapon_sound_falloff_multiplier - 1.0
+sv_camera_fly_enabled - missing cvar specified in bspconvar_whitelist.txt
+Executing dedicated server config file
+exec: couldn't exec server.private.cfg
+exec: couldn't exec gamemode_casual_server.cfg
+Commentary: Could not find commentary data file 'maps/cs_italy_commentary.txt'.
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+Error parsing BotProfile.db - unknown attribute 'Rank'
+L 03/11/2026 - 22:30:59: [admin-sql-threaded.smx] Failed to connect to database: [2003]: Can't connect to MySQL server on 'localhost' (10061)
+L 03/11/2026 - 22:31:04: [randomcycle.smx] RandomCycle has chosen de_dust for the nextmap.
+PutClientInServer: no info_player_start on level
+PutClientInServer: no info_player_start on level
+EVERYONE CAN BUY!
+Selected 2 hostage positions '3,5'
+mode_dz_solo
+mode_dz_solo
+Hentai.top: mode_dz_duo
+Hentai.top: !mode_dz_duo
+Hentai.top: !admin
+AddMultiDamage:  g_MultiDamage.GetDamageForce() == vec3_origin
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_votemode"
+Unknown command "sm_forcemode"
+Unknown command "sm_forcemode"
+Unknown command "sm_forcemode"
+Unknown command "sm_forcemode"
+Unknown command "sm_forcemode"
+Unknown command "sm_dzteams"
+Unknown command "sm_dzteams"
+Unknown command "sm_dzsize"
+Unknown command "sm_dzsize"
+EVERYONE CAN BUY!
+Selected 2 hostage positions '3,5'
+Hentai.top: !admin
+Unknown command "sm_votemode"
+mode_dz_trio
+CSceneEntity::GenerateSceneForSound:  Couldn't determine duration of hostage.startfollowct
+Scene 'AutoGenerated(hostage.startfollowct)' missing!
+mode_dz_teams_auto
+mode_dz_teams_open
+CSceneEntity::GenerateSceneForSound:  Couldn't determine duration of hostage.startfollowct
+EVERYONE CAN BUY!
+Bad SetLocalOrigin(-997.785400,1112.031250,17658.876953) on weaponworldmodel
+Selected 2 hostage positions '3,5'
+Hentai.top: !mode
+Hentai.top: !dz
+CSceneEntity::GenerateSceneForSound:  Couldn't determine duration of hostage.startfollowct
+exec mode_lobby.cfg
+EVERYONE CAN BUY!
+Selected 2 hostage positions '3,5'
+sm_forcemode
+Unknown command "sm_forcemode"
+Hentai.top: !help_mode
+!help_mode
+Unknown command "!help_mode"

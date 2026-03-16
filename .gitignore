@@ -2,6 +2,7 @@
 *
 
 # 2. Разрешаем основные системные и пусковые файлы
+!*.log
 !*.cfg
 !*.txt
 !*.bat
@@ -12,19 +13,25 @@
 !.gitignore
 
 # 3. Разрешаем структуру папок (только папки, без содержимого)
+!/Log/
 !/csgo/
 !/csgo/cfg/
 !/csgo/addons/
 !/csgo/addons/sourcemod/
 !/csgo/addons/sourcemod/configs/
+!/csgo/addons/sourcemod/configs/serverflow/
+!/csgo/addons/sourcemod/configs/serverflow/**
 !/csgo/addons/sourcemod/plugins/
+!/csgo/addons/sourcemod/scripting/
 !/csgo/addons/sourcemod/translations/
+!/csgo/addons/sourcemod/translations/*.txt
 !/csgo/addons/metamod/
 
 # 4. Разрешаем конкретные типы файлов внутри этих папок
 !*.ini
 !*.vdf
 !*.smx
+!*.sp
 
 # 5. Исключения (что НЕ НУЖНО заливать даже если это .txt или .cfg)
 # Игнорируем логи и временные дампы
@@ -32,7 +39,28 @@
 /csgo/cfg/sourcemod/sm_warmode.cfg
 /csgo/addons/sourcemod/logs/
 /csgo/addons/sourcemod/data/
-/csgo/addons/sourcemod/translations/
+/csgo/addons/sourcemod/translations/*
+!/csgo/addons/sourcemod/translations/*.txt
 
 # Игнорируем бэкапы раундов (их у тебя было много)
 csgo/backup_round*.txt
+# Private local secrets
+/csgo/cfg/server.private.cfg
+/start.local.bat
+
+# Ignore local launcher scripts with secrets
+*.local.bat
+start_dz.local.bat
+start_classic.local.bat
+
+# Documentation
+!/docs/
+!/docs/*.md
+
+# Allow committed diagnostic logs from repo-level Log folder
+!/Log/
+!/Log/**
+
+# ServerFlow modular includes
+!/csgo/addons/sourcemod/scripting/serverflow/
+!/csgo/addons/sourcemod/scripting/serverflow/**

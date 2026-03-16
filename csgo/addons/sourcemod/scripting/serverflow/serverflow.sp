@@ -15,6 +15,7 @@
 
 #include "runtime/session_store.inc"
 #include "runtime/state_manager.inc"
+#include "runtime/policy_manager.inc"
 #include "runtime/pending_change.inc"
 #include "runtime/transition_manager.inc"
 
@@ -49,6 +50,7 @@
 #include "integrations/timers.inc"
 
 #include "diagnostics/health_check.inc"
+#include "diagnostics/state_dump.inc"
 
 public Plugin myinfo =
 {
@@ -71,7 +73,23 @@ static void Bootstrap_Minimal()
 
 public void OnPluginStart()
 {
-    LoadTranslations("mode_vote.phrases");
+    char path[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, path, sizeof(path), "translations/serverflow.phrases.txt");
+    if (FileExists(path))
+    {
+        LoadTranslations("serverflow.phrases");
+    }
+    else
+    {
+        LogError("[ServerFlow] Missing translations/serverflow.phrases.txt, loading legacy mode_vote.phrases as temporary compatibility fallback.");
+    }
+
+    BuildPath(Path_SM, path, sizeof(path), "translations/mode_vote.phrases.txt");
+    if (FileExists(path))
+    {
+        LoadTranslations("mode_vote.phrases");
+        LogMessage("[ServerFlow] WARNING: loaded legacy mode_vote.phrases fallback for temporary compatibility; migrate to serverflow.phrases only.");
+    }
 
     Bootstrap_Minimal();
     Health_RunFullCheck("OnPluginStart");

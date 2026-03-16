@@ -16,19 +16,25 @@ static void Pending_StopConfirmTimer()
 
 static void Pending_StartConfirmTimer(int seconds)
 {
+    if (seconds <= 0)
+    {
+        Pending_StopConfirmTimer();
+        return;
+    }
+
     Pending_StopConfirmTimer();
     g_PendingConfirmTimer = CreateTimer(float(seconds), Timer_PendingConfirmDeadline);
 }
 
-void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] source, int actor)
+void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] source, int actor, const char[] why = "", ServerState allowedApplyState = ServerState_Lobby, PendingConfirmPolicy confirmPolicy = PendingConfirm_Manual)
 {
-    Session_SetPendingChange(scenarioId, mapName, source, actor, g_PendingConfirmWindow);
+    int now = GetTime();
+    int expiresAt = now + g_PendingConfirmWindow;
+    Session_SetPendingChange(scenarioId, mapName, source, actor, why, allowedApplyState, expiresAt, confirmPolicy);
     Pending_StartConfirmTimer(g_PendingConfirmWindow);
 
-    char auditMessage[192];
-    Format(auditMessage, sizeof(auditMessage), "pending_created actor=%d scenario=%s map=%s source=%s", actor, scenarioId, mapName, source);
-    Audit_Log(auditMessage);
-    Notify_PendingCreated(scenarioId, mapName, g_PendingConfirmWindow);
+    Audit_LogEvent("pending", "create", actor, "ok", why);
+    Notify_PendingCreated(scenarioId, mapName, g_PendingConfirmWindow, why, allowedApplyState, confirmPolicy);
 }
 
 void Pending_Select()
@@ -39,6 +45,10 @@ void Pending_Select()
     }
 
     Session_SetPendingChangeState(Pending_Selected);
+
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+    Notify_PendingSelected(pending.scenarioId, pending.mapName, pending.why, pending.expiresAt);
 }
 
 bool Pending_Confirm(int actor, const char[] source = "")
@@ -58,13 +68,15 @@ bool Pending_Confirm(int actor, const char[] source = "")
     PendingChange pending;
     Session_GetPendingChange(pending);
 
-    if (pending.confirmDeadline > 0 && GetTime() > pending.confirmDeadline)
+    if (pending.expiresAt > 0 && GetTime() > pending.expiresAt)
     {
-        Pending_Cancel("confirm_timeout");
+        Pending_Cancel("deadline_expired", "pending confirmation deadline passed");
         return false;
     }
 
     Session_SetPendingChangeState(Pending_Confirmed);
+    Session_SetPendingChangeConfirmed(actor, GetTime());
+    Session_SetOverrideLevel(Policy_GetActorOverrideLevel(actor));
     Pending_StopConfirmTimer();
 
     Call_StartForward(g_FwdOnPendingChangeConfirmed);
@@ -72,23 +84,25 @@ bool Pending_Confirm(int actor, const char[] source = "")
     Call_PushString(pending.mapName);
     Call_Finish();
 
-    char auditMessage[192];
-    Format(auditMessage, sizeof(auditMessage), "pending_confirmed actor=%d scenario=%s map=%s source=%s", actor, pending.scenarioId, pending.mapName, source);
-    Audit_Log(auditMessage);
-    Notify_PendingConfirmed(actor);
+    Audit_LogEvent("pending", "confirm", actor, "ok", source);
+    Notify_PendingConfirmed(actor, pending.scenarioId, pending.mapName);
 
     return true;
 }
 
-void Pending_Cancel(const char[] reason = "cancel")
+void Pending_Cancel(const char[] reason = "cancel", const char[] why = "")
 {
-    Pending_StopConfirmTimer();
-    Session_ClearPendingChange();
-    ModeDebug("pending canceled: reason=%s", reason);
+    PendingChange pending;
+    Session_GetPendingChange(pending);
 
-    char auditMessage[160];
-    Format(auditMessage, sizeof(auditMessage), "pending_canceled reason=%s", reason);
-    Audit_Log(auditMessage);
+    Pending_StopConfirmTimer();
+    Session_SetPendingChangeCancellationReason(why);
+
+    Audit_LogEvent("pending", "cancel", pending.requestedBy, "ok", reason);
+
+    Notify_PendingCanceled(reason, why, pending.scenarioId, pending.mapName);
+    Session_ClearPendingChange();
+    ModeDebug("pending canceled: reason=%s why=%s", reason, why);
 }
 
 public Action Timer_PendingConfirmDeadline(Handle timer)
@@ -98,9 +112,9 @@ public Action Timer_PendingConfirmDeadline(Handle timer)
     PendingChange pending;
     Session_GetPendingChange(pending);
 
-    if (pending.state != Pending_None && pending.confirmDeadline > 0 && GetTime() >= pending.confirmDeadline)
+    if (pending.state != Pending_None && pending.expiresAt > 0 && GetTime() >= pending.expiresAt)
     {
-        Pending_Cancel("timeout");
+        Pending_Cancel("deadline_expired", "pending confirmation deadline reached");
     }
 
     return Plugin_Stop;

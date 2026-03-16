@@ -18,6 +18,10 @@ Legacy ModeVote сохранён только как архив исходник
 build_serverflow.bat
 ```
 
+После успешной сборки скрипт кладёт бинарник в **два места**:
+- `csgo/addons/sourcemod/plugins/serverflow.smx` (рабочий путь загрузки плагина)
+- `csgo/addons/sourcemod/scripting/compiled/serverflow.smx` (зеркальный артефакт для удобства)
+
 ### 2.2 Legacy shim (только совместимость)
 ```bat
 build_mode_vote.bat

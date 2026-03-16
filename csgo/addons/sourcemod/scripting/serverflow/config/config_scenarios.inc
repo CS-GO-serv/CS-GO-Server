@@ -66,6 +66,50 @@ static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
     }
 }
 
+static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
+{
+    if (scenario.routerAlias[0] == '\0')
+    {
+        kv.GetString("router", scenario.routerAlias, sizeof(scenario.routerAlias), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        kv.GetString("map_list_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        kv.GetString("maplist", scenario.mapListFile, sizeof(scenario.mapListFile), "");
+    }
+
+    if (scenario.fallbackMap[0] == '\0')
+    {
+        kv.GetString("fallback", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
+    }
+
+    if (scenario.mapListFile[0] == '\0')
+    {
+        if (StrEqual(scenario.id, "dz", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_dz.txt");
+        }
+        else if (StrEqual(scenario.id, "comp", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_comp.txt");
+        }
+        else if (StrEqual(scenario.id, "casual", false))
+        {
+            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_casual.txt");
+        }
+
+        if (scenario.mapListFile[0] != '\0')
+        {
+            LogError("[serverflow] scenario '%s' had empty maplist_file; fallback applied: %s", scenario.id, scenario.mapListFile);
+        }
+    }
+}
+
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
     bool valid = true;
@@ -185,6 +229,8 @@ bool Scenarios_LoadFromConfig()
         kv.GetString("mapgroup", scenario.mapgroup, sizeof(scenario.mapgroup), "");
         kv.GetString("start_map", scenario.startMap, sizeof(scenario.startMap), "");
         kv.GetString("cfg_file", scenario.cfgFile, sizeof(scenario.cfgFile), "");
+
+        Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
 
         Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
 

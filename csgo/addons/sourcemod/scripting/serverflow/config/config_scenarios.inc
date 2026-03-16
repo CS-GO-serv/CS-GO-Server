@@ -5,16 +5,21 @@
 
 #define SERVERFLOW_SCENARIOS_CONFIG "addons/sourcemod/configs/serverflow/scenarios.cfg"
 
-static bool Scenarios_ParseRotationMode(const char[] value, RotationMode &mode)
+static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &policy)
 {
-    if (StrEqual(value, "random", false))
+    if (StrEqual(value, "playlist", false) || StrEqual(value, "", false))
     {
-        mode = RotationMode_Random;
+        policy = MaplistPolicy_Playlist;
         return true;
     }
 
-    mode = RotationMode_Sequential;
-    return StrEqual(value, "sequential", false) || StrEqual(value, "", false);
+    if (StrEqual(value, "scenario", false))
+    {
+        policy = MaplistPolicy_Scenario;
+        return true;
+    }
+
+    return false;
 }
 
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
@@ -27,9 +32,9 @@ bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
         valid = false;
     }
 
-    if (scenario.mapListFile[0] == '\0')
+    if (scenario.playlistId[0] == '\0')
     {
-        LogError("[serverflow] invalid scenario '%s': maplist cannot be empty", scenario.id);
+        LogError("[serverflow] invalid scenario '%s': playlist_id cannot be empty", scenario.id);
         valid = false;
     }
 
@@ -81,21 +86,21 @@ bool Scenarios_LoadFromConfig()
         ModeInfo scenario;
         kv.GetSectionName(scenario.id, sizeof(scenario.id));
         kv.GetString("router_alias", scenario.routerAlias, sizeof(scenario.routerAlias), "");
-        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "Mode Name Default");
+        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "mode.name.default");
         scenario.gameType = kv.GetNum("game_type", 0);
         scenario.gameMode = kv.GetNum("game_mode", 0);
         kv.GetString("mapgroup", scenario.mapgroup, sizeof(scenario.mapgroup), "");
         kv.GetString("start_map", scenario.startMap, sizeof(scenario.startMap), "");
         kv.GetString("cfg_file", scenario.cfgFile, sizeof(scenario.cfgFile), "");
-        kv.GetString("maplist_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
-        kv.GetString("fallback_map", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
 
-        char rotationModeRaw[24];
-        kv.GetString("rotation_mode", rotationModeRaw, sizeof(rotationModeRaw), "sequential");
-        if (!Scenarios_ParseRotationMode(rotationModeRaw, scenario.rotationMode))
+        kv.GetString("playlist_id", scenario.playlistId, sizeof(scenario.playlistId), scenario.id);
+
+        char maplistPolicyRaw[24];
+        kv.GetString("maplist_policy", maplistPolicyRaw, sizeof(maplistPolicyRaw), "playlist");
+        if (!Scenarios_ParseMaplistPolicy(maplistPolicyRaw, scenario.maplistPolicy))
         {
-            LogError("[serverflow] invalid rotation_mode '%s' for scenario '%s'; using sequential", rotationModeRaw, scenario.id);
-            scenario.rotationMode = RotationMode_Sequential;
+            LogError("[serverflow] invalid maplist_policy '%s' for scenario '%s'; using playlist", maplistPolicyRaw, scenario.id);
+            scenario.maplistPolicy = MaplistPolicy_Playlist;
         }
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))

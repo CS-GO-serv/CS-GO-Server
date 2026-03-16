@@ -158,7 +158,7 @@ PendingChangeState Session_GetPendingChangeState()
     return g_Session.pendingChange.state;
 }
 
-void Session_GetPendingChange(PendingChange &change)
+void Session_GetPendingChange(PendingChange change)
 {
     change = g_Session.pendingChange;
 }

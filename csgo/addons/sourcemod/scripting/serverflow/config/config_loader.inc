@@ -6,7 +6,8 @@
 void Config_LoadAll()
 {
     ConfigCore_InitConVars();
-    AutoExecConfig(true, "mode_vote", "sourcemod");
+    AutoExecConfig(true, "serverflow", "sourcemod");
+    ServerCommand("exec sourcemod/serverflow.cfg");
     ConfigCore_RefreshRuntime();
 
     Scenarios_LoadFromConfig();

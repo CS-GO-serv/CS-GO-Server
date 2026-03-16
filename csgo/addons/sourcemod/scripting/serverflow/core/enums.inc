@@ -151,5 +151,6 @@ enum HealthStatus
 {
     HealthStatus_Ok = 0,
     HealthStatus_Warn,
+    HealthStatus_Degraded,
     HealthStatus_Fail
 };

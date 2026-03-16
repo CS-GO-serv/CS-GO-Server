@@ -82,7 +82,19 @@ public Action Timer_FinishVote(Handle timer)
 
     char winnerScenario[16];
     Scenario_GetIdByIndex(winner, winnerScenario, sizeof(winnerScenario));
-    Transition_QueueScenario(winnerScenario, 0, "vote_winner");
+
+    ServerState state = Session_GetState();
+    PendingConfirmPolicy confirmPolicy = (state == ServerState_PostMatch) ? PendingConfirm_Auto : PendingConfirm_Manual;
+    char voteReason[96];
+    Format(voteReason, sizeof(voteReason), "vote winner (%d votes)", Session_GetVoteCount(winner));
+    Pending_Create(winnerScenario, "", "vote_winner", 0, voteReason, ServerState_PostMatch, confirmPolicy);
+
+    if (confirmPolicy == PendingConfirm_Auto)
+    {
+        Pending_Select();
+        Pending_Confirm(0, "vote_auto_confirm");
+        Transition_ApplyPending("vote_auto_apply");
+    }
 
     Call_StartForward(g_FwdOnVoteCompleted);
     Call_PushString(winnerScenario);

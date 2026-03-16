@@ -66,13 +66,15 @@ public Action Command_Team(int client, int args)
     ServerState state = Session_GetState();
     if (state == ServerState_Transition)
     {
-        PrintToChat(client, "[ServerFlow] sm_team временно недоступна: идёт Transition. Ожидайте завершения Transition и используйте sm_status для проверки статуса.");
+        PrintToChat(client, "[ServerFlow] sm_team временно недоступна: сейчас Transition.");
+        PrintToChat(client, "[ServerFlow] Следующий шаг: ожидайте Transition и используйте sm_status, чтобы проверить текущий статус.");
         return Plugin_Handled;
     }
 
     if (state == ServerState_Match)
     {
-        PrintToChat(client, "[ServerFlow] sm_team недоступна во время Match. Следующий шаг: дождитесь PostMatch/PreMatch и используйте sm_status.");
+        PrintToChat(client, "[ServerFlow] sm_team недоступна во время Match.");
+        PrintToChat(client, "[ServerFlow] Следующий шаг: используйте sm_status и дождитесь PostMatch/PreMatch.");
         return Plugin_Handled;
     }
 

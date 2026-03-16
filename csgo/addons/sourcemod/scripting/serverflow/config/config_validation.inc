@@ -3,6 +3,19 @@
 #endif
 #define _SERVERFLOW_CONFIG_VALIDATION_INC_
 
+static int Validation_FindPlaylistById(const char[] playlistId)
+{
+    for (int i = 0; i < g_PlaylistCount; i++)
+    {
+        if (StrEqual(g_Playlists[i].id, playlistId, false))
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 bool Config_ValidateAll()
 {
     bool ok = true;
@@ -10,6 +23,12 @@ bool Config_ValidateAll()
     if (g_ScenarioCount <= 0)
     {
         LogError("[serverflow] validation failed: no scenarios loaded");
+        return false;
+    }
+
+    if (g_PlaylistCount <= 0)
+    {
+        LogError("[serverflow] validation failed: no playlists loaded");
         return false;
     }
 
@@ -28,6 +47,22 @@ bool Config_ValidateAll()
                 ok = false;
                 LogError("[serverflow] duplicate router alias '%s'", g_Scenarios[i].routerAlias);
             }
+        }
+
+        int playlistIndex = -1;
+        if (g_Scenarios[i].maplistPolicy == MaplistPolicy_Scenario)
+        {
+            playlistIndex = Validation_FindPlaylistById(g_Scenarios[i].id);
+        }
+        else
+        {
+            playlistIndex = Validation_FindPlaylistById(g_Scenarios[i].playlistId);
+        }
+
+        if (playlistIndex == -1)
+        {
+            ok = false;
+            LogError("[serverflow] scenario '%s' has unresolved playlist link (policy=%d, playlist_id='%s')", g_Scenarios[i].id, g_Scenarios[i].maplistPolicy, g_Scenarios[i].playlistId);
         }
 
         if (g_ModeMapCache[i] == null || g_ModeMapCache[i].Length <= 0)

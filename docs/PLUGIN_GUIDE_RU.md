@@ -34,7 +34,13 @@ cmd /k build_serverflow.bat
 - `undefined symbol "Path_Game"` в `config_playlists.inc`
 - `reference is redundant` для `PendingChange &...` в `transition_manager.inc`
 
-значит на сервере может лежать **устаревшая копия исходников**. Сборка теперь не прерывается preflight-проверкой, но при ошибке компиляции обновите файлы из актуального репозитория (`git pull`) и соберите снова.
+значит на сервере лежит **устаревшая копия исходников**.
+
+`build_serverflow.bat` теперь пытается автоматически исправить эти 2 паттерна перед компиляцией (создавая `.bak` рядом с файлами):
+- `config_playlists.inc.bak`
+- `transition_manager.inc.bak`
+
+Если автоматический фикс не помог, обновите исходники из репозитория (`git pull`) и повторите сборку.
 
 ### 2.2 Legacy shim (только совместимость)
 ```bat

@@ -8,6 +8,7 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegConsoleCmd("sm_status", Command_Status);
+    RegConsoleCmd("sm_status_verbose", Command_StatusVerbose);
     RegConsoleCmd("sm_ready", Command_Ready);
     RegConsoleCmd("sm_unready", Command_Unready);
     RegConsoleCmd("sm_team", Command_Team);

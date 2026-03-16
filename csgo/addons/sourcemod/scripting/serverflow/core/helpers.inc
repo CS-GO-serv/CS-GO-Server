@@ -34,3 +34,41 @@ int FindModeById(const char[] modeId)
 
     return -1;
 }
+
+void ServerStateToString(ServerState state, char[] buffer, int maxlen)
+{
+    switch (state)
+    {
+        case ServerState_Lobby: strcopy(buffer, maxlen, "Lobby");
+        case ServerState_PreMatch: strcopy(buffer, maxlen, "PreMatch");
+        case ServerState_Match: strcopy(buffer, maxlen, "Match");
+        case ServerState_PostMatch: strcopy(buffer, maxlen, "PostMatch");
+        case ServerState_Transition: strcopy(buffer, maxlen, "Transition");
+        default: Format(buffer, maxlen, "Unknown(%d)", state);
+    }
+}
+
+void PreMatchPhaseToString(PreMatchPhase phase, char[] buffer, int maxlen)
+{
+    switch (phase)
+    {
+        case PreMatch_Setup: strcopy(buffer, maxlen, "Setup");
+        case PreMatch_Teams: strcopy(buffer, maxlen, "Teams");
+        case PreMatch_Ready: strcopy(buffer, maxlen, "Ready");
+        case PreMatch_Lock: strcopy(buffer, maxlen, "Lock");
+        default: Format(buffer, maxlen, "Unknown(%d)", phase);
+    }
+}
+
+void PendingChangeStateToString(PendingChangeState state, char[] buffer, int maxlen)
+{
+    switch (state)
+    {
+        case Pending_None: strcopy(buffer, maxlen, "none");
+        case Pending_Proposed: strcopy(buffer, maxlen, "proposed");
+        case Pending_Selected: strcopy(buffer, maxlen, "selected");
+        case Pending_Confirmed: strcopy(buffer, maxlen, "confirmed");
+        case Pending_Applying: strcopy(buffer, maxlen, "applying");
+        default: Format(buffer, maxlen, "unknown(%d)", state);
+    }
+}

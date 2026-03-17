@@ -10,6 +10,9 @@ void ConfigCore_InitConVars()
     g_CvarVoteMinPlayers = CreateConVar("sm_serverflow_vote_min_players", "4", "Minimum human players required to start a mode vote.", FCVAR_NOTIFY, true, float(MODE_VOTE_MIN_PLAYERS_MIN), true, float(MODE_VOTE_MIN_PLAYERS_MAX));
     g_CvarVerbose = CreateConVar("sm_serverflow_verbose", "1", "Verbose logging for serverflow (0/1).", FCVAR_NOTIFY, true, 0.0, true, 1.0);
     g_CvarPendingConfirmWindow = CreateConVar("sm_serverflow_pending_confirm_window", "20", "Pending change confirmation window in seconds.", FCVAR_NOTIFY, true, float(MODE_PENDING_CONFIRM_WINDOW_MIN), true, float(MODE_PENDING_CONFIRM_WINDOW_MAX));
+    g_CvarLateJoinPolicy = CreateConVar("sm_serverflow_late_join_policy", "1", "Late join policy: 0=disallow 1=spectator 2=allow.", FCVAR_NOTIFY, true, 0.0, true, 2.0);
+    g_CvarAfkPolicy = CreateConVar("sm_serverflow_afk_policy", "2", "AFK policy: 0=none 1=warn 2=move_to_spec 3=kick.", FCVAR_NOTIFY, true, 0.0, true, 3.0);
+    g_CvarAfkSeconds = CreateConVar("sm_serverflow_afk_seconds", "120", "AFK timeout in seconds.", FCVAR_NOTIFY, true, 30.0, true, 1800.0);
 }
 
 void ConfigCore_RefreshRuntime()
@@ -18,4 +21,7 @@ void ConfigCore_RefreshRuntime()
     g_VoteCooldown = g_CvarVoteCooldown.IntValue;
     g_VoteMinPlayers = g_CvarVoteMinPlayers.IntValue;
     g_PendingConfirmWindow = g_CvarPendingConfirmWindow.IntValue;
+    g_LateJoinPolicy = view_as<LateJoinPolicy>(g_CvarLateJoinPolicy.IntValue);
+    g_AfkPolicy = view_as<AfkPolicy>(g_CvarAfkPolicy.IntValue);
+    g_AfkSeconds = g_CvarAfkSeconds.IntValue;
 }

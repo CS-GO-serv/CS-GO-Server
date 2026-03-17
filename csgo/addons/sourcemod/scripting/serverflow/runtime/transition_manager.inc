@@ -34,6 +34,15 @@ static bool Transition_ApplyScenario(const char[] scenarioId)
     Session_SetCurrentScenario(scenarioId);
     Session_SetQueuedScenario(scenarioId);
 
+    ServerCommand("game_type %d", g_Scenarios[scenarioIndex].gameType);
+    ServerCommand("game_mode %d", g_Scenarios[scenarioIndex].gameMode);
+    ModeDebug(
+        "scenario apply game settings: id=%s game_type=%d game_mode=%d",
+        scenarioId,
+        g_Scenarios[scenarioIndex].gameType,
+        g_Scenarios[scenarioIndex].gameMode
+    );
+
     if (g_Scenarios[scenarioIndex].cfgFile[0] != '\0')
     {
         ServerCommand("exec %s", g_Scenarios[scenarioIndex].cfgFile);

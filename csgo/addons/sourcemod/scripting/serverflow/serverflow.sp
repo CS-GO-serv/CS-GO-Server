@@ -71,7 +71,7 @@ static void Bootstrap_Minimal()
 
 public void OnPluginStart()
 {
-    LoadTranslations("mode_vote.phrases");
+    LoadTranslations("serverflow.phrases");
 
     Bootstrap_Minimal();
     Health_RunFullCheck("OnPluginStart");

@@ -1,200 +1,58 @@
-# ⚙️ CS:GO Server Configurations (Hemai.top)
+# CS-GO-Server
 
-Этот репозиторий содержит **только файлы настроек** для сервера CS:GO. Сами файлы игры (карты, модели, звуки) исключены для экономии места и скорости работы.
+Репозиторий содержит конфиги сервера CS:GO Legacy и SourceMod-плагин **ServerFlow** (новая state-driven архитектура).
 
-## 📂 Что доступно в репозитории?
+## Официальная точка входа плагина
 
-В репозиторий попадают только текстовые файлы конфигураций. Все остальное (бинарники `.exe`, `.dll`, тяжелые папки) игнорируется.
+- Источник: `csgo/addons/sourcemod/scripting/serverflow.sp`
+- Корневой модуль: `csgo/addons/sourcemod/scripting/serverflow/serverflow.sp`
+- Выходной бинарник: `csgo/addons/sourcemod/plugins/serverflow.smx`
 
-### Основные директории и файлы:
-* **`csgo/cfg/`** — Сердце сервера. Здесь лежат:
-    * `server.cfg` — Главные настройки (имя сервера, пароли, рейты).
-    * `gamemode_*.cfg` — Настройки режимов игры (Casual, Competitive и др.).
-    * `sourcemod/` — (Если установлены плагины) конфиги для SourceMod.
-* **`csgo/*.txt`** — Текстовые списки:
-    * `mapcycle.txt` — Список карт для ротации.
-    * `maplist.txt` — Список карт для голосования.
-    * `motd.txt` — Приветственное сообщение при входе на сервер.
-* **`addons/`** — Настройки админки и плагинов (MetaMod/SourceMod):
-    * `sourcemod/configs/` — Файлы `admins.cfg`, `databases.cfg` и настройки рекламы/плагинов.
+`mode_vote` больше не является основной архитектурой. Старый код сохранён только в архиве:
+`csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`.
 
-## 📚 Полная документация по плагину
+## Build / run
 
-- Подробное руководство (админ / игрок / настройка / заглушки и секреты): `docs/PLUGIN_GUIDE_RU.md`
-
-## 🛠 Инструкция по работе
-
-### Рекомендуемый branch flow
-* **Стабильная ветка** (например, `main`) — только проверенные изменения, которые можно безопасно тянуть на боевой сервер.
-* **Feature-ветки** (например, `feature/update-mapcycle`, `fix/rates`) — рабочие ветки для отдельных задач.
-
-### Как работать в feature-ветке
-1. Создай и переключись на ветку под задачу:
-   ```bash
-   git checkout -b <branch>
-   ```
-2. Внеси изменения и закоммить:
-   ```bash
-   git add .
-   git commit -m "Краткое описание изменений"
-   ```
-3. Отправь ветку в удаленный репозиторий:
-   ```bash
-   git push origin <branch>
-   ```
-
-Пример для реального сценария:
-```bash
-git checkout -b feature/server-name-update
-git add .
-git commit -m "Обновил параметры server.cfg"
-git push origin feature/server-name-update
-```
-
-### Как мержить в стабильную ветку сервера
-1. Создай Pull Request из `feature`-ветки в стабильную ветку (например, `main`).
-2. После ревью и проверки смержи изменения.
-3. На сервере подтяни стабильную ветку:
-   ```bash
-   git pull origin <branch>
-   ```
-
-Пример для стабильной ветки:
-```bash
-git pull origin S_Cfg_V1
-```
-
-⚠️ **Важно по безопасности:** секреты (`RCON`, `GSLT`, пароли, токены) нельзя коммитить в репозиторий. Храните их в локальных/серверных приватных файлах, которые добавлены в `.gitignore`.
-⚠️ **Пароли сервера:** реальные значения `rcon_password` и `sv_password` храните только в `csgo/cfg/server.private.cfg`. В `csgo/cfg/server.cfg` должны оставаться только безопасные заглушки (например, `CHANGE_ME`).
-
-### 🔐 Единое правило по секретам (обязательное)
-- `csgo/cfg/server.cfg` — только безопасные значения/заглушки (`CHANGE_ME`) и `exec server.private.cfg`.
-- `csgo/cfg/server.private.cfg` — **единственный** источник реальных `rcon_password`, `sv_password` и других приватных cvar.
-- Все секреты запуска (`GSLT`, токены и т.д.) — только в локальных `*.local.bat`.
-- `server.private.cfg` и `*.local.bat` не должны отслеживаться git (должны оставаться только локально).
-
-## 🚀 Запуск сервера (Classic и Danger Zone)
-
-
-### Важный шаг перед запуском (обязательно)
-
-В логах из `Log/` были ошибки `Unknown command "sm_votemode"` / `Unknown command "sm_forcemode"`.
-Это означает, что `mode_vote` не был скомпилирован в `mode_vote.smx` (или не загрузился).
-
-Чтобы это не повторялось, стартовые скрипты теперь автоматически вызывают:
-
+### Сборка (канонично)
 ```bat
-call build_mode_vote.bat
+build_serverflow.bat
 ```
 
-Скрипт компилирует `csgo/addons/sourcemod/scripting/mode_vote.sp` в `csgo/addons/sourcemod/plugins/mode_vote.smx` через `spcomp.exe`.
-Если `spcomp.exe` отсутствует, скрипт использует уже существующий `mode_vote.smx` (если он есть).
-Если нет ни `spcomp.exe`, ни готового `mode_vote.smx`, запуск будет остановлен с понятной ошибкой.
+### Legacy-совместимость
+Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
 
+### Старт сервера
+- `start.bat`
+- `start_classic.bat`
+- `start_dz.bat`
 
-Чтобы не смешивать режимы, используйте отдельные bat-скрипты:
+Все стартовые скрипты теперь вызывают `build_serverflow.bat`.
 
-- `start_classic.bat` — классический режим (de_mirage).
-- `start_dz.bat` — режим Danger Zone (DZ).
-- `start.bat` — запуск по умолчанию в режиме DZ.
+## Архитектура
 
-**Публичные `.bat`-файлы в репозитории — это шаблоны; реальные секреты (GSLT и другие токены) должны храниться только в локальных `.local`-файлах, которые не коммитятся.**
+Реализация разбита по слоям в `csgo/addons/sourcemod/scripting/serverflow/`:
+- `core/`
+- `runtime/`
+- `config/`
+- `domain/`
+- `presentation/`
+- `commands/`
+- `diagnostics/`
+- `integrations/`
 
-### Production launch
+Структура и целевая модель описаны в:
+- `docs/design_doc_csgo_server_plugin_ru.md`
+- `docs/technical_spec_codex_csgo_plugin_ru.md`
+- `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
+- `docs/agents_md_codex_csgo_plugin_ru.md`
 
-- В репозиторий коммитятся только шаблоны: `start_dz.bat` и `start_classic.bat` (без реальных токенов, только `YOUR_GSLT_TOKEN_HERE`).
-- Для реального запуска на хосте используйте локальные файлы: `start_dz.local.bat` и `start_classic.local.bat` с настоящими GSLT.
-- `*.local.bat` (включая оба файла выше) не коммитятся и игнорируются через `.gitignore`.
+## Конфиги ServerFlow
 
-### Пример полной команды запуска для DZ
+- `csgo/addons/sourcemod/configs/serverflow/plugin_core.cfg`
+- `csgo/addons/sourcemod/configs/serverflow/scenarios.cfg`
+- `csgo/addons/sourcemod/configs/serverflow/playlists.cfg`
+- `csgo/addons/sourcemod/configs/serverflow/lang_ru.cfg`
+- `csgo/addons/sourcemod/configs/serverflow/lang_en.cfg`
+- `csgo/addons/sourcemod/configs/serverflow/examples/*`
 
-```bat
-srcds.exe -game csgo -console -tickrate 128 +game_type 6 +game_mode 0 +mapgroup mg_dz_blacksite +map dz_blacksite -port 27015 +sv_setsteamaccount <YOUR_GSLT_TOKEN>
-```
-
-Если запускаете вручную, используйте именно параметры `+game_type 6 +game_mode 0` и DZ-карту (`dz_blacksite`).
-
-
-### Поддерживаемые карты Danger Zone в этой сборке
-
-Список синхронизирован с `csgo/cfg/maplist_dz.txt` и используется плагином `mode_vote` как источник правды:
-
-- `dz_blacksite`
-- `dz_sirocco`
-- `dz_county`
-- `dz_vineyard`
-- `dz_ember`
-- `dz_frostbite`
-
-
-## 👁️ Политика наблюдения в Danger Zone (`mp_forcecamera`)
-
-| Режим | Файл конфигурации | `mp_forcecamera` | Почему |
-|---|---|---:|---|
-| Solo | `csgo/cfg/mode_dz_solo.cfg` | `0` | В соло нет командного обмена инфо между живыми игроками, поэтому разрешен свободный обзор. |
-| Duo | `csgo/cfg/mode_dz_duo.cfg` | `1` | В сквадах нужна более строгая политика наблюдения, чтобы снизить риск передачи инфо живым тиммейтам. |
-| Trio | `csgo/cfg/mode_dz_trio.cfg` | `1` | Аналогично Duo: squad-режим и более строгий контроль наблюдения. |
-
-Принцип: **solo != squads** — для одиночного режима и командных режимов применяются разные значения `mp_forcecamera`.
-
-
-
-## 🗺️ Политика maplist/mapvote (единый путь)
-
-В репозитории зафиксирован **один архитектурный путь** для пулов карт: только через `mapcyclefile`.
-
-- `mode_vote` при смене режима меняет `mapcyclefile` на один из файлов:
-  - `cfg/maplist_dz.txt`
-  - `cfg/maplist_comp.txt`
-  - `cfg/maplist_casual.txt`
-- `mapchooser`, `nominations`, `randomcycle`, а также админские `sm_map menu` и `sm_votemap menu` в `addons/sourcemod/configs/maplists.cfg` направлены в `default -> mapcyclefile`.
-- Отдельные режимные секции (`mapchooser_dz`, `nominations_comp` и т.п.) **не используются** как основной механизм, чтобы избежать расхождения пулов между плагинами.
-
-Итог: игровой vote и админские vote-команды всегда работают с тем же режимным пулом, который выставляет `mode_vote`.
-
-## 🧭 Mode Router policy
-
-Для переключения режимов используйте только `csgo/cfg/mode_router.cfg` и его aliases.
-
-- Плагин `mode_vote` переключает профили исключительно через router aliases.
-- Ручные админ-действия в консоли тоже должны идти через router: сначала `exec mode_router.cfg`, затем `mode_comp`, `mode_dz`, `mode_dz_solo`, `mode_dz_duo`, `mode_dz_trio`, `mode_dz_teams_auto`, `mode_dz_teams_open`.
-- Не выполняйте напрямую `exec mode_*.cfg` в обход router, чтобы не ломать единый путь применения профилей.
-
-
-## ✅ Чеклист добавления нового режима
-
-Единый источник правды для режимов — массив `g_Modes[]` в `csgo/addons/sourcemod/scripting/mode_vote.sp`.
-
-1. Добавьте запись в `g_Modes[]` с обязательными полями: `id`, `routerAlias`, `mapListFile`, `cfgFile`, `mapgroup`, а также `startMap` и `fallbackMap`.
-2. Создайте/проверьте соответствующий router alias в `csgo/cfg/mode_router.cfg` (имя должно совпадать с `routerAlias`).
-3. Убедитесь, что существует файл режима `cfgFile` в `csgo/cfg/` и файл списка карт `mapListFile`.
-4. Проверьте валидность `startMap` и `fallbackMap` (карты должны существовать на сервере).
-5. Синхронизируйте `csgo/addons/sourcemod/configs/adminmenu_custom.txt` с `g_Modes[]` в формате 1:1 по `id` для `sm_forcemode`.
-6. После запуска сервера проверьте логи `mode_vote`: стартовая валидация должна пройти без ошибок (alias/cfg/maplist/map).
-7. Проверьте, что `adminmenu_custom.txt` содержит все `id` из `g_Modes[]` (это тоже контролируется стартовой валидацией плагина).
-
-## 🎛️ `mode_vote` параметры: влияние на UX/баланс
-
-Ниже — ключевые параметры голосования за режим, вынесенные в `ConVar` и autoexec-конфиг `csgo/cfg/sourcemod/mode_vote.cfg`.
-
-| Параметр | По умолчанию | Влияние на UX/баланс |
-|---|---:|---|
-| `sm_mode_vote_duration` | `20.0` | Длительность окна голосования. Меньше значение ускоряет темп матча (быстрые решения), но часть игроков может не успеть проголосовать. Больше значение повышает вовлечённость, но замедляет цикл раундов/переключений. |
-| `sm_mode_vote_cooldown` | `120` | Пауза между запусками `sm_votemode`. Низкий кулдаун даёт гибкость и быстрый отклик на онлайн, но может вызвать «спам» голосованиями. Высокий кулдаун стабилизирует ротацию и снижает конфликтность, но уменьшает адаптивность. |
-| `sm_mode_vote_min_players` | `4` | Минимум живых/онлайн людей (human players) для старта голосования. Более низкое значение удобно для малых онлайнов и ночных сессий, но может приводить к частым переключениям от небольшой группы. Более высокое — лучше для стабильного баланса на populated-сервере. |
-
-Все три параметра в плагине защищены fail-safe проверкой диапазонов (clamp + warning в лог), чтобы сервер оставался в рабочем состоянии даже при некорректных значениях в конфиге.
-
-
-## 🎛 Отдельное админ-меню ModeVote
-
-ModeVote теперь использует собственное меню и не смешивается со стандартным SourceMod adminmenu.
-
-- Открыть отдельное меню ModeVote: `sm_modeadmin`
-- Внутри доступны: смена режима, DZ size, DZ teams, запуск голосования, перезагрузка maplist-кэша.
-
-
-## ❓ Команда меню плагина
-
-- Для игроков: `!mode` (или `sm_mode`), быстрый DZ: `!dz`, помощь: `!help_mode`.
-- Для админов: `sm_modeadmin` — отдельное меню управления ModeVote.
+> Важно: ServerFlow — единственная поддерживаемая архитектура в активном run/build-пайплайне. Документы в `docs/` являются source of truth.

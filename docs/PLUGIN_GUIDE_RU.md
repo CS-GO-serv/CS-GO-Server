@@ -96,6 +96,8 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `mapgroup`
 - `start_map`
 - `cfg_file`
+- `playlist_id` — ID плейлиста в `playlists.cfg`, который связан со сценарием.
+- `maplist_policy` — политика выбора source of truth для map pool (`playlist`/`scenario`).
 - `maplist_file`
 - `fallback_map`
 - `rotation_mode` (`sequential`/`random`)
@@ -107,8 +109,27 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 Если `maplist_file` пуст для известных id (`dz`, `comp`, `casual`) — применяется встроенный fallback maplist.
 
+### Source of truth для map pool
+- `maplist_policy=playlist`: source of truth — `playlists.cfg` (поле `maplist_file` внутри плейлиста, на который указывает `playlist_id`).
+- `maplist_policy=scenario`: source of truth — `scenarios.cfg` (поле `maplist_file` самого сценария).
+
 ## 3.3 `playlists.cfg`
-Используется как декларативный слой плейлистов. В текущей реализации основной фактический источник карт для сценария — поле `maplist_file` у сценария + чтение соответствующего txt файла.
+`playlists.cfg` хранит декларативные playlist-метаданные (`maplist_file`, `rotation_mode`, `fallback_map`) и используется как source of truth для map pool, когда в сценарии стоит `maplist_policy=playlist`.
+
+### Конкретные примеры
+1. **Сценарий `maplist_policy=playlist`** (поддерживается и используется сейчас):
+   - В `scenarios.cfg`:
+     - `playlist_id "comp"`
+     - `maplist_policy "playlist"`
+   - В `playlists.cfg` секция `"comp"` содержит `maplist_file "cfg/maplist_comp.txt"`.
+   - Итог: map pool берётся из `playlists.cfg` по `playlist_id`.
+
+2. **Сценарий `maplist_policy=scenario`** (поддерживается парсером):
+   - В `scenarios.cfg`:
+     - `playlist_id "dz"` (для связи с fallback/rotation плейлиста)
+     - `maplist_policy "scenario"`
+     - `maplist_file "cfg/maplist_custom_dz.txt"`
+   - Итог: source of truth для map pool — `maplist_file` этого сценария.
 
 ## 3.4 `lang_ru.cfg`, `lang_en.cfg`
 Языковые ключи заготовлены, но текущий UX во многом использует технические/промежуточные сообщения. Это ожидаемо на текущей стадии миграции.
@@ -294,7 +315,7 @@ cmd /k build_serverflow.bat
 
 - `serverflow.sp` — точка входа компиляции.
 - `serverflow/serverflow.sp` — bootstrap/orchestration.
-- `configs/serverflow/scenarios.cfg` — какие сценарии и какие карты/параметры.
+- `configs/serverflow/scenarios.cfg` — сценарии, `playlist_id`, `maplist_policy` и сценарные параметры.
 - `build_serverflow.bat` — каноническая сборка + диагностика.
 - `plugins/serverflow.smx` — файл, который реально должен загрузить SourceMod.
 - `scripting/compiled/serverflow.smx` — зеркало артефакта для удобства.

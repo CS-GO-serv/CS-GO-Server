@@ -76,6 +76,16 @@ Legacy build-chain удалён из активного run-flow. Единств
 - `csgo/addons/sourcemod/configs/serverflow/lang_en.cfg`
 - `csgo/addons/sourcemod/configs/serverflow/examples/*`
 
+### Термины map pool (синхронизировано с `docs/PLUGIN_GUIDE_RU.md`)
+- `playlist_id` — ссылка из сценария (`scenarios.cfg`) на секцию в `playlists.cfg`.
+- `maplist_policy` — кто source of truth для map pool:
+  - `playlist` -> map pool берётся из `playlists.cfg` (`maplist_file` плейлиста по `playlist_id`).
+  - `scenario` -> map pool берётся из `scenarios.cfg` (`maplist_file` сценария).
+
+Примеры:
+- `maplist_policy=playlist`: `playlist_id="comp"`, карта-пул читается из `playlists.cfg` -> `"comp"` -> `maplist_file`.
+- `maplist_policy=scenario` (поддерживается): сценарий задаёт собственный `maplist_file`, и он становится source of truth.
+
 > Важно: ServerFlow — единственная поддерживаемая архитектура в активном run/build-пайплайне. Документы в `docs/` являются source of truth.
 
 

@@ -1,3 +1,6 @@
+// ARCHIVE ONLY: historical reference for legacy mode_vote.
+// NOT RUNTIME PATH: do not include in active build/start/command-help flow.
+
 #include <sourcemod>
 
 #pragma semicolon 1

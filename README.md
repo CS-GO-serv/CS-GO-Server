@@ -8,7 +8,7 @@
 - Корневой модуль: `csgo/addons/sourcemod/scripting/serverflow/serverflow.sp`
 - Выходной бинарник: `csgo/addons/sourcemod/plugins/serverflow.smx`
 
-`mode_vote` больше не является основной архитектурой. Старый код сохранён только в архиве:
+`mode_vote` больше не является основной архитектурой и не участвует в runtime/build path. Старый код сохранён только как историческая справка в архиве (**not runtime path**):
 `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`.
 
 ## Build / run
@@ -25,7 +25,7 @@ build_serverflow.bat
   - `csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt`
 
 ### Legacy-совместимость
-Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
+Legacy build-chain удалён из активного run-flow. Единственный runtime/build entrypoint — **ServerFlow** через `build_serverflow.bat`; архивный `mode_vote` — только historical reference (**not runtime path**).
 
 ### Старт сервера
 - `start.bat`

@@ -31,7 +31,10 @@
 - `docs/agents_md_codex_csgo_plugin_ru.md`
 - `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
 
----
+### 1.2 Legacy
+- Legacy-исходник сохранён как архив:  
+  `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
+- Legacy build script удалён из активного цикла. Используйте только `build_serverflow.bat`.
 
 ## 2) Как собрать и запустить
 
@@ -176,7 +179,12 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - При apply ServerFlow выставляет `game_type` и `game_mode` сценария, затем применяет `cfg_file`/`mapgroup`, и только потом делает `changelevel`.
 - Если раньше наблюдался кейс «карта DZ загрузилась, но режим остался casual», проверьте именно шаг `sm_confirmpending` и наличие в логах строк про `game_type/game_mode`.
 
----
+Состояния:
+- `Lobby`
+- `PreMatch`
+- `Match`
+- `PostMatch`
+- `Transition`
 
 ## 6) Подробный тест-план (для тестеров)
 
@@ -215,7 +223,11 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - Факт
 - Логи (`errors_*.log`, `build_serverflow.log`, `mode_actions.log`)
 
----
+Что проверять тестеру:
+1. В Lobby доступны выбор/голосование.
+2. Pending создаётся, подтверждается, отменяется.
+3. Прямого «хаотичного» apply без transition/pending нет.
+4. В PreMatch ready/countdown/lock фазы не ломают состояние.
 
 ## 7) Диагностика ошибок: быстрый разбор
 

@@ -5,16 +5,40 @@
 
 #define SERVERFLOW_SCENARIOS_CONFIG "addons/sourcemod/configs/serverflow/scenarios.cfg"
 
-static bool Scenarios_ParseRotationMode(const char[] value, RotationMode &mode)
+static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &policy)
 {
-    if (StrEqual(value, "random", false))
+    if (StrEqual(value, "playlist", false) || StrEqual(value, "", false))
     {
-        mode = RotationMode_Random;
+        policy = MaplistPolicy_Playlist;
         return true;
     }
 
-    mode = RotationMode_Sequential;
-    return StrEqual(value, "sequential", false) || StrEqual(value, "", false);
+    if (StrEqual(value, "scenario", false))
+    {
+        policy = MaplistPolicy_Scenario;
+        return true;
+    }
+
+    return false;
+}
+
+// Must be by-reference so fallback values are persisted in the caller.
+static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario)
+{
+    if (scenario.routerAlias[0] == '\0')
+    {
+        kv.GetString("router", scenario.routerAlias, sizeof(scenario.routerAlias), "");
+    }
+
+    if (scenario.playlistId[0] == '\0')
+    {
+        kv.GetString("playlist", scenario.playlistId, sizeof(scenario.playlistId), "");
+    }
+
+    if (scenario.playlistId[0] == '\0')
+    {
+        strcopy(scenario.playlistId, sizeof(scenario.playlistId), scenario.id);
+    }
 }
 
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
@@ -27,9 +51,9 @@ bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
         valid = false;
     }
 
-    if (scenario.mapListFile[0] == '\0')
+    if (scenario.playlistId[0] == '\0')
     {
-        LogError("[serverflow] invalid scenario '%s': maplist cannot be empty", scenario.id);
+        LogError("[serverflow] invalid scenario '%s': playlist_id cannot be empty", scenario.id);
         valid = false;
     }
 
@@ -54,12 +78,58 @@ int Scenarios_FindById(const char[] id)
     return FindModeById(id);
 }
 
+void Scenarios_LoadFallbackDefaults()
+{
+    g_ScenarioCount = 0;
+
+    ModeInfo dz;
+    strcopy(dz.id, sizeof(dz.id), "dz");
+    strcopy(dz.routerAlias, sizeof(dz.routerAlias), "mode_dz");
+    strcopy(dz.namePhrase, sizeof(dz.namePhrase), "Mode Name DZ");
+    dz.gameType = 6;
+    dz.gameMode = 0;
+    strcopy(dz.mapgroup, sizeof(dz.mapgroup), "mg_dz_blacksite");
+    strcopy(dz.startMap, sizeof(dz.startMap), "dz_blacksite");
+    strcopy(dz.cfgFile, sizeof(dz.cfgFile), "mode_dz.cfg");
+    strcopy(dz.playlistId, sizeof(dz.playlistId), "dz");
+    dz.maplistPolicy = MaplistPolicy_Playlist;
+    Scenarios_Register(dz);
+
+    ModeInfo comp;
+    strcopy(comp.id, sizeof(comp.id), "comp");
+    strcopy(comp.routerAlias, sizeof(comp.routerAlias), "mode_comp");
+    strcopy(comp.namePhrase, sizeof(comp.namePhrase), "Mode Name Comp");
+    comp.gameType = 0;
+    comp.gameMode = 1;
+    strcopy(comp.mapgroup, sizeof(comp.mapgroup), "mg_active");
+    strcopy(comp.startMap, sizeof(comp.startMap), "de_mirage");
+    strcopy(comp.cfgFile, sizeof(comp.cfgFile), "mode_comp.cfg");
+    strcopy(comp.playlistId, sizeof(comp.playlistId), "comp");
+    comp.maplistPolicy = MaplistPolicy_Playlist;
+    Scenarios_Register(comp);
+
+    ModeInfo casual;
+    strcopy(casual.id, sizeof(casual.id), "casual");
+    strcopy(casual.routerAlias, sizeof(casual.routerAlias), "mode_casual");
+    strcopy(casual.namePhrase, sizeof(casual.namePhrase), "Mode Name Casual");
+    casual.gameType = 0;
+    casual.gameMode = 0;
+    strcopy(casual.mapgroup, sizeof(casual.mapgroup), "mg_casualdelta");
+    strcopy(casual.startMap, sizeof(casual.startMap), "de_mirage");
+    strcopy(casual.cfgFile, sizeof(casual.cfgFile), "mode_casual.cfg");
+    strcopy(casual.playlistId, sizeof(casual.playlistId), "casual");
+    casual.maplistPolicy = MaplistPolicy_Playlist;
+    Scenarios_Register(casual);
+
+    LogError("[serverflow] loaded fallback in-memory scenarios: %d", g_ScenarioCount);
+}
+
 bool Scenarios_LoadFromConfig()
 {
     g_ScenarioCount = 0;
 
     char path[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, path, sizeof(path), "%s", SERVERFLOW_SCENARIOS_CONFIG);
+    strcopy(path, sizeof(path), SERVERFLOW_SCENARIOS_CONFIG);
 
     KeyValues kv = new KeyValues("ServerFlowScenarios");
     if (!kv.ImportFromFile(path))
@@ -81,22 +151,23 @@ bool Scenarios_LoadFromConfig()
         ModeInfo scenario;
         kv.GetSectionName(scenario.id, sizeof(scenario.id));
         kv.GetString("router_alias", scenario.routerAlias, sizeof(scenario.routerAlias), "");
-        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "Mode Name Default");
+        kv.GetString("name_phrase", scenario.namePhrase, sizeof(scenario.namePhrase), "mode.name.default");
         scenario.gameType = kv.GetNum("game_type", 0);
         scenario.gameMode = kv.GetNum("game_mode", 0);
         kv.GetString("mapgroup", scenario.mapgroup, sizeof(scenario.mapgroup), "");
         kv.GetString("start_map", scenario.startMap, sizeof(scenario.startMap), "");
         kv.GetString("cfg_file", scenario.cfgFile, sizeof(scenario.cfgFile), "");
-        kv.GetString("maplist_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
-        kv.GetString("fallback_map", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
+        kv.GetString("playlist_id", scenario.playlistId, sizeof(scenario.playlistId), "");
 
-        char rotationModeRaw[24];
-        kv.GetString("rotation_mode", rotationModeRaw, sizeof(rotationModeRaw), "sequential");
-        if (!Scenarios_ParseRotationMode(rotationModeRaw, scenario.rotationMode))
+        char maplistPolicyRaw[24];
+        kv.GetString("maplist_policy", maplistPolicyRaw, sizeof(maplistPolicyRaw), "playlist");
+        if (!Scenarios_ParseMaplistPolicy(maplistPolicyRaw, scenario.maplistPolicy))
         {
-            LogError("[serverflow] invalid rotation_mode '%s' for scenario '%s'; using sequential", rotationModeRaw, scenario.id);
-            scenario.rotationMode = RotationMode_Sequential;
+            LogError("[serverflow] invalid maplist_policy '%s' for scenario '%s'; using playlist", maplistPolicyRaw, scenario.id);
+            scenario.maplistPolicy = MaplistPolicy_Playlist;
         }
+
+        Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))
         {
@@ -109,6 +180,7 @@ bool Scenarios_LoadFromConfig()
             continue;
         }
 
+        LogMessage("[serverflow] scenario loaded: id=%s playlist=%s mapgroup=%s", scenario.id, scenario.playlistId, scenario.mapgroup);
         Scenarios_Register(scenario);
     }
     while (kv.GotoNextKey(false));

@@ -8,14 +8,20 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_mode", Command_ModeMenu);
     RegConsoleCmd("sm_votemode", Command_VoteMode);
     RegConsoleCmd("sm_status", Command_Status);
+    RegConsoleCmd("sm_status_verbose", Command_StatusVerbose);
     RegConsoleCmd("sm_ready", Command_Ready);
     RegConsoleCmd("sm_unready", Command_Unready);
+    RegConsoleCmd("sm_team", Command_Team);
+    RegConsoleCmd("sm_lobby", Command_Lobby);
+    RegConsoleCmd("sm_help_serverflow", Command_HelpServerFlow);
 
     RegConsoleCmd("sm_queuescenario", Command_QueueScenario);
     RegConsoleCmd("sm_queuemap", Command_QueueMap);
     RegConsoleCmd("sm_confirmpending", Command_ConfirmPending);
     RegConsoleCmd("sm_cancelpending", Command_CancelPending);
     RegConsoleCmd("sm_forcescenario", Command_OverrideScenario);
+    RegAdminCmd("sm_sfhealth", Command_RuntimeHealth, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_sfdump", Command_RuntimeDump, ADMFLAG_CHANGEMAP);
 }
 
 bool CommandRouter_RequestScenarioSelect(int client, int modeIndex, const char[] source = "player_select")
@@ -118,7 +124,7 @@ bool CommandRouter_RequestConfirmPending(int client)
     return Transition_ConfirmAndApplyPending(client, "admin_confirm");
 }
 
-bool CommandRouter_RequestCancelPending(int client)
+bool CommandRouter_RequestCancelPending(int client, const char[] why = "")
 {
     char reason[48];
     if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
@@ -127,7 +133,7 @@ bool CommandRouter_RequestCancelPending(int client)
         return false;
     }
 
-    Transition_CancelPending("admin_cancel");
+    Transition_CancelPending("admin_cancel", why);
     return true;
 }
 
@@ -139,5 +145,32 @@ bool CommandRouter_RequestOverrideScenario(int client, const char[] scenarioId)
         return false;
     }
 
+    return true;
+}
+
+
+bool CommandRouter_RequestRuntimeHealth(int client)
+{
+    char reason[48];
+    if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
+    {
+        Notify_RequestDenied(client, reason);
+        return false;
+    }
+
+    Health_RunFullCheck("admin_runtime");
+    return true;
+}
+
+bool CommandRouter_RequestRuntimeDump(int client)
+{
+    char reason[48];
+    if (!State_CanClientManageTransitions(client, reason, sizeof(reason)))
+    {
+        Notify_RequestDenied(client, reason);
+        return false;
+    }
+
+    StateDump_ToServer();
     return true;
 }

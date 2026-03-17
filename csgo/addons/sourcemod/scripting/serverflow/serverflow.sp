@@ -48,6 +48,7 @@
 #include "integrations/client_hooks.inc"
 #include "integrations/game_events.inc"
 #include "integrations/timers.inc"
+#include "integrations/afk_monitor.inc"
 
 #include "diagnostics/health_check.inc"
 
@@ -68,6 +69,7 @@ static void Bootstrap_Minimal()
 
     CommandRouter_Register();
     Integrations_RegisterEvents();
+    AfkMonitor_Init();
 }
 
 public void OnPluginStart()
@@ -89,6 +91,8 @@ public void OnMapStart()
 public void OnClientPostAdminCheck(int client)
 {
     PlayerState_OnClientAuthorized(client);
+    Policy_ApplyLateJoinGate(client, "client_post_admin_check");
+    AfkMonitor_RecordClientActivity(client, "client_post_admin_check");
 }
 
 public void OnClientDisconnect(int client)
@@ -99,4 +103,19 @@ public void OnClientDisconnect(int client)
 public void OnServerStateChanged(ServerState oldState, ServerState newState, const char[] reason)
 {
     Notify_StateChanged(oldState, newState, reason);
+}
+
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon)
+{
+    if (!IsValidClient(client))
+    {
+        return Plugin_Continue;
+    }
+
+    if (buttons != 0 || impulse != 0 || FloatAbs(vel[0]) > 0.0 || FloatAbs(vel[1]) > 0.0 || FloatAbs(vel[2]) > 0.0)
+    {
+        AfkMonitor_RecordClientActivity(client, "run_cmd");
+    }
+
+    return Plugin_Continue;
 }

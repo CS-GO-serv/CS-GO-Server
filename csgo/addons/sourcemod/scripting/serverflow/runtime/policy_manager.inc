@@ -39,6 +39,51 @@ bool Policy_IsVoteAllowed(ServerState state)
     return (state == ServerState_Lobby || state == ServerState_PostMatch);
 }
 
+bool Policy_ApplyLateJoinGate(int client, const char[] source)
+{
+    if (!IsValidClient(client))
+    {
+        return false;
+    }
+
+    if (Session_GetState() != ServerState_PreMatch && Session_GetState() != ServerState_Match)
+    {
+        PlayerState_SetLifecycle(client, PlayerLifecycle_Eligible);
+        Audit_LogEvent("policy", "late_join", client, "bypass", "state_not_live");
+        ModeDebug("late join gate bypass: client=%N source=%s state=%d", client, source, Session_GetState());
+        return true;
+    }
+
+    switch (g_LateJoinPolicy)
+    {
+        case LateJoinPolicy_Disallow:
+        {
+            PlayerState_SetLifecycle(client, PlayerLifecycle_LateJoin);
+            ReadyManager_ForceUnready(client, "late_join_disallow");
+            ChangeClientTeam(client, 1);
+            PrintToChat(client, "[ServerFlow] Позднее подключение запрещено. Вы переведены в наблюдатели.");
+            Audit_LogEvent("policy", "late_join", client, "denied", "policy_disallow");
+            ModeDebug("late join denied: client=%N source=%s policy=%d", client, source, g_LateJoinPolicy);
+            return false;
+        }
+        case LateJoinPolicy_Spectator:
+        {
+            PlayerState_SetLifecycle(client, PlayerLifecycle_LateJoin);
+            ReadyManager_ForceUnready(client, "late_join_spectator");
+            ChangeClientTeam(client, 1);
+            PrintToChat(client, "[ServerFlow] Позднее подключение в матч запрещено: наблюдайте до следующей стадии.");
+            Audit_LogEvent("policy", "late_join", client, "spectator", "policy_spectator");
+            ModeDebug("late join spectator: client=%N source=%s policy=%d", client, source, g_LateJoinPolicy);
+            return true;
+        }
+    }
+
+    PlayerState_SetLifecycle(client, PlayerLifecycle_Eligible);
+    Audit_LogEvent("policy", "late_join", client, "allow", "policy_allow");
+    ModeDebug("late join allowed: client=%N source=%s policy=%d", client, source, g_LateJoinPolicy);
+    return true;
+}
+
 bool State_CanClientSelectScenario(int client, int scenarioIndex, char[] reason, int reasonLen)
 {
     if (!IsValidClient(client))

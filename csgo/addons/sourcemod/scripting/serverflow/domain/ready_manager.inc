@@ -24,7 +24,13 @@ void ReadyManager_ResetAll(const char[] source = "reset")
 
 bool ReadyManager_IsClientInPool(int client)
 {
-    return IsValidClient(client) && !Session_IsLockPhase();
+    if (!IsValidClient(client) || Session_IsLockPhase())
+    {
+        return false;
+    }
+
+    PlayerLifecycleState lifecycle = PlayerState_GetLifecycle(client);
+    return (lifecycle != PlayerLifecycle_Afk && lifecycle != PlayerLifecycle_LateJoin);
 }
 
 bool ReadyManager_IsClientReady(int client)
@@ -35,6 +41,23 @@ bool ReadyManager_IsClientReady(int client)
     }
 
     return g_ReadyFlags[client];
+}
+
+void ReadyManager_ForceUnready(int client, const char[] source = "force_unready")
+{
+    if (client < 1 || client > MaxClients)
+    {
+        return;
+    }
+
+    if (!g_ReadyFlags[client])
+    {
+        return;
+    }
+
+    g_ReadyFlags[client] = false;
+    Notify_ReadyChanged(client, false, ReadyManager_GetReadyCount(), ReadyManager_GetPoolCount());
+    ReadyManager_Reevaluate(source);
 }
 
 int ReadyManager_GetPoolCount()

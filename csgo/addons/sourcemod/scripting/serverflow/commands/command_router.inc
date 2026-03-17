@@ -77,6 +77,7 @@ bool CommandRouter_RequestReadyToggle(int client, bool ready, const char[] sourc
         return false;
     }
 
+    AfkMonitor_RecordClientActivity(client, source);
     return true;
 }
 

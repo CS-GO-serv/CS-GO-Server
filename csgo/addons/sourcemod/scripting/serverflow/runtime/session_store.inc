@@ -44,7 +44,13 @@ void Session_Init()
     g_Session.pendingChange.source[0] = '\0';
     g_Session.pendingChange.requestedBy = 0;
     g_Session.pendingChange.requestedAt = 0;
-    g_Session.pendingChange.confirmDeadline = 0;
+    g_Session.pendingChange.confirmedBy = 0;
+    g_Session.pendingChange.confirmedAt = 0;
+    g_Session.pendingChange.why[0] = '\0';
+    g_Session.pendingChange.cancelReason[0] = '\0';
+    g_Session.pendingChange.allowedApplyState = ServerState_Lobby;
+    g_Session.pendingChange.expiresAt = 0;
+    g_Session.pendingChange.confirmPolicy = PendingConfirm_Manual;
 
     Session_ResetVote();
 
@@ -109,6 +115,27 @@ int Session_GetCountdownEndsAt()
     return g_Session.countdownEndsAt;
 }
 
+
+void Session_SetOverrideLevel(OverrideLevel level)
+{
+    g_Session.overrideLevel = level;
+}
+
+OverrideLevel Session_GetOverrideLevel()
+{
+    return g_Session.overrideLevel;
+}
+
+void Session_SetFallbackReason(const char[] reason)
+{
+    strcopy(g_Session.fallbackReason, sizeof(g_Session.fallbackReason), reason);
+}
+
+void Session_GetFallbackReason(char[] buffer, int maxlen)
+{
+    strcopy(buffer, maxlen, g_Session.fallbackReason);
+}
+
 void Session_SetCurrentScenario(const char[] scenarioId)
 {
     strcopy(g_Session.previousScenario, sizeof(g_Session.previousScenario), g_Session.currentScenario);
@@ -137,7 +164,7 @@ void Session_GetQueuedScenario(char[] buffer, int maxlen)
     strcopy(buffer, maxlen, g_Session.queuedScenario);
 }
 
-void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, const char[] source, int actor, int confirmWindow)
+void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, const char[] source, int actor, const char[] why, ServerState allowedApplyState, int expiresAt, PendingConfirmPolicy confirmPolicy)
 {
     g_Session.pendingChange.state = Pending_Proposed;
     strcopy(g_Session.pendingChange.scenarioId, sizeof(g_Session.pendingChange.scenarioId), scenarioId);
@@ -145,7 +172,13 @@ void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, con
     strcopy(g_Session.pendingChange.source, sizeof(g_Session.pendingChange.source), source);
     g_Session.pendingChange.requestedBy = actor;
     g_Session.pendingChange.requestedAt = GetTime();
-    g_Session.pendingChange.confirmDeadline = g_Session.pendingChange.requestedAt + confirmWindow;
+    g_Session.pendingChange.confirmedBy = 0;
+    g_Session.pendingChange.confirmedAt = 0;
+    strcopy(g_Session.pendingChange.why, sizeof(g_Session.pendingChange.why), why);
+    g_Session.pendingChange.cancelReason[0] = '\0';
+    g_Session.pendingChange.allowedApplyState = allowedApplyState;
+    g_Session.pendingChange.expiresAt = expiresAt;
+    g_Session.pendingChange.confirmPolicy = confirmPolicy;
 }
 
 void Session_SetPendingChangeState(PendingChangeState state)
@@ -153,12 +186,23 @@ void Session_SetPendingChangeState(PendingChangeState state)
     g_Session.pendingChange.state = state;
 }
 
+void Session_SetPendingChangeCancellationReason(const char[] reason)
+{
+    strcopy(g_Session.pendingChange.cancelReason, sizeof(g_Session.pendingChange.cancelReason), reason);
+}
+
+void Session_SetPendingChangeConfirmed(int actor, int confirmedAt)
+{
+    g_Session.pendingChange.confirmedBy = actor;
+    g_Session.pendingChange.confirmedAt = confirmedAt;
+}
+
 PendingChangeState Session_GetPendingChangeState()
 {
     return g_Session.pendingChange.state;
 }
 
-void Session_GetPendingChange(PendingChange &change)
+void Session_GetPendingChange(PendingChange change)
 {
     change = g_Session.pendingChange;
 }
@@ -171,7 +215,14 @@ void Session_ClearPendingChange()
     g_Session.pendingChange.source[0] = '\0';
     g_Session.pendingChange.requestedBy = 0;
     g_Session.pendingChange.requestedAt = 0;
-    g_Session.pendingChange.confirmDeadline = 0;
+    g_Session.pendingChange.confirmedBy = 0;
+    g_Session.pendingChange.confirmedAt = 0;
+    g_Session.pendingChange.why[0] = '\0';
+    g_Session.pendingChange.cancelReason[0] = '\0';
+    g_Session.pendingChange.allowedApplyState = ServerState_Lobby;
+    g_Session.pendingChange.expiresAt = 0;
+    g_Session.pendingChange.confirmPolicy = PendingConfirm_Manual;
+    g_Session.overrideLevel = OverrideLevel_None;
 }
 
 bool Session_IsVoteInProgress()

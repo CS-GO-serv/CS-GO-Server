@@ -15,6 +15,7 @@
 
 #include "runtime/session_store.inc"
 #include "runtime/state_manager.inc"
+#include "runtime/policy_manager.inc"
 #include "runtime/pending_change.inc"
 #include "runtime/transition_manager.inc"
 
@@ -71,7 +72,7 @@ static void Bootstrap_Minimal()
 
 public void OnPluginStart()
 {
-    LoadTranslations("mode_vote.phrases");
+    LoadTranslations("serverflow.phrases");
 
     Bootstrap_Minimal();
     Health_RunFullCheck("OnPluginStart");

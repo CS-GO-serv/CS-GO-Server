@@ -36,6 +36,12 @@ enum PendingChangeState
     Pending_Applying
 };
 
+enum PendingConfirmPolicy
+{
+    PendingConfirm_Manual = 0,
+    PendingConfirm_Auto
+};
+
 enum PlayerLifecycleState
 {
     PlayerLifecycle_Connected = 0,
@@ -123,6 +129,12 @@ enum RotationMode
     RotationMode_Random
 };
 
+enum MaplistPolicy
+{
+    MaplistPolicy_Playlist = 0,
+    MaplistPolicy_Scenario
+};
+
 enum TransitionType
 {
     TransitionType_None = 0,
@@ -139,5 +151,6 @@ enum HealthStatus
 {
     HealthStatus_Ok = 0,
     HealthStatus_Warn,
+    HealthStatus_Degraded,
     HealthStatus_Fail
 };

@@ -77,3 +77,29 @@ Legacy build-chain удалён из активного run-flow. Официал
 - `csgo/addons/sourcemod/configs/serverflow/examples/*`
 
 > Важно: ServerFlow — единственная поддерживаемая архитектура в активном run/build-пайплайне. Документы в `docs/` являются source of truth.
+
+
+## Scope PR
+
+Разрешённый scope для активных PR ограничен whitelist-областями:
+- `csgo/addons/sourcemod/scripting/serverflow/**` и `csgo/addons/sourcemod/scripting/serverflow.sp`
+- `csgo/addons/sourcemod/configs/serverflow/**`
+- `docs/**`
+- старт/билд скрипты: `build_serverflow.bat`, `start.bat`, `start_classic.bat`, `start_dz.bat`
+- нужные текстовые артефакты: `Log/**`, `serverflow.smx.b64.txt`
+
+Из PR-диффа нужно исключать массовые изменения вне scope, в том числе:
+- `csgo/addons/sourcemod/scripting/base*`
+- `csgo/addons/sourcemod/scripting/fun*`
+- `csgo/addons/sourcemod/scripting/include/*`
+- `csgo/addons/sourcemod/scripting/testsuite/*`
+
+Если такие изменения попали в рабочую ветку случайно, удаляйте их из диффа перед review, например:
+
+```bash
+git restore --staged --worktree \
+  csgo/addons/sourcemod/scripting/base* \
+  csgo/addons/sourcemod/scripting/fun* \
+  csgo/addons/sourcemod/scripting/include \
+  csgo/addons/sourcemod/scripting/testsuite
+```

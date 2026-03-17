@@ -24,7 +24,17 @@
 - **Базовый state flow и команды**: рабочие.
 - **Production-polish по ТЗ** (UX depth, расширенная диагностика, часть сценарных правил): частично.
 
----
+### 1.4 Документы-источники истины
+- `docs/design_doc_csgo_server_plugin_ru.md`
+- `docs/technical_spec_codex_csgo_plugin_ru.md`
+- `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
+- `docs/agents_md_codex_csgo_plugin_ru.md`
+- `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
+
+### 1.2 Legacy
+- Legacy-исходник сохранён как архив:  
+  `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
+- Legacy build script удалён из активного цикла. Используйте только `build_serverflow.bat`.
 
 ## 2) Как собрать и запустить
 
@@ -54,6 +64,11 @@ build_serverflow.bat
 certutil -decode csgo\addons\sourcemod\plugins\serverflow.smx.b64.txt csgo\addons\sourcemod\plugins\serverflow.smx
 certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt csgo\addons\sourcemod\scripting\compiled\serverflow.smx
 ```
+
+### Политика для PR
+- В PR не добавляем бинарные файлы (`*.smx`, `spcomp*.exe`, `compile.exe/dat`).
+- Для репликации артефактов между хостами используем только `.b64.txt`.
+- Если в PR внезапно попали бинарники — удаляем их из индекса до создания PR.
 
 ## 2.3 Старт сервера
 - `start.bat`
@@ -120,6 +135,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `sm_mode` — открыть меню выбора сценария. **Работает**.
 - `sm_votemode` — старт голосования сценария (при соблюдении условий). **Работает**.
 - `sm_status` — вывести текущий статус. **Работает**.
+- `sm_status_verbose` — расширенный статус для отладки (state/pending/таймеры/next action). **Работает**.
 - `sm_ready` — отметить ready. **Работает**.
 - `sm_unready` — снять ready. **Работает**.
 - `sm_team` — открыть Team/Ready меню (ready/unready/status) вне Transition. **Работает**.
@@ -163,7 +179,12 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - При apply ServerFlow выставляет `game_type` и `game_mode` сценария, затем применяет `cfg_file`/`mapgroup`, и только потом делает `changelevel`.
 - Если раньше наблюдался кейс «карта DZ загрузилась, но режим остался casual», проверьте именно шаг `sm_confirmpending` и наличие в логах строк про `game_type/game_mode`.
 
----
+Состояния:
+- `Lobby`
+- `PreMatch`
+- `Match`
+- `PostMatch`
+- `Transition`
 
 ## 6) Подробный тест-план (для тестеров)
 
@@ -176,12 +197,13 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 
 ## 6.2 Smoke (обязательный минимум)
 1. `sm_status`
-2. `sm_mode`
-3. `sm_votemode`
-4. `sm_queuescenario dz`
-5. `sm_confirmpending`
-6. `sm_queuescenario comp`
-7. `sm_cancelpending`
+2. `sm_status_verbose`
+3. `sm_mode`
+4. `sm_votemode`
+5. `sm_queuescenario dz`
+6. `sm_confirmpending`
+7. `sm_queuescenario comp`
+8. `sm_cancelpending`
 
 Критерий прохождения:
 - нет `SetFailState`/startup crash;
@@ -201,7 +223,11 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - Факт
 - Логи (`errors_*.log`, `build_serverflow.log`, `mode_actions.log`)
 
----
+Что проверять тестеру:
+1. В Lobby доступны выбор/голосование.
+2. Pending создаётся, подтверждается, отменяется.
+3. Прямого «хаотичного» apply без transition/pending нет.
+4. В PreMatch ready/countdown/lock фазы не ломают состояние.
 
 ## 7) Диагностика ошибок: быстрый разбор
 
@@ -277,3 +303,15 @@ cmd /k build_serverflow.bat
 - `build_serverflow.bat` — каноническая сборка + диагностика.
 - `plugins/serverflow.smx` — файл, который реально должен загрузить SourceMod.
 - `scripting/compiled/serverflow.smx` — зеркало артефакта для удобства.
+
+---
+
+## 11) UX-правило для всех тестов
+
+Если механика работает технически, но игрок/админ не понимает:
+- что происходит сейчас,
+- почему это происходит,
+- что произойдёт дальше,
+- что можно сделать прямо сейчас,
+
+то кейс считается **частично проваленным по UX** и должен фиксироваться в баг-репорте отдельно от runtime-ошибок.

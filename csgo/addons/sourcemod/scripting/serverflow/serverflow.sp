@@ -15,6 +15,7 @@
 
 #include "runtime/session_store.inc"
 #include "runtime/state_manager.inc"
+#include "runtime/policy_manager.inc"
 #include "runtime/pending_change.inc"
 #include "runtime/transition_manager.inc"
 

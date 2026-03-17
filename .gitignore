@@ -30,7 +30,6 @@
 # 4. Разрешаем конкретные типы файлов внутри этих папок
 !*.ini
 !*.vdf
-!*.smx
 !*.sp
 
 # 5. Исключения (что НЕ НУЖНО заливать даже если это .txt или .cfg)
@@ -70,3 +69,11 @@ start_classic.local.bat
 
 !/csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt
 !/csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt
+
+# Binary artifacts are not versioned in PR flow
+/csgo/addons/sourcemod/plugins/*.smx
+/csgo/addons/sourcemod/scripting/compiled/*.smx
+/csgo/addons/sourcemod/scripting/spcomp.exe
+/csgo/addons/sourcemod/scripting/spcomp64.exe
+/csgo/addons/sourcemod/scripting/compile.exe
+/csgo/addons/sourcemod/scripting/compile.dat

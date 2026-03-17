@@ -18,6 +18,12 @@
 build_serverflow.bat
 ```
 
+### Важно для PR/Review
+- Бинарные артефакты (`*.smx`, `spcomp*.exe`, `compile.exe/dat`) не должны попадать в PR-дифф.
+- Для переносимого хранения артефактов используйте только текстовые Base64-файлы:
+  - `csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt`
+  - `csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt`
+
 ### Legacy-совместимость
 Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
 
@@ -45,6 +51,21 @@ Legacy build-chain удалён из активного run-flow. Официал
 - `docs/technical_spec_codex_csgo_plugin_ru.md`
 - `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
 - `docs/agents_md_codex_csgo_plugin_ru.md`
+- `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
+
+## Текущий статус реализации (continuation)
+
+- ✅ Каноничный pipeline: `build_serverflow.bat` -> `serverflow.smx`.
+- ✅ State-driven runtime с pending/confirm/apply и TransitionManager как точкой применения.
+- ✅ Команды для игроков/админов и расширенный статус (`sm_status_verbose`).
+- ⚠️ Дальнейшая задача roadmap: углубление UX-флоу и полировка runtime-policy в edge-cases.
+
+## Быстрый smoke-check после обновления
+
+1. `sm plugins list` — убедиться, что `ServerFlow` loaded без startup errors.
+2. `sm_status` и `sm_status_verbose` — проверить читаемые текущий state и next action.
+3. `sm_queuescenario dz` -> `sm_confirmpending` — проверить controlled apply через pending pipeline.
+4. `sm_team` / `sm_ready` / `sm_unready` — проверить PreMatch UX и реакцию статуса.
 
 ## Конфиги ServerFlow
 

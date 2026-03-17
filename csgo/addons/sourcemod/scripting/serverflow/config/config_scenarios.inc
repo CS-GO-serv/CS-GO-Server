@@ -22,7 +22,8 @@ static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &poli
     return false;
 }
 
-static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
+// Pass by reference so fallback values persist in caller-side scenario normalization.
+static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario)
 {
     if (scenario.routerAlias[0] == '\0')
     {

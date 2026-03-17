@@ -15,6 +15,11 @@ static void Countdown_StopTimer()
     }
 }
 
+static void Countdown_OrchestrateAfterLock(const char[] source = "countdown_done")
+{
+    Transition_TryEnterMatchFromLock(source);
+}
+
 bool CountdownManager_Start(const char[] source = "countdown_start")
 {
     if (Session_GetState() != ServerState_PreMatch || Session_IsLockPhase())
@@ -54,6 +59,8 @@ void CountdownManager_ForceLock(const char[] source = "countdown_done")
     Session_SetLockPhase(true);
     Session_SetPreMatchPhase(PreMatch_Lock);
     Notify_LockPhase(source);
+
+    Countdown_OrchestrateAfterLock(source);
 }
 
 public Action Timer_PreMatchCountdownDone(Handle timer)

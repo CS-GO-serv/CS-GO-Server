@@ -9,7 +9,7 @@ void ShowTeamMenu(int client)
     menu.SetTitle("ServerFlow Team/Ready");
     menu.AddItem("ready", "Mark READY");
     menu.AddItem("unready", "Mark UNREADY");
-    menu.AddItem("status", "Show status");
+    menu.AddItem("status", "Что сейчас происходит (sm_status)");
     menu.Display(client, 20);
 }
 

@@ -15,9 +15,9 @@
 - Рабочий бинарник (должен загружаться SourceMod): `csgo/addons/sourcemod/plugins/serverflow.smx`
 
 ### 1.2 Legacy
-- Legacy-исходник сохранён как архив:  
+- Legacy-исходник сохранён только как историческая справка (**not runtime path**):  
   `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
-- Legacy build script удалён из активного цикла. Используйте только `build_serverflow.bat`.
+- Legacy build script удалён из активного цикла. Единственный runtime/build entrypoint — **ServerFlow** через `build_serverflow.bat`.
 
 ### 1.3 Степень готовности (честно)
 - **Сборка/запуск**: рабочие.
@@ -30,11 +30,6 @@
 - `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
 - `docs/agents_md_codex_csgo_plugin_ru.md`
 - `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
-
-### 1.2 Legacy
-- Legacy-исходник сохранён как архив:  
-  `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
-- Legacy build script удалён из активного цикла. Используйте только `build_serverflow.bat`.
 
 ## 2) Как собрать и запустить
 
@@ -75,7 +70,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `start_classic.bat`
 - `start_dz.bat`
 
-Все они должны вызывать `build_serverflow.bat`.
+Все они должны вызывать `build_serverflow.bat` (единственный runtime/build entrypoint ServerFlow).
 
 ---
 

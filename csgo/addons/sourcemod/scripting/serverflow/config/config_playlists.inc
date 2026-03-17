@@ -29,14 +29,34 @@ bool Playlists_FindMap(int scenarioIndex, const char[] mapName)
     return Playlist_IsMapAllowed(scenarioIndex, mapName);
 }
 
+static bool Playlists_IsAbsolutePath(const char[] path)
+{
+    if (path[0] == '/' || path[0] == '\\')
+    {
+        return true;
+    }
+
+    return (IsCharAlpha(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\'));
+}
+
 bool ConfigPlaylists_Reload()
 {
     Playlists_LoadFromConfig();
 
     for (int scenarioIndex = 0; scenarioIndex < g_ScenarioCount; scenarioIndex++)
     {
+        char configuredMapListPath[PLATFORM_MAX_PATH];
+        strcopy(configuredMapListPath, sizeof(configuredMapListPath), g_Scenarios[scenarioIndex].mapListFile);
+
         char mapListPath[PLATFORM_MAX_PATH];
-        strcopy(mapListPath, sizeof(mapListPath), g_Scenarios[scenarioIndex].mapListFile);
+        if (Playlists_IsAbsolutePath(configuredMapListPath))
+        {
+            strcopy(mapListPath, sizeof(mapListPath), configuredMapListPath);
+        }
+        else
+        {
+            BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", configuredMapListPath);
+        }
 
         if (!FileExists(mapListPath))
         {

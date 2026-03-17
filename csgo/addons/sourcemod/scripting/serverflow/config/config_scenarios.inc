@@ -29,40 +29,14 @@ static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
         kv.GetString("router", scenario.routerAlias, sizeof(scenario.routerAlias), "");
     }
 
-    if (scenario.mapListFile[0] == '\0')
+    if (scenario.playlistId[0] == '\0')
     {
-        kv.GetString("map_list_file", scenario.mapListFile, sizeof(scenario.mapListFile), "");
+        kv.GetString("playlist", scenario.playlistId, sizeof(scenario.playlistId), "");
     }
 
-    if (scenario.mapListFile[0] == '\0')
+    if (scenario.playlistId[0] == '\0')
     {
-        kv.GetString("maplist", scenario.mapListFile, sizeof(scenario.mapListFile), "");
-    }
-
-    if (scenario.fallbackMap[0] == '\0')
-    {
-        kv.GetString("fallback", scenario.fallbackMap, sizeof(scenario.fallbackMap), "");
-    }
-
-    if (scenario.mapListFile[0] == '\0')
-    {
-        if (StrEqual(scenario.id, "dz", false))
-        {
-            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_dz.txt");
-        }
-        else if (StrEqual(scenario.id, "comp", false))
-        {
-            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_comp.txt");
-        }
-        else if (StrEqual(scenario.id, "casual", false))
-        {
-            strcopy(scenario.mapListFile, sizeof(scenario.mapListFile), "cfg/maplist_casual.txt");
-        }
-
-        if (scenario.mapListFile[0] != '\0')
-        {
-            LogError("[serverflow] scenario '%s' had empty maplist_file; fallback applied: %s", scenario.id, scenario.mapListFile);
-        }
+        strcopy(scenario.playlistId, sizeof(scenario.playlistId), scenario.id);
     }
 }
 
@@ -117,9 +91,8 @@ void Scenarios_LoadFallbackDefaults()
     strcopy(dz.mapgroup, sizeof(dz.mapgroup), "mg_dz_blacksite");
     strcopy(dz.startMap, sizeof(dz.startMap), "dz_blacksite");
     strcopy(dz.cfgFile, sizeof(dz.cfgFile), "mode_dz.cfg");
-    strcopy(dz.mapListFile, sizeof(dz.mapListFile), "cfg/maplist_dz.txt");
-    strcopy(dz.fallbackMap, sizeof(dz.fallbackMap), "dz_sirocco");
-    dz.rotationMode = RotationMode_Sequential;
+    strcopy(dz.playlistId, sizeof(dz.playlistId), "dz");
+    dz.maplistPolicy = MaplistPolicy_Playlist;
     Scenarios_Register(dz);
 
     ModeInfo comp;
@@ -131,9 +104,8 @@ void Scenarios_LoadFallbackDefaults()
     strcopy(comp.mapgroup, sizeof(comp.mapgroup), "mg_active");
     strcopy(comp.startMap, sizeof(comp.startMap), "de_mirage");
     strcopy(comp.cfgFile, sizeof(comp.cfgFile), "mode_comp.cfg");
-    strcopy(comp.mapListFile, sizeof(comp.mapListFile), "cfg/maplist_comp.txt");
-    strcopy(comp.fallbackMap, sizeof(comp.fallbackMap), "de_dust2");
-    comp.rotationMode = RotationMode_Sequential;
+    strcopy(comp.playlistId, sizeof(comp.playlistId), "comp");
+    comp.maplistPolicy = MaplistPolicy_Playlist;
     Scenarios_Register(comp);
 
     ModeInfo casual;
@@ -145,9 +117,8 @@ void Scenarios_LoadFallbackDefaults()
     strcopy(casual.mapgroup, sizeof(casual.mapgroup), "mg_casualdelta");
     strcopy(casual.startMap, sizeof(casual.startMap), "de_mirage");
     strcopy(casual.cfgFile, sizeof(casual.cfgFile), "mode_casual.cfg");
-    strcopy(casual.mapListFile, sizeof(casual.mapListFile), "cfg/maplist_casual.txt");
-    strcopy(casual.fallbackMap, sizeof(casual.fallbackMap), "de_anubis");
-    casual.rotationMode = RotationMode_Sequential;
+    strcopy(casual.playlistId, sizeof(casual.playlistId), "casual");
+    casual.maplistPolicy = MaplistPolicy_Playlist;
     Scenarios_Register(casual);
 
     LogError("[serverflow] loaded fallback in-memory scenarios: %d", g_ScenarioCount);
@@ -186,12 +157,13 @@ bool Scenarios_LoadFromConfig()
         kv.GetString("mapgroup", scenario.mapgroup, sizeof(scenario.mapgroup), "");
         kv.GetString("start_map", scenario.startMap, sizeof(scenario.startMap), "");
         kv.GetString("cfg_file", scenario.cfgFile, sizeof(scenario.cfgFile), "");
+        kv.GetString("playlist_id", scenario.playlistId, sizeof(scenario.playlistId), "");
 
         Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
 
-        char rotationModeRaw[24];
-        kv.GetString("rotation_mode", rotationModeRaw, sizeof(rotationModeRaw), "sequential");
-        if (!Scenarios_ParseRotationMode(rotationModeRaw, scenario.rotationMode))
+        char maplistPolicyRaw[24];
+        kv.GetString("maplist_policy", maplistPolicyRaw, sizeof(maplistPolicyRaw), "playlist");
+        if (!Scenarios_ParseMaplistPolicy(maplistPolicyRaw, scenario.maplistPolicy))
         {
             LogError("[serverflow] invalid maplist_policy '%s' for scenario '%s'; using playlist", maplistPolicyRaw, scenario.id);
             scenario.maplistPolicy = MaplistPolicy_Playlist;
@@ -208,7 +180,7 @@ bool Scenarios_LoadFromConfig()
             continue;
         }
 
-        LogMessage("[serverflow] scenario loaded: id=%s maplist=%s mapgroup=%s", scenario.id, scenario.mapListFile, scenario.mapgroup);
+        LogMessage("[serverflow] scenario loaded: id=%s playlist_id=%s mapgroup=%s", scenario.id, scenario.playlistId, scenario.mapgroup);
         Scenarios_Register(scenario);
     }
     while (kv.GotoNextKey(false));

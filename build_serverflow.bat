@@ -51,28 +51,15 @@ if exist "%RT_TRANSITION%" (
 )
 
 if "%NEED_FIX%"=="1" (
-  echo [serverflow build] attempting automatic stale-source fix...
-  >>"%LOG%" echo [serverflow build] attempting automatic stale-source fix
-
-  if exist "%CFG_PLAYLISTS%" copy /Y "%CFG_PLAYLISTS%" "%CFG_PLAYLISTS%.bak" >nul
-  if exist "%RT_TRANSITION%" copy /Y "%RT_TRANSITION%" "%RT_TRANSITION%.bak" >nul
-
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%CFG_PLAYLISTS%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'BuildPath\\(Path_Game,[^\\r\\n]*SERVERFLOW_PLAYLISTS_CONFIG\\);','strcopy(path, sizeof(path), SERVERFLOW_PLAYLISTS_CONFIG);'; $c=$c -replace 'BuildPath\\(Path_Game,[^\\r\\n]*mapListPath[^\\r\\n]*\\);','strcopy(mapListPath, sizeof(mapListPath), g_Playlists[playlistIndex].mapListFile);'; Set-Content -Path $p -Value $c } }" >>"%LOG%" 2>&1
-
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $p='%RT_TRANSITION%'; if (Test-Path $p) { $c=Get-Content -Raw $p; $c=$c -replace 'PendingChange\\s*&','PendingChange '; Set-Content -Path $p -Value $c } }" >>"%LOG%" 2>&1
-
-  set "FIX_LEFT=0"
-  findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%" >nul 2>&1 && set "FIX_LEFT=1"
-  findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%" >nul 2>&1 && set "FIX_LEFT=1"
-
-  if "%FIX_LEFT%"=="1" (
-    echo [serverflow build] warning: automatic fix incomplete. See %LOG%
-    echo [serverflow build] tip: run git pull or replace stale files from repo
-    >>"%LOG%" echo [serverflow build] WARN automatic stale-source fix incomplete
-  ) else (
-    echo [serverflow build] automatic stale-source fix applied.
-    >>"%LOG%" echo [serverflow build] automatic stale-source fix applied
-  )
+  echo [serverflow build] ERROR stale source markers detected. Build is read-only and will not patch files.
+  echo [serverflow build] ACTION required: update tracked source files in git and retry build.
+  echo [serverflow build] EXPECTED fixes:
+  echo [serverflow build]   - remove Path_Game-based replacements in %CFG_PLAYLISTS%
+  echo [serverflow build]   - remove PendingChange ^& marker in %RT_TRANSITION%
+  echo [serverflow build] tip: run git status, restore/rebase stale files, then rerun build_serverflow.bat
+  >>"%LOG%" echo [serverflow build] ERROR stale source markers detected; read-only mode abort
+  >>"%LOG%" echo [serverflow build] ACTION update source files in git and retry build
+  exit /b 5
 )
 
 if not defined SPCOMP (

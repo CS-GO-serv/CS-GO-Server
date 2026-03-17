@@ -1,79 +1,56 @@
-# 1. Игнорируем всё по умолчанию
+# Ignore everything by default. The repository is maintained through an explicit whitelist.
 *
 
-# 2. Разрешаем основные системные и пусковые файлы
-!*.log
-!*.cfg
-!*.txt
-!*.bat
-!*.sh
-!*.json
-!*.md
-!/steam_appid.txt
+# Keep Git metadata and this policy file.
 !.gitignore
 
-# 3. Разрешаем структуру папок (только папки, без содержимого)
-!/Log/
+# Project meta and docs
+!/README.md
+!/CONTRIBUTING.md
+!/docs/
+!/docs/**
+
+# Build/start entrypoints
+!/build_serverflow.bat
+!/start.bat
+!/start_classic.bat
+!/start_dz.bat
+!/steam_appid.txt
+
+# ServerFlow plugin scope (approved PR area)
 !/csgo/
-!/csgo/cfg/
 !/csgo/addons/
 !/csgo/addons/sourcemod/
-!/csgo/addons/sourcemod/configs/
-!/csgo/addons/sourcemod/configs/serverflow/
-!/csgo/addons/sourcemod/configs/serverflow/**
-!/csgo/addons/sourcemod/plugins/
 !/csgo/addons/sourcemod/scripting/
-!/csgo/addons/sourcemod/translations/
-!/csgo/addons/sourcemod/translations/*.txt
-!/csgo/addons/metamod/
-
-# 4. Разрешаем конкретные типы файлов внутри этих папок
-!*.ini
-!*.vdf
-!*.sp
-
-# 5. Исключения (что НЕ НУЖНО заливать даже если это .txt или .cfg)
-# Игнорируем логи и временные дампы
-/csgo/logs/
-/csgo/cfg/sourcemod/sm_warmode.cfg
-/csgo/addons/sourcemod/logs/
-/csgo/addons/sourcemod/data/
-/csgo/addons/sourcemod/translations/*
-!/csgo/addons/sourcemod/translations/*.txt
-
-# Игнорируем бэкапы раундов (их у тебя было много)
-csgo/backup_round*.txt
-# Private local secrets
-/csgo/cfg/server.private.cfg
-/start.local.bat
-
-# Ignore local launcher scripts with secrets
-*.local.bat
-start_dz.local.bat
-start_classic.local.bat
-
-# Documentation
-!/docs/
-!/docs/*.md
-
-# Allow committed diagnostic logs from repo-level Log folder
-!/Log/
-!/Log/**
-
-# ServerFlow modular includes
+!/csgo/addons/sourcemod/scripting/serverflow.sp
 !/csgo/addons/sourcemod/scripting/serverflow/
 !/csgo/addons/sourcemod/scripting/serverflow/**
 
-# Allow committed compiled ServerFlow artifact for quick server pull/run
-!/csgo/addons/sourcemod/scripting/compiled/
+# ServerFlow configs scope (approved PR area)
+!/csgo/addons/sourcemod/configs/
+!/csgo/addons/sourcemod/configs/serverflow/
+!/csgo/addons/sourcemod/configs/serverflow/**
 
+# Required text artifacts only
 !/csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt
+!/csgo/addons/sourcemod/scripting/compiled/
 !/csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt
+!/Log/
+!/Log/**
 
-# Binary artifacts are not versioned in PR flow
+# Explicitly keep out noisy legacy trees from active PR scope
+/csgo/addons/sourcemod/scripting/base*/
+/csgo/addons/sourcemod/scripting/fun*/
+/csgo/addons/sourcemod/scripting/include/
+/csgo/addons/sourcemod/scripting/testsuite/
+
+# Never commit binary build artifacts or local secrets
 /csgo/addons/sourcemod/plugins/*.smx
 /csgo/addons/sourcemod/scripting/compiled/*.smx
 /csgo/addons/sourcemod/scripting/spcomp.exe
 /csgo/addons/sourcemod/scripting/spcomp64.exe
 /csgo/addons/sourcemod/scripting/compile.exe
 /csgo/addons/sourcemod/scripting/compile.dat
+/csgo/cfg/server.private.cfg
+/start.local.bat
+*.local.bat

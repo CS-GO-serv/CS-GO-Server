@@ -3,33 +3,6 @@
 #endif
 #define _SERVERFLOW_CONFIG_PLAYLISTS_INC_
 
-#define SERVERFLOW_PLAYLISTS_CONFIG "addons/sourcemod/configs/serverflow/playlists.cfg"
-
-static bool Playlists_ParseRotationMode(const char[] value, RotationMode &mode)
-{
-    if (StrEqual(value, "random", false))
-    {
-        mode = RotationMode_Random;
-        return true;
-    }
-
-    mode = RotationMode_Sequential;
-    return StrEqual(value, "sequential", false) || StrEqual(value, "", false);
-}
-
-static int PlaylistDefs_FindById(const char[] playlistId)
-{
-    for (int i = 0; i < g_PlaylistCount; i++)
-    {
-        if (StrEqual(g_Playlists[i].id, playlistId, false))
-        {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
 bool Playlists_ValidateEntry(int scenarioIndex, const char[] mapName)
 {
     if (!Scenario_IsValidIndex(scenarioIndex) || mapName[0] == '\0')
@@ -56,98 +29,34 @@ bool Playlists_FindMap(int scenarioIndex, const char[] mapName)
     return Playlist_IsMapAllowed(scenarioIndex, mapName);
 }
 
-bool ConfigPlaylists_LoadDefinitions()
+static bool Playlists_IsAbsolutePath(const char[] path)
 {
-    g_PlaylistCount = 0;
-
-    char path[PLATFORM_MAX_PATH];
-    BuildPath(Path_Game, path, sizeof(path), "%s", SERVERFLOW_PLAYLISTS_CONFIG);
-
-    KeyValues kv = new KeyValues("ServerFlowPlaylists");
-    if (!kv.ImportFromFile(path))
+    if (path[0] == '/' || path[0] == '\\')
     {
-        LogError("[serverflow] failed to load playlists config: %s", path);
-        delete kv;
-        return false;
+        return true;
     }
 
-    if (!kv.GotoFirstSubKey(false))
-    {
-        LogError("[serverflow] playlists config is empty: %s", path);
-        delete kv;
-        return false;
-    }
-
-    do
-    {
-        if (g_PlaylistCount >= MAX_RUNTIME_MODES)
-        {
-            LogError("[serverflow] playlist limit reached (%d)", MAX_RUNTIME_MODES);
-            break;
-        }
-
-        PlaylistDefinition playlist;
-        kv.GetSectionName(playlist.id, sizeof(playlist.id));
-        kv.GetString("maplist_file", playlist.mapListFile, sizeof(playlist.mapListFile), "");
-        kv.GetString("fallback_map", playlist.fallbackMap, sizeof(playlist.fallbackMap), "");
-
-        char rotationModeRaw[24];
-        kv.GetString("rotation_mode", rotationModeRaw, sizeof(rotationModeRaw), "sequential");
-        if (!Playlists_ParseRotationMode(rotationModeRaw, playlist.rotationMode))
-        {
-            LogError("[serverflow] invalid playlist rotation_mode '%s' for playlist '%s'; using sequential", rotationModeRaw, playlist.id);
-            playlist.rotationMode = RotationMode_Sequential;
-        }
-
-        if (playlist.id[0] == '\0' || playlist.mapListFile[0] == '\0')
-        {
-            LogError("[serverflow] invalid playlist entry: id/maplist_file cannot be empty");
-            continue;
-        }
-
-        if (PlaylistDefs_FindById(playlist.id) != -1)
-        {
-            LogError("[serverflow] duplicate playlist id '%s'", playlist.id);
-            continue;
-        }
-
-        g_Playlists[g_PlaylistCount] = playlist;
-        g_PlaylistCount++;
-    }
-    while (kv.GotoNextKey(false));
-
-    delete kv;
-    return g_PlaylistCount > 0;
+    return (IsCharAlpha(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\'));
 }
 
 bool ConfigPlaylists_Reload()
 {
     Playlists_LoadFromConfig();
 
-    if (!ConfigPlaylists_LoadDefinitions())
-    {
-        return false;
-    }
-
     for (int scenarioIndex = 0; scenarioIndex < g_ScenarioCount; scenarioIndex++)
     {
-        int playlistIndex = -1;
-        if (g_Scenarios[scenarioIndex].maplistPolicy == MaplistPolicy_Scenario)
+        char configuredMapListPath[PLATFORM_MAX_PATH];
+        strcopy(configuredMapListPath, sizeof(configuredMapListPath), g_Scenarios[scenarioIndex].mapListFile);
+
+        char mapListPath[PLATFORM_MAX_PATH];
+        if (Playlists_IsAbsolutePath(configuredMapListPath))
         {
-            playlistIndex = PlaylistDefs_FindById(g_Scenarios[scenarioIndex].id);
+            strcopy(mapListPath, sizeof(mapListPath), configuredMapListPath);
         }
         else
         {
-            playlistIndex = PlaylistDefs_FindById(g_Scenarios[scenarioIndex].playlistId);
+            BuildPath(Path_Game, mapListPath, sizeof(mapListPath), "%s", configuredMapListPath);
         }
-        if (playlistIndex == -1)
-        {
-            Format(g_ModeMapCacheError[scenarioIndex], sizeof(g_ModeMapCacheError[]), "playlist not found: %s", g_Scenarios[scenarioIndex].playlistId);
-            continue;
-        }
-
-        char mapListPath[PLATFORM_MAX_PATH];
-        strcopy(mapListPath, sizeof(mapListPath), g_Scenarios[scenarioIndex].mapListFile);
 
         if (!FileExists(mapListPath))
         {

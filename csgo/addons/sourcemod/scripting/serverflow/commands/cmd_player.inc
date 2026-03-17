@@ -35,17 +35,6 @@ public Action Command_Status(int client, int args)
 }
 
 
-
-public Action Command_StatusVerbose(int client, int args)
-{
-    if (IsValidClient(client))
-    {
-        Status_ShowVerboseToClient(client);
-    }
-
-    return Plugin_Handled;
-}
-
 public Action Command_Ready(int client, int args)
 {
     if (IsValidClient(client))
@@ -74,18 +63,9 @@ public Action Command_Team(int client, int args)
         return Plugin_Handled;
     }
 
-    ServerState state = Session_GetState();
-    if (state == ServerState_Transition)
+    if (Session_GetState() == ServerState_Transition)
     {
-        PrintToChat(client, "[ServerFlow] sm_team временно недоступна: сейчас Transition.");
-        PrintToChat(client, "[ServerFlow] Следующий шаг: ожидайте Transition и используйте sm_status, чтобы проверить текущий статус.");
-        return Plugin_Handled;
-    }
-
-    if (state == ServerState_Match)
-    {
-        PrintToChat(client, "[ServerFlow] sm_team недоступна во время Match.");
-        PrintToChat(client, "[ServerFlow] Следующий шаг: используйте sm_status и дождитесь PostMatch/PreMatch.");
+        PrintToChat(client, "[ServerFlow] Сейчас идёт Transition. Дождитесь завершения и повторите sm_team.");
         return Plugin_Handled;
     }
 
@@ -119,7 +99,7 @@ public Action Command_HelpServerFlow(int client, int args)
         return Plugin_Handled;
     }
 
-    PrintToChat(client, "[ServerFlow] Команды: sm_mode, sm_status, sm_status_verbose, sm_votemode, sm_ready, sm_unready, sm_lobby, sm_team");
-    PrintToChat(client, "[ServerFlow] В чат пишите !mode, !status, !status_verbose, !votemode, !ready, !unready, !lobby (без префикса sm_). ");
+    PrintToChat(client, "[ServerFlow] Команды: sm_mode, sm_status, sm_votemode, sm_ready, sm_unready, sm_lobby, sm_team");
+    PrintToChat(client, "[ServerFlow] В чат пишите !mode, !status, !votemode, !ready, !unready, !lobby (без префикса sm_). ");
     return Plugin_Handled;
 }

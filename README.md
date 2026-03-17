@@ -19,7 +19,7 @@ build_serverflow.bat
 ```
 
 ### Legacy-совместимость
-`build_mode_vote.bat` оставлен как shim и просто проксирует вызов в `build_serverflow.bat`.
+Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
 
 ### Старт сервера
 - `start.bat`
@@ -55,4 +55,4 @@ build_serverflow.bat
 - `csgo/addons/sourcemod/configs/serverflow/lang_en.cfg`
 - `csgo/addons/sourcemod/configs/serverflow/examples/*`
 
-> Важно: текущая codebase находится в стадии миграции с legacy ModeVote на ServerFlow. Для оценки прогресса используйте документы из `docs/` как источник истины.
+> Важно: ServerFlow — единственная поддерживаемая архитектура в активном run/build-пайплайне. Документы в `docs/` являются source of truth.

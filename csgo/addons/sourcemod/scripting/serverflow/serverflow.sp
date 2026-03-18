@@ -69,14 +69,12 @@ static void Bootstrap_Minimal()
 
     CommandRouter_Register();
     Integrations_RegisterEvents();
+    StatusPresenter_Init();
     AfkMonitor_Init();
 }
 
 public void OnPluginStart()
 {
-<<<<<<< Updated upstream
-    LoadTranslations("serverflow.phrases");
-=======
     char path[PLATFORM_MAX_PATH];
     BuildPath(Path_SM, path, sizeof(path), "translations/serverflow.phrases.txt");
     if (FileExists(path))
@@ -87,7 +85,6 @@ public void OnPluginStart()
     {
         LogError("[ServerFlow] Missing translations/serverflow.phrases.txt! Required plugin resource.");
     }
->>>>>>> Stashed changes
 
     Bootstrap_Minimal();
     Health_RunFullCheck("OnPluginStart");
@@ -104,7 +101,6 @@ public void OnMapStart()
 public void OnClientPostAdminCheck(int client)
 {
     PlayerState_OnClientAuthorized(client);
-    Policy_ApplyLateJoinGate(client, "client_post_admin_check");
     AfkMonitor_RecordClientActivity(client, "client_post_admin_check");
 }
 

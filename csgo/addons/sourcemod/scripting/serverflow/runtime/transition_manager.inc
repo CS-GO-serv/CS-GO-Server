@@ -3,13 +3,13 @@
 #endif
 #define _SERVERFLOW_TRANSITION_MANAGER_INC_
 
-static void Transition_AuditDeniedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
+static void Transition_AuditDeniedApply(PendingChange pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
 {
     Audit_LogEvent("transition", "apply_pending", pending.requestedBy, "denied", reasonCode);
     Audit_LogEvent("transition", "fallback", pending.requestedBy, fallbackDecision, context);
 }
 
-static void Transition_AuditFailedApply(PendingChange &pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
+static void Transition_AuditFailedApply(PendingChange pending, const char[] reasonCode, const char[] context, const char[] fallbackDecision)
 {
     Audit_LogEvent("transition", "apply_pending", pending.requestedBy, "failed", reasonCode);
     Audit_LogEvent("transition", "fallback", pending.requestedBy, fallbackDecision, context);
@@ -42,7 +42,7 @@ static void Transition_ApplyScenario(const char[] scenarioId)
     }
 }
 
-static bool Transition_ValidateAndApply(PendingChange &pending, const char[] context)
+static bool Transition_ValidateAndApply(PendingChange pending, const char[] context)
 {
     char reasonCode[64];
     reasonCode[0] = '\0';

@@ -155,3 +155,73 @@ void Status_GetVerboseText(char[] buffer, int maxlen)
         nextAction
     );
 }
+
+static Handle g_HudTimer = null;
+
+void StatusPresenter_Init()
+{
+    if (g_HudTimer != null)
+    {
+        delete g_HudTimer;
+    }
+    
+    g_HudTimer = CreateTimer(1.0, Timer_DrawHUD, _, TIMER_REPEAT);
+}
+
+public Action Timer_DrawHUD(Handle timer)
+{
+    ServerState state = Session_GetState();
+    
+    // Do not spam the HUD during active matches or transitions where it might distract.
+    // It's most critical in Lobby, PreMatch, and PostMatch decision phases.
+    if (state == ServerState_Match || state == ServerState_Transition)
+    {
+        return Plugin_Continue;
+    }
+    
+    char hudLine[256];
+    char currentScenario[32];
+    char queuedScenario[32];
+    char stateText[32];
+    char countText[64];
+    
+    Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
+    Session_GetQueuedScenario(queuedScenario, sizeof(queuedScenario));
+    ServerStateToString(state, stateText, sizeof(stateText));
+    
+    int readyCount = ReadyManager_GetReadyCount();
+    int readyPool = ReadyManager_GetPoolCount();
+    
+    if (Session_IsCountdownActive())
+    {
+        int countdownLeft = Session_GetCountdownEndsAt() - GetTime();
+        if (countdownLeft < 0) countdownLeft = 0;
+        Format(countText, sizeof(countText), "START IN: %d sec", countdownLeft);
+    }
+    else
+    {
+        Format(countText, sizeof(countText), "Ready: %d / %d", readyCount, readyPool);
+    }
+    
+    PendingChange pending;
+    Session_GetPendingChange(pending);
+    char pendingText[64];
+    if (pending.state == Pending_Proposed || pending.state == Pending_Selected)
+    {
+        int pendingLeft = pending.expiresAt > 0 ? pending.expiresAt - GetTime() : 0;
+        if (pendingLeft < 0) pendingLeft = 0;
+        Format(pendingText, sizeof(pendingText), "\nPENDING: %s (Time to cancel: %ds)", pending.scenarioId, pendingLeft);
+    }
+    
+    // Clear the hint box first to avoid ghosting issues on some clients, then print
+    Format(hudLine, sizeof(hudLine), "<font color='#00ff00'>[%s]</font> | Next: <font color='#ffbf00'>%s</font>\n%s%s", 
+        stateText, 
+        queuedScenario[0] == '\0' ? "None" : queuedScenario,
+        countText,
+        pendingText
+    );
+    
+    PrintHintTextToAll("%s", hudLine);
+    
+    return Plugin_Continue;
+}

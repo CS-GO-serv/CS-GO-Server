@@ -22,9 +22,8 @@ static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &poli
     return false;
 }
 
-<<<<<<< Updated upstream
 // Must be by-reference so fallback values are persisted in the caller.
-static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario)
+static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo scenario)
 {
     if (scenario.routerAlias[0] == '\0')
     {
@@ -42,7 +41,6 @@ static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario
     }
 }
 
-=======
 static bool Scenarios_ParseTeamPolicy(const char[] value, TeamPolicy &policy)
 {
     if (StrEqual(value, "auto", false))
@@ -76,7 +74,6 @@ static bool Scenarios_ParseReadyPolicy(const char[] value, ReadyPolicy &policy)
     policy = ReadyPolicy_Disabled;
     return true;
 }
->>>>>>> Stashed changes
 
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
@@ -204,9 +201,8 @@ bool Scenarios_LoadFromConfig()
             scenario.maplistPolicy = MaplistPolicy_Playlist;
         }
 
-<<<<<<< Updated upstream
         Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
-=======
+
         scenario.requirePrematch = !!kv.GetNum("require_prematch", 1);
 
         char teamPolicyRaw[24];
@@ -216,7 +212,6 @@ bool Scenarios_LoadFromConfig()
         char readyPolicyRaw[24];
         kv.GetString("ready_policy", readyPolicyRaw, sizeof(readyPolicyRaw), "disabled");
         Scenarios_ParseReadyPolicy(readyPolicyRaw, scenario.readyPolicy);
->>>>>>> Stashed changes
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))
         {

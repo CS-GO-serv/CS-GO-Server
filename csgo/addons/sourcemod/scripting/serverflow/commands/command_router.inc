@@ -172,6 +172,6 @@ bool CommandRouter_RequestRuntimeDump(int client)
         return false;
     }
 
-    StateDump_ToServer();
+    PrintToConsole(client, "[ServerFlow] Runtime Dump is currently disabled.");
     return true;
 }

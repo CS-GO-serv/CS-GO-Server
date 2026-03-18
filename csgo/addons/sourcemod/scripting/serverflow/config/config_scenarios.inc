@@ -41,6 +41,7 @@ static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario
     }
 }
 
+
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
     bool valid = true;

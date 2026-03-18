@@ -18,4 +18,7 @@ void ConfigCore_RefreshRuntime()
     g_VoteCooldown = g_CvarVoteCooldown.IntValue;
     g_VoteMinPlayers = g_CvarVoteMinPlayers.IntValue;
     g_PendingConfirmWindow = g_CvarPendingConfirmWindow.IntValue;
+    g_LateJoinPolicy = view_as<LateJoinPolicy>(g_CvarLateJoinPolicy.IntValue);
+    g_AfkPolicy = view_as<AfkPolicy>(g_CvarAfkPolicy.IntValue);
+    g_AfkSeconds = g_CvarAfkSeconds.IntValue;
 }

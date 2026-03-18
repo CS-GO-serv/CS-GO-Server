@@ -49,6 +49,26 @@ void PlayerState_SetLifecycle(int client, PlayerLifecycleState state)
     g_PlayerState[client].lastActionAt = GetTime();
 }
 
+void PlayerState_RecordActivity(int client)
+{
+    if (client < 1 || client > MaxClients)
+    {
+        return;
+    }
+
+    g_PlayerState[client].lastActionAt = GetTime();
+}
+
+int PlayerState_GetLastActionAt(int client)
+{
+    if (client < 1 || client > MaxClients)
+    {
+        return 0;
+    }
+
+    return g_PlayerState[client].lastActionAt;
+}
+
 PlayerLifecycleState PlayerState_GetLifecycle(int client)
 {
     if (client < 1 || client > MaxClients)

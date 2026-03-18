@@ -56,6 +56,7 @@ addons/sourcemod/
         state_manager.inc
         transition_manager.inc
         pending_change.inc
+        policy_manager.inc
       config/
         config_loader.inc
         config_core.inc

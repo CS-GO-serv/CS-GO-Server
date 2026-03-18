@@ -223,11 +223,12 @@ Hooks в игровые события, map control, client lifecycle, timers.
 - ServerState
 - ScenarioDefinition
 - PlaylistDefinition
-- PlaylistMapEntry
 - PendingChange
 - VoteRecord
 - PlayerRuntimeState
-- HealthReport
+
+> [!NOTE]
+> `PlaylistMapEntry` и `HealthReport` описаны как целевые, но ещё не реализованы.
 
 Нельзя заменять их неявными кусками строк, разрозненными bool-флагами и набором “временных переменных”.
 
@@ -247,6 +248,7 @@ Hooks в игровые события, map control, client lifecycle, timers.
 - TeamManager
 - VoteManager
 - AdminOverrideManager
+- PolicyManager
 - StatusPresenter
 - ConfigLoader
 - HealthCheck

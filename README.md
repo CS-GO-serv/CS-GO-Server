@@ -28,9 +28,11 @@ build_serverflow.bat
 Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
 
 ### Старт сервера
-- `start.bat`
+- `start.bat` (канонично)
+- `start_classic.bat` (deprecated shim -> `start.bat`)
+- `start_dz.bat` (deprecated shim -> `start.bat`)
 
-`start.bat` — единая точка входа для запуска сервера. Выбор сценария/режима выполняется уже через ServerFlow (админские/игровые команды и конфиги), а не через разные bat-скрипты.
+`start.bat` — единая точка входа для запуска сервера. Дополнительные bat-файлы оставлены только как совместимые shim-обёртки для старых процессов запуска.
 
 ## Архитектура
 
@@ -80,6 +82,6 @@ Legacy build-chain удалён из активного run-flow. Официал
 
 ## Репозиторный cleanup (release discipline)
 
-- В активном run-flow оставлен только `start.bat`.
-- Удалены дублирующие стартовые скрипты режимов (`start_classic.bat`, `start_dz.bat`).
+- В активном run-flow каноничным остаётся только `start.bat`.
+- `start_classic.bat` и `start_dz.bat` сохранены как deprecated shim-обёртки, чтобы уменьшить риски миграции и конфликтов merge в старых ветках.
 - Build-скрипт не должен модифицировать исходники на лету: проблемы источников исправляются только через git.

@@ -69,9 +69,11 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - Если в PR внезапно попали бинарники — удаляем их из индекса до создания PR.
 
 ## 2.3 Старт сервера
-- `start.bat`
+- `start.bat` (канонично)
+- `start_classic.bat` (deprecated shim -> `start.bat`)
+- `start_dz.bat` (deprecated shim -> `start.bat`)
 
-`start.bat` — единая точка входа. Выбор режима выполняется внутри ServerFlow через сценарии/команды, а не отдельными bat-файлами под каждый режим.
+`start.bat` — единая точка входа. Выбор режима выполняется внутри ServerFlow через сценарии/команды. Старые bat оставлены как shim для обратной совместимости.
 
 ---
 

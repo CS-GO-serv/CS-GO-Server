@@ -30,35 +30,29 @@ if not exist "%SRC%" (
   exit /b 1
 )
 
-set "NEED_FIX=0"
+set "STALE_FOUND=0"
 if exist "%CFG_PLAYLISTS%" (
   findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%" >nul
   if not errorlevel 1 (
-    set "NEED_FIX=1"
-    echo [serverflow build] warning: stale marker found ^(Path_Game^) in %CFG_PLAYLISTS%
-    >>"%LOG%" echo [serverflow build] WARN stale marker: Path_Game in config_playlists.inc
+    set "STALE_FOUND=1"
+    echo [serverflow build] ERROR stale marker found ^(Path_Game^) in %CFG_PLAYLISTS%
+    >>"%LOG%" echo [serverflow build] ERROR stale marker: Path_Game in config_playlists.inc
     >>"%LOG%" findstr /N /C:"Path_Game" "%CFG_PLAYLISTS%"
   )
 )
 if exist "%RT_TRANSITION%" (
   findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%" >nul
   if not errorlevel 1 (
-    set "NEED_FIX=1"
-    echo [serverflow build] warning: stale marker found ^(PendingChange ^&^) in %RT_TRANSITION%
-    >>"%LOG%" echo [serverflow build] WARN stale marker: PendingChange ^& in transition_manager.inc
+    set "STALE_FOUND=1"
+    echo [serverflow build] ERROR stale marker found ^(PendingChange ^&^) in %RT_TRANSITION%
+    >>"%LOG%" echo [serverflow build] ERROR stale marker: PendingChange ^& in transition_manager.inc
     >>"%LOG%" findstr /N /C:"PendingChange ^&" "%RT_TRANSITION%"
   )
 )
 
-if "%NEED_FIX%"=="1" (
-  echo [serverflow build] ERROR stale source markers detected. Build is read-only and will not patch files.
-  echo [serverflow build] ACTION required: update tracked source files in git and retry build.
-  echo [serverflow build] EXPECTED fixes:
-  echo [serverflow build]   - remove Path_Game-based replacements in %CFG_PLAYLISTS%
-  echo [serverflow build]   - remove PendingChange ^& marker in %RT_TRANSITION%
-  echo [serverflow build] tip: run git status, restore/rebase stale files, then rerun build_serverflow.bat
-  >>"%LOG%" echo [serverflow build] ERROR stale source markers detected; read-only mode abort
-  >>"%LOG%" echo [serverflow build] ACTION update source files in git and retry build
+if "%STALE_FOUND%"=="1" (
+  echo [serverflow build] aborting build: stale sources must be fixed in repository.
+  echo [serverflow build] see %LOG% for exact lines.
   exit /b 5
 )
 
@@ -89,7 +83,6 @@ echo [serverflow build] compiling serverflow.sp ...
 "%SPCOMP%" "%SRC%" -i "%INCLUDE%" -o "%OUT_PLUGIN%" >>"%LOG%" 2>&1
 if errorlevel 1 (
   echo [serverflow build] compile failed. See %LOG%
-  echo [serverflow build] hint: update server sources from repo if log shows Path_Game or PendingChange ^& markers.
   if exist "%OUT_PLUGIN%" (
     echo [serverflow build] falling back to existing plugin binary: %OUT_PLUGIN%
     exit /b 0

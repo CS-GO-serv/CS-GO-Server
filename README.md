@@ -8,7 +8,7 @@
 - Корневой модуль: `csgo/addons/sourcemod/scripting/serverflow/serverflow.sp`
 - Выходной бинарник: `csgo/addons/sourcemod/plugins/serverflow.smx`
 
-`mode_vote` больше не является основной архитектурой и не участвует в runtime/build path. Старый код сохранён только как историческая справка в архиве (**not runtime path**):
+`mode_vote` больше не является основной архитектурой. Старый код сохранён только в архиве:
 `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`.
 
 ## Build / run
@@ -18,9 +18,6 @@
 build_serverflow.bat
 ```
 
-Скрипт сборки работает в read-only режиме относительно исходников: он не создаёт `.bak`, не патчит `*.inc` во время выполнения и завершится ошибкой, если найдёт stale-маркеры (например `Path_Game` / `PendingChange &`).
-Исправления таких маркеров нужно вносить в отслеживаемые git-файлы и коммитить в репозиторий, после чего повторять сборку.
-
 ### Важно для PR/Review
 - Бинарные артефакты (`*.smx`, `spcomp*.exe`, `compile.exe/dat`) не должны попадать в PR-дифф.
 - Для переносимого хранения артефактов используйте только текстовые Base64-файлы:
@@ -28,14 +25,14 @@ build_serverflow.bat
   - `csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt`
 
 ### Legacy-совместимость
-Legacy build-chain удалён из активного run-flow. Единственный runtime/build entrypoint — **ServerFlow** через `build_serverflow.bat`; архивный `mode_vote` — только historical reference (**not runtime path**).
+Legacy build-chain удалён из активного run-flow. Официальная сборка только через `build_serverflow.bat`.
 
 ### Старт сервера
-- `start.bat`
-- `start_classic.bat`
-- `start_dz.bat`
+- `start.bat` (канонично)
+- `start_classic.bat` (deprecated shim -> `start.bat`)
+- `start_dz.bat` (deprecated shim -> `start.bat`)
 
-Все стартовые скрипты теперь вызывают `build_serverflow.bat`.
+`start.bat` — единая точка входа для запуска сервера. Дополнительные bat-файлы оставлены только как совместимые shim-обёртки для старых процессов запуска.
 
 ## Архитектура
 
@@ -55,6 +52,7 @@ Legacy build-chain удалён из активного run-flow. Единств
 - `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
 - `docs/agents_md_codex_csgo_plugin_ru.md`
 - `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
+- `docs/additional_functionality_ru.md`
 
 ## Текущий статус реализации (continuation)
 
@@ -70,27 +68,6 @@ Legacy build-chain удалён из активного run-flow. Единств
 3. `sm_queuescenario dz` -> `sm_confirmpending` — проверить controlled apply через pending pipeline.
 4. `sm_team` / `sm_ready` / `sm_unready` — проверить PreMatch UX и реакцию статуса.
 
-### Обязательные UX-критерии для smoke-check
-
-Базовый критерий прозрачности состояния: `sm_status` и `sm_status_verbose`.
-
-Кейс считается пройденным по UX только если игроку и админу явно понятно:
-- текущее состояние (что происходит сейчас);
-- next action (что произойдёт/что нужно сделать дальше);
-- pending-статус (есть ли отложенное действие и в каком оно этапе);
-- кто может подтвердить или отменить pending (`sm_confirmpending` / `sm_cancelpending`).
-
-### Шаблон smoke test-case (фиксированный)
-
-Каждый кейс в отчёте оформляется в едином формате:
-
-1. **Команда**
-2. **Ожидаемый текст игроку**
-3. **Ожидаемый текст админу**
-4. **Fallback-поведение** (что видит пользователь при недоступном/запрещённом действии)
-
-Минимум по каждому smoke-кейсу: отдельная проверка сообщений для игрока и админа, а также явного fallback-сообщения.
-
 ## Конфиги ServerFlow
 
 - `csgo/addons/sourcemod/configs/serverflow/plugin_core.cfg`
@@ -100,40 +77,12 @@ Legacy build-chain удалён из активного run-flow. Единств
 - `csgo/addons/sourcemod/configs/serverflow/lang_en.cfg`
 - `csgo/addons/sourcemod/configs/serverflow/examples/*`
 
-### Термины map pool (синхронизировано с `docs/PLUGIN_GUIDE_RU.md`)
-- `playlist_id` — ссылка из сценария (`scenarios.cfg`) на секцию в `playlists.cfg`.
-- `maplist_policy` — кто source of truth для map pool:
-  - `playlist` -> map pool берётся из `playlists.cfg` (`maplist_file` плейлиста по `playlist_id`).
-  - `scenario` -> map pool берётся из `scenarios.cfg` (`maplist_file` сценария).
-
-Примеры:
-- `maplist_policy=playlist`: `playlist_id="comp"`, карта-пул читается из `playlists.cfg` -> `"comp"` -> `maplist_file`.
-- `maplist_policy=scenario` (поддерживается): сценарий задаёт собственный `maplist_file`, и он становится source of truth.
-
 > Важно: ServerFlow — единственная поддерживаемая архитектура в активном run/build-пайплайне. Документы в `docs/` являются source of truth.
-
-
-## Scope PR
-
-Разрешённый scope для активных PR ограничен whitelist-областями:
-- `csgo/addons/sourcemod/scripting/serverflow/**` и `csgo/addons/sourcemod/scripting/serverflow.sp`
-- `csgo/addons/sourcemod/configs/serverflow/**`
-- `docs/**`
-- старт/билд скрипты: `build_serverflow.bat`, `start.bat`, `start_classic.bat`, `start_dz.bat`
-- нужные текстовые артефакты: `Log/**`, `serverflow.smx.b64.txt`
-
-Из PR-диффа нужно исключать массовые изменения вне scope, в том числе:
-- `csgo/addons/sourcemod/scripting/base*`
-- `csgo/addons/sourcemod/scripting/fun*`
-- `csgo/addons/sourcemod/scripting/include/*`
-- `csgo/addons/sourcemod/scripting/testsuite/*`
 
 Если такие изменения попали в рабочую ветку случайно, удаляйте их из диффа перед review, например:
 
-```bash
-git restore --staged --worktree \
-  csgo/addons/sourcemod/scripting/base* \
-  csgo/addons/sourcemod/scripting/fun* \
-  csgo/addons/sourcemod/scripting/include \
-  csgo/addons/sourcemod/scripting/testsuite
-```
+## Репозиторный cleanup (release discipline)
+
+- В активном run-flow каноничным остаётся только `start.bat`.
+- `start_classic.bat` и `start_dz.bat` сохранены как deprecated shim-обёртки, чтобы уменьшить риски миграции и конфликтов merge в старых ветках.
+- Build-скрипт не должен модифицировать исходники на лету: проблемы источников исправляются только через git.

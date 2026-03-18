@@ -21,15 +21,19 @@
 !/csgo/
 !/csgo/addons/
 !/csgo/addons/sourcemod/
+!/csgo/addons/sourcemod/configs/
+!/csgo/addons/sourcemod/configs/serverflow/
+!/csgo/addons/sourcemod/configs/serverflow/**
+!/csgo/addons/sourcemod/plugins/
 !/csgo/addons/sourcemod/scripting/
 !/csgo/addons/sourcemod/scripting/serverflow.sp
 !/csgo/addons/sourcemod/scripting/serverflow/
 !/csgo/addons/sourcemod/scripting/serverflow/**
 
-# ServerFlow configs scope (approved PR area)
-!/csgo/addons/sourcemod/configs/
-!/csgo/addons/sourcemod/configs/serverflow/
-!/csgo/addons/sourcemod/configs/serverflow/**
+# 4. Разрешаем конкретные типы файлов внутри этих папок
+!*.ini
+!*.vdf
+!*.sp
 
 # Required text artifacts only
 !/csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt
@@ -54,3 +58,31 @@
 /csgo/cfg/server.private.cfg
 /start.local.bat
 *.local.bat
+start_dz.local.bat
+start_classic.local.bat
+
+# Documentation
+!/docs/
+!/docs/*.md
+
+# Allow committed diagnostic logs from repo-level Log folder
+!/Log/
+!/Log/**
+
+# ServerFlow modular includes
+!/csgo/addons/sourcemod/scripting/serverflow/
+!/csgo/addons/sourcemod/scripting/serverflow/**
+
+# Allow committed compiled ServerFlow artifact for quick server pull/run
+!/csgo/addons/sourcemod/scripting/compiled/
+
+!/csgo/addons/sourcemod/plugins/serverflow.smx.b64.txt
+!/csgo/addons/sourcemod/scripting/compiled/serverflow.smx.b64.txt
+
+# Binary artifacts are not versioned in PR flow
+/csgo/addons/sourcemod/plugins/*.smx
+/csgo/addons/sourcemod/scripting/compiled/*.smx
+/csgo/addons/sourcemod/scripting/spcomp.exe
+/csgo/addons/sourcemod/scripting/spcomp64.exe
+/csgo/addons/sourcemod/scripting/compile.exe
+/csgo/addons/sourcemod/scripting/compile.dat

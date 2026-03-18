@@ -15,9 +15,9 @@
 - Рабочий бинарник (должен загружаться SourceMod): `csgo/addons/sourcemod/plugins/serverflow.smx`
 
 ### 1.2 Legacy
-- Legacy-исходник сохранён только как историческая справка (**not runtime path**):  
+- Legacy-исходник сохранён как архив:  
   `csgo/addons/sourcemod/scripting/serverflow/archive/mode_vote.legacy.sp`
-- Legacy build script удалён из активного цикла. Единственный runtime/build entrypoint — **ServerFlow** через `build_serverflow.bat`.
+- Legacy build script удалён из активного цикла. Используйте только `build_serverflow.bat`.
 
 ### 1.3 Степень готовности (честно)
 - **Сборка/запуск**: рабочие.
@@ -30,6 +30,9 @@
 - `docs/implementation_roadmap_file_structure_codex_csgo_plugin_ru.md`
 - `docs/agents_md_codex_csgo_plugin_ru.md`
 - `docs/human_centered_ux_guidelines_for_codex_csgo_plugin_ru.md`
+- `docs/additional_functionality_ru.md`
+
+---
 
 ## 2) Как собрать и запустить
 
@@ -41,7 +44,7 @@ build_serverflow.bat
 Скрипт:
 - ищет компилятор (`spcomp.exe`, `spcomp64.exe`, `spcomp`, `spcomp64`);
 - пишет лог в `build_serverflow.log`;
-- при необходимости пытается авто-чинить 2 известных stale-паттерна исходников;
+- проверяет stale-паттерны в исходниках и завершает сборку с ошибкой, если они найдены;
 - собирает `serverflow.smx`;
 - зеркалит артефакт в `scripting/compiled`.
 
@@ -66,11 +69,11 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - Если в PR внезапно попали бинарники — удаляем их из индекса до создания PR.
 
 ## 2.3 Старт сервера
-- `start.bat`
-- `start_classic.bat`
-- `start_dz.bat`
+- `start.bat` (канонично)
+- `start_classic.bat` (deprecated shim -> `start.bat`)
+- `start_dz.bat` (deprecated shim -> `start.bat`)
 
-Все они должны вызывать `build_serverflow.bat` (единственный runtime/build entrypoint ServerFlow).
+`start.bat` — единая точка входа. Выбор режима выполняется внутри ServerFlow через сценарии/команды. Старые bat оставлены как shim для обратной совместимости.
 
 ---
 
@@ -88,7 +91,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `sm_serverflow_verbose` — подробность логирования (0/1)
 
 ## 3.2 `scenarios.cfg`
-Обязательный формат секции сценария (текущий основной):
+Обязательный формат секции сценария (актуальный):
 - `router_alias`
 - `name_phrase`
 - `game_type`
@@ -96,40 +99,22 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - `mapgroup`
 - `start_map`
 - `cfg_file`
-- `playlist_id` — ID плейлиста в `playlists.cfg`, который связан со сценарием.
-- `maplist_policy` — политика выбора source of truth для map pool (`playlist`/`scenario`).
-- `maplist_file`
-- `fallback_map`
-- `rotation_mode` (`sequential`/`random`)
+- `playlist_id`
+- `maplist_policy` (`playlist`/`scenario`)
 
-Дополнительно поддерживаются legacy-ключи (fallback):
+Поддерживаемые legacy fallback-ключи:
 - `router` (вместо `router_alias`)
-- `map_list_file` / `maplist` (вместо `maplist_file`)
-- `fallback` (вместо `fallback_map`)
+- `playlist` (вместо `playlist_id`)
 
-Если `maplist_file` пуст для известных id (`dz`, `comp`, `casual`) — применяется встроенный fallback maplist.
-
-### Source of truth для map pool
-- `maplist_policy=playlist`: source of truth — `playlists.cfg` (поле `maplist_file` внутри плейлиста, на который указывает `playlist_id`).
-- `maplist_policy=scenario`: source of truth — `scenarios.cfg` (поле `maplist_file` самого сценария).
+Если `playlist_id` пуст, используется fallback `playlist_id = id` сценария.
 
 ## 3.3 `playlists.cfg`
-`playlists.cfg` хранит декларативные playlist-метаданные (`maplist_file`, `rotation_mode`, `fallback_map`) и используется как source of truth для map pool, когда в сценарии стоит `maplist_policy=playlist`.
+Используется как декларативный слой плейлистов:
+- `maplist_file`
+- `rotation_mode` (`sequential`/`random`)
+- `fallback_map` (опционально)
 
-### Конкретные примеры
-1. **Сценарий `maplist_policy=playlist`** (поддерживается и используется сейчас):
-   - В `scenarios.cfg`:
-     - `playlist_id "comp"`
-     - `maplist_policy "playlist"`
-   - В `playlists.cfg` секция `"comp"` содержит `maplist_file "cfg/maplist_comp.txt"`.
-   - Итог: map pool берётся из `playlists.cfg` по `playlist_id`.
-
-2. **Сценарий `maplist_policy=scenario`** (поддерживается парсером):
-   - В `scenarios.cfg`:
-     - `playlist_id "dz"` (для связи с fallback/rotation плейлиста)
-     - `maplist_policy "scenario"`
-     - `maplist_file "cfg/maplist_custom_dz.txt"`
-   - Итог: source of truth для map pool — `maplist_file` этого сценария.
+Фактический map-pool читается из соответствующего `maplist_file` плейлиста.
 
 ## 3.4 `lang_ru.cfg`, `lang_en.cfg`
 Языковые ключи заготовлены, но текущий UX во многом использует технические/промежуточные сообщения. Это ожидаемо на текущей стадии миграции.
@@ -195,12 +180,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - При apply ServerFlow выставляет `game_type` и `game_mode` сценария, затем применяет `cfg_file`/`mapgroup`, и только потом делает `changelevel`.
 - Если раньше наблюдался кейс «карта DZ загрузилась, но режим остался casual», проверьте именно шаг `sm_confirmpending` и наличие в логах строк про `game_type/game_mode`.
 
-Состояния:
-- `Lobby`
-- `PreMatch`
-- `Match`
-- `PostMatch`
-- `Transition`
+---
 
 ## 6) Подробный тест-план (для тестеров)
 
@@ -239,11 +219,7 @@ certutil -decode csgo\addons\sourcemod\scripting\compiled\serverflow.smx.b64.txt
 - Факт
 - Логи (`errors_*.log`, `build_serverflow.log`, `mode_actions.log`)
 
-Что проверять тестеру:
-1. В Lobby доступны выбор/голосование.
-2. Pending создаётся, подтверждается, отменяется.
-3. Прямого «хаотичного» apply без transition/pending нет.
-4. В PreMatch ready/countdown/lock фазы не ломают состояние.
+---
 
 ## 7) Диагностика ошибок: быстрый разбор
 
@@ -309,40 +285,24 @@ cmd /k build_serverflow.bat
 6. Прогнать smoke-план из раздела 6.2
 7. Сохранить логи и оформить отчёт по шаблону
 
----
+### 11.2 Фиксированный шаблон test-case
 
 ## 10) Краткая памятка “что для чего”
 
 - `serverflow.sp` — точка входа компиляции.
 - `serverflow/serverflow.sp` — bootstrap/orchestration.
-- `configs/serverflow/scenarios.cfg` — сценарии, `playlist_id`, `maplist_policy` и сценарные параметры.
+- `configs/serverflow/scenarios.cfg` — какие сценарии и какие карты/параметры.
 - `build_serverflow.bat` — каноническая сборка + диагностика.
 - `plugins/serverflow.smx` — файл, который реально должен загрузить SourceMod.
 - `scripting/compiled/serverflow.smx` — зеркало артефакта для удобства.
 
----
+Если механика работает технически, но игрок/админ не понимает:
+- что происходит сейчас,
+- почему это происходит,
+- что произойдёт дальше,
+- что можно сделать прямо сейчас,
 
 ## 11) UX-правило для всех тестов
-
-### 11.1 Обязательные UX-критерии (smoke-check)
-
-Базовый критерий прозрачности состояния: `sm_status` и `sm_status_verbose`.
-
-Smoke-кейс считается пройденным по UX только если явно понятно:
-- текущее состояние (что происходит сейчас);
-- next action (какой следующий шаг ожидается от игрока/админа);
-- pending-статус (есть ли pending и на каком он этапе);
-- кто может подтвердить/отменить pending (`sm_confirmpending` / `sm_cancelpending`).
-
-### 11.2 Фиксированный шаблон test-case
-
-Каждый тест-кейс в smoke и в расширенных прогонах фиксируется в формате:
-1. **Команда**
-2. **Ожидаемый текст игроку**
-3. **Ожидаемый текст админу**
-4. **Fallback-поведение**
-
-Fallback обязателен: если команда недоступна, запрещена по правам или невалидна в текущем state, сообщение должно объяснять причину и next action.
 
 Если механика работает технически, но игрок/админ не понимает:
 - что происходит сейчас,

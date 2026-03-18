@@ -22,7 +22,7 @@ static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &poli
     return false;
 }
 
-// Pass by reference so fallback values persist in caller-side scenario normalization.
+// Must be by-reference so fallback values are persisted in the caller.
 static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario)
 {
     if (scenario.routerAlias[0] == '\0')
@@ -160,8 +160,6 @@ bool Scenarios_LoadFromConfig()
         kv.GetString("cfg_file", scenario.cfgFile, sizeof(scenario.cfgFile), "");
         kv.GetString("playlist_id", scenario.playlistId, sizeof(scenario.playlistId), "");
 
-        Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
-
         char maplistPolicyRaw[24];
         kv.GetString("maplist_policy", maplistPolicyRaw, sizeof(maplistPolicyRaw), "playlist");
         if (!Scenarios_ParseMaplistPolicy(maplistPolicyRaw, scenario.maplistPolicy))
@@ -169,6 +167,8 @@ bool Scenarios_LoadFromConfig()
             LogError("[serverflow] invalid maplist_policy '%s' for scenario '%s'; using playlist", maplistPolicyRaw, scenario.id);
             scenario.maplistPolicy = MaplistPolicy_Playlist;
         }
+
+        Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))
         {
@@ -181,7 +181,7 @@ bool Scenarios_LoadFromConfig()
             continue;
         }
 
-        LogMessage("[serverflow] scenario loaded: id=%s playlist_id=%s mapgroup=%s", scenario.id, scenario.playlistId, scenario.mapgroup);
+        LogMessage("[serverflow] scenario loaded: id=%s playlist=%s mapgroup=%s", scenario.id, scenario.playlistId, scenario.mapgroup);
         Scenarios_Register(scenario);
     }
     while (kv.GotoNextKey(false));

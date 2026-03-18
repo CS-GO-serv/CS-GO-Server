@@ -74,7 +74,20 @@ static void Bootstrap_Minimal()
 
 public void OnPluginStart()
 {
+<<<<<<< Updated upstream
     LoadTranslations("serverflow.phrases");
+=======
+    char path[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, path, sizeof(path), "translations/serverflow.phrases.txt");
+    if (FileExists(path))
+    {
+        LoadTranslations("serverflow.phrases");
+    }
+    else
+    {
+        LogError("[ServerFlow] Missing translations/serverflow.phrases.txt! Required plugin resource.");
+    }
+>>>>>>> Stashed changes
 
     Bootstrap_Minimal();
     Health_RunFullCheck("OnPluginStart");

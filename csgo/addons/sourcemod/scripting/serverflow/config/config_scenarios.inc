@@ -22,6 +22,7 @@ static bool Scenarios_ParseMaplistPolicy(const char[] value, MaplistPolicy &poli
     return false;
 }
 
+<<<<<<< Updated upstream
 // Must be by-reference so fallback values are persisted in the caller.
 static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario)
 {
@@ -41,6 +42,41 @@ static void Scenarios_ApplyLegacyFieldFallbacks(KeyValues kv, ModeInfo &scenario
     }
 }
 
+=======
+static bool Scenarios_ParseTeamPolicy(const char[] value, TeamPolicy &policy)
+{
+    if (StrEqual(value, "auto", false))
+    {
+        policy = TeamPolicy_Auto;
+        return true;
+    }
+    if (StrEqual(value, "manual", false) || StrEqual(value, "open", false))
+    {
+        policy = TeamPolicy_Manual;
+        return true;
+    }
+    
+    policy = TeamPolicy_None;
+    return true; // Default fallback is None
+}
+
+static bool Scenarios_ParseReadyPolicy(const char[] value, ReadyPolicy &policy)
+{
+    if (StrEqual(value, "required", false) || StrEqual(value, "percent", false) || StrEqual(value, "all", false))
+    {
+        policy = ReadyPolicy_Required;
+        return true;
+    }
+    if (StrEqual(value, "optional", false))
+    {
+        policy = ReadyPolicy_Optional;
+        return true;
+    }
+    
+    policy = ReadyPolicy_Disabled;
+    return true;
+}
+>>>>>>> Stashed changes
 
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
@@ -168,7 +204,19 @@ bool Scenarios_LoadFromConfig()
             scenario.maplistPolicy = MaplistPolicy_Playlist;
         }
 
+<<<<<<< Updated upstream
         Scenarios_ApplyLegacyFieldFallbacks(kv, scenario);
+=======
+        scenario.requirePrematch = !!kv.GetNum("require_prematch", 1);
+
+        char teamPolicyRaw[24];
+        kv.GetString("team_policy", teamPolicyRaw, sizeof(teamPolicyRaw), "none");
+        Scenarios_ParseTeamPolicy(teamPolicyRaw, scenario.teamPolicy);
+
+        char readyPolicyRaw[24];
+        kv.GetString("ready_policy", readyPolicyRaw, sizeof(readyPolicyRaw), "disabled");
+        Scenarios_ParseReadyPolicy(readyPolicyRaw, scenario.readyPolicy);
+>>>>>>> Stashed changes
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))
         {

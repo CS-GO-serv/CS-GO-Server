@@ -76,7 +76,7 @@ int ReadyManager_GetPoolCount()
 
 int ReadyManager_GetReadyCount()
 {
-    int total;
+    int total = 0;
     for (int i = 1; i <= MaxClients; i++)
     {
         if (ReadyManager_IsClientInPool(i) && g_ReadyFlags[i])
@@ -94,6 +94,18 @@ bool ReadyManager_IsReadySatisfied()
     if (poolCount <= 0)
     {
         return false;
+    }
+
+    ModeInfo scenarioInfo;
+    char currentScenario[16];
+    Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
+    
+    if (Scenario_Get(FindModeById(currentScenario), scenarioInfo))
+    {
+        if (scenarioInfo.readyPolicy == ReadyPolicy_Disabled)
+        {
+            return true; // Auto-ready
+        }
     }
 
     return ReadyManager_GetReadyCount() >= poolCount;

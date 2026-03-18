@@ -14,7 +14,7 @@ bool State_CanTransition(ServerState from, ServerState to)
     {
         case ServerState_Lobby:
         {
-            return (to == ServerState_PreMatch || to == ServerState_Transition);
+            return (to == ServerState_PreMatch || to == ServerState_Match || to == ServerState_Transition);
         }
         case ServerState_PreMatch:
         {
@@ -22,7 +22,7 @@ bool State_CanTransition(ServerState from, ServerState to)
         }
         case ServerState_Match:
         {
-            return (to == ServerState_PostMatch || to == ServerState_Transition);
+            return (to == ServerState_PostMatch || to == ServerState_Lobby || to == ServerState_Transition);
         }
         case ServerState_PostMatch:
         {

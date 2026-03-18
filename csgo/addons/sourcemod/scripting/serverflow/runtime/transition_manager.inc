@@ -118,25 +118,12 @@ static bool Transition_ValidateAndApply(PendingChange &pending, const char[] con
     Session_SetTransitionType(TransitionType_ApplyPending);
     Session_SetPendingChangeState(Pending_Applying);
 
-    if (pending.scenarioId[0] != '\0')
-    {
-        Transition_ApplyScenario(pending.scenarioId);
-
-        if (!State_EnterPreMatch("pending_confirmed"))
-        {
-            Transition_AuditFailedApply(pending, "failed_prematch_transition", context, "cancel_pending");
-            Pending_Cancel("failed_prematch_transition");
-            Session_SetFallbackReason("failed_prematch_transition");
-            return false;
-        }
-
-        TeamManager_EnterPreMatchSetup("pending_confirmed");
-        ReadyManager_ResetAll("pending_confirmed");
-    }
+    bool needChangelevel = false;
+    char resolvedMap[64];
+    resolvedMap[0] = '\0';
 
     if (pending.mapName[0] != '\0' || pending.scenarioId[0] != '\0')
     {
-        char resolvedMap[64];
         if (!Playlist_ResolveNextMap(mapScenarioId, pending.mapName, resolvedMap, sizeof(resolvedMap)) || !IsMapValid(resolvedMap))
         {
             Transition_AuditFailedApply(pending, "failed_map_resolution", context, "cancel_pending");
@@ -145,8 +132,63 @@ static bool Transition_ValidateAndApply(PendingChange &pending, const char[] con
             return false;
         }
 
+        char currentMap[64];
+        GetCurrentMap(currentMap, sizeof(currentMap));
+
+        if (!StrEqual(currentMap, resolvedMap, false))
+        {
+            needChangelevel = true;
+        }
+    }
+
+    if (pending.scenarioId[0] != '\0')
+    {
+        Transition_ApplyScenario(pending.scenarioId);
+        
+        ModeInfo scenarioInfo;
+        bool bRequirePrematch = true;
+        if (Scenario_Get(FindModeById(pending.scenarioId), scenarioInfo))
+        {
+            bRequirePrematch = scenarioInfo.requirePrematch;
+        }
+
+        if (bRequirePrematch)
+        {
+            if (!State_EnterPreMatch("pending_confirmed"))
+            {
+                Transition_AuditFailedApply(pending, "failed_prematch_transition", context, "cancel_pending");
+                Pending_Cancel("failed_prematch_transition");
+                Session_SetFallbackReason("failed_prematch_transition");
+                return false;
+            }
+
+            TeamManager_EnterPreMatchSetup("pending_confirmed");
+            ReadyManager_ResetAll("pending_confirmed");
+        }
+        else
+        {
+            if (!State_EnterLobby("pending_confirmed_no_prematch"))
+            {
+                Transition_AuditFailedApply(pending, "failed_lobby_transition", context, "cancel_pending");
+                Pending_Cancel("failed_lobby_transition");
+                Session_SetFallbackReason("failed_lobby_transition");
+                return false;
+            }
+        }
+    }
+
+    if (resolvedMap[0] != '\0')
+    {
         Session_SetQueuedMap(resolvedMap);
-        ServerCommand("changelevel %s", resolvedMap);
+        
+        if (needChangelevel)
+        {
+            ServerCommand("changelevel %s", resolvedMap);
+        }
+        else if (pending.scenarioId[0] != '\0')
+        {
+            ServerCommand("mp_restartgame 1");
+        }
     }
 
     return true;

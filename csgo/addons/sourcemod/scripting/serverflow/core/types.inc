@@ -23,6 +23,9 @@ enum struct ModeInfo
     char cfgFile[64];
     char playlistId[16];
     MaplistPolicy maplistPolicy;
+    bool requirePrematch;
+    TeamPolicy teamPolicy;
+    ReadyPolicy readyPolicy;
 }
 
 enum struct PendingChange

@@ -32,6 +32,8 @@
 #include "domain/countdown_manager.inc"
 #include "domain/team_manager.inc"
 #include "domain/vote_manager.inc"
+#include "domain/postmatch_manager.inc"
+#include "domain/lobby_manager.inc"
 #include "domain/admin_override_manager.inc"
 
 #include "presentation/status_presenter.inc"
@@ -112,6 +114,15 @@ public void OnClientDisconnect(int client)
 public void OnServerStateChanged(ServerState oldState, ServerState newState, const char[] reason)
 {
     Notify_StateChanged(oldState, newState, reason);
+    
+    if (newState == ServerState_PostMatch)
+    {
+        PostMatchManager_OnEnterPostMatch(reason);
+    }
+    else if (newState == ServerState_Lobby)
+    {
+        LobbyManager_OnEnterLobby(reason);
+    }
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon)

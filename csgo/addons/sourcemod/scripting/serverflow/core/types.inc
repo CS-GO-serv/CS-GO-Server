@@ -26,6 +26,8 @@ enum struct ModeInfo
     bool requirePrematch;
     TeamPolicy teamPolicy;
     ReadyPolicy readyPolicy;
+    PostMatchDefaultAction postMatchDefaultAction;
+    int postMatchDecisionTime;
 }
 
 enum struct PendingChange

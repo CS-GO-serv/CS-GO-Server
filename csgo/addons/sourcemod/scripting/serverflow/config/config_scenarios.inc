@@ -75,6 +75,28 @@ static bool Scenarios_ParseReadyPolicy(const char[] value, ReadyPolicy &policy)
     return true;
 }
 
+static bool Scenarios_ParsePostMatchAction(const char[] value, PostMatchDefaultAction &action)
+{
+    if (StrEqual(value, "vote", false))
+    {
+        action = PostMatchAction_Vote;
+        return true;
+    }
+    if (StrEqual(value, "rotate", false))
+    {
+        action = PostMatchAction_Rotate;
+        return true;
+    }
+    if (StrEqual(value, "lobby", false))
+    {
+        action = PostMatchAction_Lobby;
+        return true;
+    }
+    
+    action = PostMatchAction_Stay;
+    return true;
+}
+
 bool Scenarios_ValidateEntry(const ModeInfo scenario, int index)
 {
     bool valid = true;
@@ -212,6 +234,12 @@ bool Scenarios_LoadFromConfig()
         char readyPolicyRaw[24];
         kv.GetString("ready_policy", readyPolicyRaw, sizeof(readyPolicyRaw), "disabled");
         Scenarios_ParseReadyPolicy(readyPolicyRaw, scenario.readyPolicy);
+
+        char postmatchPolicyRaw[24];
+        kv.GetString("postmatch_policy", postmatchPolicyRaw, sizeof(postmatchPolicyRaw), "stay");
+        Scenarios_ParsePostMatchAction(postmatchPolicyRaw, scenario.postMatchDefaultAction);
+
+        scenario.postMatchDecisionTime = kv.GetNum("postmatch_decision_time", 30);
 
         if (!Scenarios_ValidateEntry(scenario, g_ScenarioCount))
         {

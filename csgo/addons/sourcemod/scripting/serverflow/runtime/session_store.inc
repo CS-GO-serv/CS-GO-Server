@@ -1,7 +1,6 @@
-#if defined _SERVERFLOW_SESSION_STORE_INC_
- #endinput
-#endif
 #define _SERVERFLOW_SESSION_STORE_INC_
+
+static ArrayList g_ScenarioHistory;
 
 static void Session_ResetVote()
 {
@@ -61,6 +60,12 @@ void Session_Init()
     g_Session.fallbackReason[0] = '\0';
     g_Session.startedAt = GetTime();
     g_Session.lastStateChangeTs = g_Session.startedAt;
+
+    if (g_ScenarioHistory == null)
+    {
+        g_ScenarioHistory = new ArrayList(ByteCountToCells(16));
+    }
+    g_ScenarioHistory.Clear();
 }
 
 void Session_SetState(ServerState state)
@@ -89,6 +94,16 @@ PreMatchPhase Session_GetPreMatchPhase()
     return g_Session.preMatchPhase;
 }
 
+void Session_SetPostMatchPhase(PostMatchPhase phase)
+{
+    g_Session.postMatchPhase = phase;
+}
+
+PostMatchPhase Session_GetPostMatchPhase()
+{
+    return g_Session.postMatchPhase;
+}
+
 void Session_SetLockPhase(bool enabled)
 {
     g_Session.lockPhase = enabled;
@@ -97,6 +112,39 @@ void Session_SetLockPhase(bool enabled)
 bool Session_IsLockPhase()
 {
     return g_Session.lockPhase;
+}
+
+void Session_RecordHistory(const char[] scenarioId)
+{
+    if (g_ScenarioHistory == null) return;
+    
+    // Add to end, remove from start if too long
+    g_ScenarioHistory.PushString(scenarioId);
+    if (g_ScenarioHistory.Length > MAX_HISTORY_SCENARIOS)
+    {
+        g_ScenarioHistory.Erase(0);
+    }
+}
+
+bool Session_IsInHistory(const char[] scenarioId)
+{
+    if (g_ScenarioHistory == null) return false;
+    
+    int len = g_ScenarioHistory.Length;
+    int checkCount = g_VoteHistorySize;
+    if (checkCount > len) checkCount = len;
+    
+    char buffer[16];
+    // Check from the end (most recent) backwards
+    for (int i = len - 1; i >= len - checkCount; i--)
+    {
+        g_ScenarioHistory.GetString(i, buffer, sizeof(buffer));
+        if (StrEqual(buffer, scenarioId, false))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Session_SetCountdownState(bool active, int endsAt)

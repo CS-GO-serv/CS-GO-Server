@@ -154,3 +154,12 @@ enum HealthStatus
     HealthStatus_Degraded,
     HealthStatus_Fail
 };
+
+enum VotePolicy
+{
+    VotePolicy_Majority = 0,
+    VotePolicy_Roulette,
+    VotePolicy_EqualWeight,
+    VotePolicy_RandomTop2,
+    VotePolicy_Threshold
+};

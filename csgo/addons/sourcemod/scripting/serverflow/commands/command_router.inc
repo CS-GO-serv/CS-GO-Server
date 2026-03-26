@@ -22,6 +22,7 @@ void CommandRouter_Register()
     RegConsoleCmd("sm_forcescenario", Command_OverrideScenario);
     RegAdminCmd("sm_sfhealth", Command_RuntimeHealth, ADMFLAG_CHANGEMAP);
     RegAdminCmd("sm_sfdump", Command_RuntimeDump, ADMFLAG_CHANGEMAP);
+    RegAdminCmd("sm_adminflow", Command_AdminBuilder, ADMFLAG_CHANGEMAP);
 }
 
 bool CommandRouter_RequestScenarioSelect(int client, int modeIndex, const char[] source = "player_select")

@@ -3,6 +3,11 @@
 #endif
 #define _SERVERFLOW_TYPES_INC_
 
+enum struct ModifierString
+{
+    char cfg[64];
+}
+
 enum struct PlaylistDefinition
 {
     char id[16];
@@ -45,6 +50,8 @@ enum struct PendingChange
     ServerState allowedApplyState;
     int expiresAt;
     PendingConfirmPolicy confirmPolicy;
+    ModifierString modifiers[MAX_SESSION_MODIFIERS];
+    int modifierCount;
 }
 
 enum struct VoteRecord
@@ -87,6 +94,9 @@ enum struct RuntimeSession
 
     int startedAt;
     int lastStateChangeTs;
+
+    ModifierString modifiers[MAX_SESSION_MODIFIERS];
+    int modifierCount;
 }
 
 enum struct PlayerRuntimeState

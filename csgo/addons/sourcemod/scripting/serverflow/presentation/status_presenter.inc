@@ -179,15 +179,34 @@ public Action Timer_DrawHUD(Handle timer)
         return Plugin_Continue;
     }
     
-    char hudLine[256];
+    char hudLine[512];
     char currentScenario[32];
     char queuedScenario[32];
     char stateText[32];
-    char countText[64];
+    char countText[128];
+    char pendingText[128];
     
     Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
     Session_GetQueuedScenario(queuedScenario, sizeof(queuedScenario));
     ServerStateToString(state, stateText, sizeof(stateText));
+    
+    char stateColor[16];
+    if (state == ServerState_Lobby) strcopy(stateColor, sizeof(stateColor), "#00c3ff");
+    else if (state == ServerState_PreMatch) strcopy(stateColor, sizeof(stateColor), "#ffcc00");
+    else if (state == ServerState_PostMatch) strcopy(stateColor, sizeof(stateColor), "#ff3366");
+    else strcopy(stateColor, sizeof(stateColor), "#ffffff");
+
+    char scenarioLine[128];
+    if (queuedScenario[0] == '\0' || StrEqual(currentScenario, queuedScenario))
+    {
+        Format(scenarioLine, sizeof(scenarioLine), "PLAYING: <font color='#00ff00'>%s</font>", currentScenario);
+    }
+    else
+    {
+        Format(scenarioLine, sizeof(scenarioLine), "PLAYING: %s  |  NEXT: <font color='#ffaa00'>%s</font>", currentScenario, queuedScenario);
+    }
+
+    Format(hudLine, sizeof(hudLine), "<font color='%s'><b>[ %s ]</b></font>   %s\n", stateColor, stateText, scenarioLine);
     
     int readyCount = ReadyManager_GetReadyCount();
     int readyPool = ReadyManager_GetPoolCount();
@@ -196,30 +215,23 @@ public Action Timer_DrawHUD(Handle timer)
     {
         int countdownLeft = Session_GetCountdownEndsAt() - GetTime();
         if (countdownLeft < 0) countdownLeft = 0;
-        Format(countText, sizeof(countText), "START IN: %d sec", countdownLeft);
+        Format(countText, sizeof(countText), "\n<font color='#ff0000'><b>STARTING IN: %d SEC</b></font>\n", countdownLeft);
     }
     else
     {
-        Format(countText, sizeof(countText), "Ready: %d / %d", readyCount, readyPool);
+        Format(countText, sizeof(countText), "\n<font color='#cccccc'>Waiting for players (%d / %d Ready)</font>\n", readyCount, readyPool);
     }
+    StrCat(hudLine, sizeof(hudLine), countText);
     
     PendingChange pending;
     Session_GetPendingChange(pending);
-    char pendingText[64];
     if (pending.state == Pending_Proposed || pending.state == Pending_Selected)
     {
         int pendingLeft = pending.expiresAt > 0 ? pending.expiresAt - GetTime() : 0;
         if (pendingLeft < 0) pendingLeft = 0;
-        Format(pendingText, sizeof(pendingText), "\nPENDING: %s (Time to cancel: %ds)", pending.scenarioId, pendingLeft);
+        Format(pendingText, sizeof(pendingText), "<font color='#ff5500'>Pending Vote Confirmed. Auto-Cancel in: %ds</font>", pendingLeft);
+        StrCat(hudLine, sizeof(hudLine), pendingText);
     }
-    
-    // Clear the hint box first to avoid ghosting issues on some clients, then print
-    Format(hudLine, sizeof(hudLine), "<font color='#00ff00'>[%s]</font> | Next: <font color='#ffbf00'>%s</font>\n%s%s", 
-        stateText, 
-        queuedScenario[0] == '\0' ? "None" : queuedScenario,
-        countText,
-        pendingText
-    );
     
     PrintHintTextToAll("%s", hudLine);
     

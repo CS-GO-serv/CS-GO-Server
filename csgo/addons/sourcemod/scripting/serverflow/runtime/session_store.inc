@@ -50,6 +50,7 @@ void Session_Init()
     g_Session.pendingChange.allowedApplyState = ServerState_Lobby;
     g_Session.pendingChange.expiresAt = 0;
     g_Session.pendingChange.confirmPolicy = PendingConfirm_Manual;
+    g_Session.pendingChange.modifierCount = 0;
 
     Session_ResetVote();
 
@@ -58,6 +59,7 @@ void Session_Init()
     g_Session.countdownEndsAt = 0;
     g_Session.overrideLevel = OverrideLevel_None;
     g_Session.fallbackReason[0] = '\0';
+    g_Session.modifierCount = 0;
     g_Session.startedAt = GetTime();
     g_Session.lastStateChangeTs = g_Session.startedAt;
 
@@ -227,7 +229,28 @@ void Session_SetPendingChange(const char[] scenarioId, const char[] mapName, con
     g_Session.pendingChange.allowedApplyState = allowedApplyState;
     g_Session.pendingChange.expiresAt = expiresAt;
     g_Session.pendingChange.confirmPolicy = confirmPolicy;
+    g_Session.pendingChange.modifierCount = 0;
 }
+
+void Session_AddPendingModifier(const char[] modifierCfg)
+{
+    if (g_Session.pendingChange.modifierCount < MAX_SESSION_MODIFIERS)
+    {
+        int idx = g_Session.pendingChange.modifierCount;
+        strcopy(g_Session.pendingChange.modifiers[idx].cfg, sizeof(g_Session.pendingChange.modifiers[].cfg), modifierCfg);
+        g_Session.pendingChange.modifierCount++;
+    }
+}
+
+void Session_SetActiveModifiers(const ModifierString[] modifiers, int count)
+{
+    g_Session.modifierCount = (count > MAX_SESSION_MODIFIERS) ? MAX_SESSION_MODIFIERS : count;
+    for (int i = 0; i < g_Session.modifierCount; i++)
+    {
+        strcopy(g_Session.modifiers[i].cfg, sizeof(g_Session.modifiers[].cfg), modifiers[i].cfg);
+    }
+}
+
 
 void Session_SetPendingChangeState(PendingChangeState state)
 {
@@ -270,6 +293,7 @@ void Session_ClearPendingChange()
     g_Session.pendingChange.allowedApplyState = ServerState_Lobby;
     g_Session.pendingChange.expiresAt = 0;
     g_Session.pendingChange.confirmPolicy = PendingConfirm_Manual;
+    g_Session.pendingChange.modifierCount = 0;
     g_Session.overrideLevel = OverrideLevel_None;
 }
 

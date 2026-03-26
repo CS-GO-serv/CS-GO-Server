@@ -42,6 +42,7 @@
 #include "presentation/menu_vote.inc"
 #include "presentation/menu_team.inc"
 #include "presentation/menu_admin.inc"
+#include "presentation/admin_builder_menu.inc"
 
 #include "commands/cmd_player.inc"
 #include "commands/cmd_admin.inc"

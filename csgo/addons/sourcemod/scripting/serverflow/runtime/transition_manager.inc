@@ -15,25 +15,34 @@ static void Transition_AuditFailedApply(PendingChange pending, const char[] reas
     Audit_LogEvent("transition", "fallback", pending.requestedBy, fallbackDecision, context);
 }
 
-static void Transition_ApplyScenario(const char[] scenarioId)
+static void Transition_ApplyScenario(PendingChange pending)
 {
-    int scenarioIndex = FindModeById(scenarioId);
+    int scenarioIndex = FindModeById(pending.scenarioId);
 
-    Session_SetCurrentScenario(scenarioId);
-    Session_SetQueuedScenario(scenarioId);
+    Session_SetCurrentScenario(pending.scenarioId);
+    Session_SetQueuedScenario(pending.scenarioId);
 
     ServerCommand("game_type %d", g_Scenarios[scenarioIndex].gameType);
     ServerCommand("game_mode %d", g_Scenarios[scenarioIndex].gameMode);
     ModeDebug(
         "scenario apply game settings: id=%s game_type=%d game_mode=%d",
-        scenarioId,
+        pending.scenarioId,
         g_Scenarios[scenarioIndex].gameType,
         g_Scenarios[scenarioIndex].gameMode
     );
 
+    ServerCommand("exec serverflow_base.cfg");
+
     if (g_Scenarios[scenarioIndex].cfgFile[0] != '\0')
     {
         ServerCommand("exec %s", g_Scenarios[scenarioIndex].cfgFile);
+    }
+
+    Session_SetActiveModifiers(pending.modifiers, pending.modifierCount);
+    for (int i = 0; i < pending.modifierCount; i++)
+    {
+        ServerCommand("exec %s", pending.modifiers[i].cfg);
+        ModeDebug("applied modifier cfg: %s", pending.modifiers[i].cfg);
     }
 
     if (g_Scenarios[scenarioIndex].mapgroup[0] != '\0')
@@ -143,7 +152,7 @@ static bool Transition_ValidateAndApply(PendingChange pending, const char[] cont
 
     if (pending.scenarioId[0] != '\0')
     {
-        Transition_ApplyScenario(pending.scenarioId);
+        Transition_ApplyScenario(pending);
         
         ModeInfo scenarioInfo;
         bool bRequirePrematch = true;

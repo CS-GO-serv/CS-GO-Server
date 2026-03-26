@@ -41,6 +41,20 @@ public Action Timer_PostMatchToDecision(Handle timer)
     
     Session_SetPostMatchPhase(PostMatch_Decision);
     
+    // [NEW] Idle Protection Check
+    if (CountHumanPlayers() < g_VoteMinPlayers)
+    {
+        ModeDebug("PostMatch Idle Protection: Less than %d players. Halting rotation to allow warmup.", g_VoteMinPlayers);
+        
+        char currentScenario[16];
+        Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
+        
+        Pending_Create(currentScenario, "", "idle_protection", 0, "idle_protection", ServerState_PostMatch, PendingConfirm_Auto);
+        Transition_ConfirmAndApplyPending(0, "idle_protection");
+        
+        return Plugin_Stop;
+    }
+    
     char currentScenario[16];
     Session_GetCurrentScenario(currentScenario, sizeof(currentScenario));
     int scenarioIndex = FindModeById(currentScenario);

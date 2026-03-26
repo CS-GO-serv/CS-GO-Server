@@ -37,6 +37,11 @@ void Pending_Create(const char[] scenarioId, const char[] mapName, const char[] 
     Notify_PendingCreated(scenarioId, mapName, g_PendingConfirmWindow, why, allowedApplyState, confirmPolicy);
 }
 
+void Pending_AddModifier(const char[] modifierCfg)
+{
+    Session_AddPendingModifier(modifierCfg);
+}
+
 void Pending_Select()
 {
     if (Session_GetPendingChangeState() != Pending_Proposed)

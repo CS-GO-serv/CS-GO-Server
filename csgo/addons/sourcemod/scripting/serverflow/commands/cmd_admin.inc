@@ -113,3 +113,15 @@ public Action Command_RuntimeDump(int client, int args)
     ReplyToCommand(client, "Runtime state dump emitted to server console.");
     return Plugin_Handled;
 }
+
+public Action Command_AdminBuilder(int client, int args)
+{
+    if (client == 0)
+    {
+        ReplyToCommand(client, "This command can only be used in-game.");
+        return Plugin_Handled;
+    }
+    
+    AdminBuilder_OpenMain(client);
+    return Plugin_Handled;
+}
